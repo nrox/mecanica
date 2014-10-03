@@ -124,10 +124,10 @@ function addLibrary(lib) {
     three: ['Vector3'],
     ammo: ['btVector3']
   };
-  lib = lib | {};
-  _.map(checks, function (checkList, libName) {
+  lib = lib || {};
+  _.each(checks, function (checkList, libName) {
     if (_.every(checkList, function (property) {
-       return !!lib[property];
+      return !!lib[property];
     })) {
       library[libName] = lib;
     }
@@ -136,9 +136,15 @@ function addLibrary(lib) {
 
 //extend an object using a description
 function extendFromDescription(obj, group, type, parameters) {
-  parameters = _.extend(_.clone(description[group][type].parameters), parameters || {});
+  //pick properties mentioned in the description
+  var relevant = _.pick(parameters || {}, _.keys(description[group][type].parameters));
+  //override default values
+  parameters = _.extend(_.clone(description[group][type].parameters), relevant);
+  //add this properties to the object
   _.extend(obj, parameters);
+  //get the constructors
   var constructionLists = description[group][type].constructors || {};
+  //for each library create the object and add it as a property with the library name as key
   for (var l in library) { //lib{ammo, three}
     if (library.hasOwnProperty(l) && library[l] && constructionLists[l])
       obj[l] = construct(library[l], constructionLists[l], parameters);

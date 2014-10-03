@@ -1,4 +1,5 @@
 var _ = require('../lib/underscore.js');
+var path = require('path');
 
 module.exports = {
 
@@ -9,9 +10,12 @@ module.exports = {
    */
   logKeys: function (obj, title) {
     title && console.log(title);
+    var count = 0;
     for (var i in obj) {
+      count++;
       console.log('  ' + i + ' : ' + typeof obj[i]);
     }
+    title && console.log('  ' + count + ' properties');
   },
 
   /**
@@ -24,14 +28,15 @@ module.exports = {
   checkKeys: function (obj, keys, title) {
     title && console.log(title);
     var results = _.map(keys, function (property) {
-      if (obj[property]===undefined) {
+      if (obj[property] === undefined) {
         title && console.log('  undefined: ' + property);
         return false;
       } else {
         return true;
       }
     });
-    return _.every(results);
+    var res = _.every(results);
+    console.log('  success: ' + res);
   },
 
   /**
@@ -44,7 +49,7 @@ module.exports = {
   checkValues: function (obj, keyValue, title) {
     title && console.log(title);
     var results = _.map(keyValue, function (value, property) {
-      if (obj[property]===undefined) {
+      if (obj[property] === undefined) {
         title && console.log('  undefined: ' + property);
         return false;
       } else if ((typeof obj[property] == 'function')) {
@@ -57,8 +62,8 @@ module.exports = {
         } else {
           return true;
         }
-      } else if (obj[property]!==value){
-        title && console.log('  mismatch: ' + property + '()');
+      } else if (obj[property] !== value) {
+        title && console.log('  mismatch: ' + property);
         title && console.log('      want: ' + value);
         title && console.log('       got: ' + obj[property]);
         return false;
@@ -66,7 +71,32 @@ module.exports = {
         return true;
       }
     });
-    return _.every(results);
+    var res = _.every(results);
+    console.log('  success: ' + res);
+    return res;
+  },
+
+  all: function (obj) {
+    return function () {
+      console.log('--testing all--');
+      var keys = _.without(_.keys(obj), 'all');
+      for (var i = 0; i < keys.length; i++) {
+        obj[keys[i]]();
+      }
+    };
+  },
+
+  run: function (tests, argv, filename) {
+    var item = argv[2];
+    if (tests[item]) {
+      tests[item]();
+    } else {
+      var file = path.basename(filename);
+      console.log('to run tests in ' + file + ' use one of these commands:');
+      _.each(tests, function (value, key) {
+        console.log('node ' + file + ' ' + key);
+      });
+    }
   }
 };
 
