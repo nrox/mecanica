@@ -3,7 +3,7 @@
  */
 var _ = require('./lib/underscore.js');
 
-var lib = {
+var library = {
   ammo: undefined,
   three: undefined
 };
@@ -119,13 +119,19 @@ function construct(lib, list, desc) {
   return instantiate(fn, args);
 }
 
-//set three.js
-function setThree(three) {
-  lib.three = three;
-}
-//set ammo.js
-function setAmmo(ammo) {
-  lib.ammo = ammo;
+function addLibrary(lib) {
+  var checks = {
+    three: ['Vector3'],
+    ammo: ['btVector3']
+  };
+  lib = lib | {};
+  _.map(checks, function (checkList, libName) {
+    if (_.every(checkList, function (property) {
+       return !!lib[property];
+    })) {
+      library[libName] = lib;
+    }
+  });
 }
 
 //extend an object using a description
@@ -133,9 +139,9 @@ function extendFromDescription(obj, group, type, parameters) {
   parameters = _.extend(_.clone(description[group][type].parameters), parameters || {});
   _.extend(obj, parameters);
   var constructionLists = description[group][type].constructors || {};
-  for (var l in lib) { //lib{ammo, three}
-    if (lib.hasOwnProperty(l) && lib[l] && constructionLists[l])
-      obj[l] = construct(lib[l], constructionLists[l], parameters);
+  for (var l in library) { //lib{ammo, three}
+    if (library.hasOwnProperty(l) && library[l] && constructionLists[l])
+      obj[l] = construct(library[l], constructionLists[l], parameters);
   }
 }
 
@@ -145,8 +151,7 @@ function Shape(type, parameters) {
 }
 
 module.exports = {
-  setThree: setThree,
-  setAmmo: setAmmo,
+  addLibrary: addLibrary,
   description: description,
   construct: construct,
   Shape: Shape

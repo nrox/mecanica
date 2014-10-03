@@ -1,6 +1,6 @@
 'use strict';
 
-var Ammo = require('../builds/ammo.js');
+var Ammo = require('./lib/ammo.js');
 var _ = require('./lib/underscore.js');
 var description = require('./factory.js');
 
