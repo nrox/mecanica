@@ -1,6 +1,1 @@
-mecanica
-========
-
-from [Physijs](https://github.com/chandlerprall/Physijs "Physijs")
-
-
+taken from [chandlerprall/Physijs](https://github.com/chandlerprall/Physijs "chandlerprall/Physijs")
