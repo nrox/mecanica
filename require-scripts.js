@@ -2,29 +2,34 @@
  * A custom version of require for this library purpose
  * Allowing to run it with node and in the browser
  */
-function require(script) {
-  console.log('require ' + script);
+function require(script, arg) {
+
+  //all paths are converted to absolute
   var name = script.substr(script.lastIndexOf('/') + 1);
   if (script.lastIndexOf('.js') < 0) return;
-  function url(path) {
+  var url = (function () {
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
     return folder + name;
-  }
+  })();
 
+  //node.js stubs
   var process = {
-    argv: ['node', script, arguments[1]]
+    //an argument is necessary for some test-....js scripts
+    argv: ['node', script, arg]
   };
   var __filename = script;
   var module = {
     exports: {}
   };
   var exports = {};
+
+  //in case of ammo remove stubs, or it will require fs and path
   if (name == 'ammo.js') {
     module = process = exports = undefined;
   }
-  jQuery.ajax(url(script), {
-    cache: false,
+  jQuery.ajax(url, {
+    cache: !url.indexOf('/lib/'), //cache only if its under /lib/
     async: false,
     dataType: 'text',
     error: function (jqXHR, textStatus, errorThrown) {
