@@ -9,7 +9,7 @@ module.exports = {
    * @param title log text
    */
   logKeys: function (obj, title) {
-    title && console.log(title);
+    title && console.log('\n' + title);
     var count = 0;
     for (var i in obj) {
       count++;
@@ -26,7 +26,7 @@ module.exports = {
    * @returns {boolean} true if all keys present, false otherwise
    */
   checkKeys: function (obj, keys, title) {
-    title && console.log(title);
+    title && console.log('\n' + title);
     var results = _.map(keys, function (property) {
       if (obj[property] === undefined) {
         title && console.log('  undefined: ' + property);
@@ -48,7 +48,7 @@ module.exports = {
    * @returns {boolean} true if all values match, false otherwise
    */
   checkValues: function (obj, keyValue, title) {
-    title && console.log(title);
+    title && console.log('\n' + title);
     var results = _.map(keyValue, function (value, property) {
       if (obj[property] === undefined) {
         title && console.log('  undefined: ' + property);

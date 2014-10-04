@@ -15,9 +15,9 @@ factory.addLibrary(three);
 function shape(type) {
   return function () {
     var parameters = {
-      dx: 1.2,
-      dy: 2.3,
-      r: 1.7
+      dx: 3,
+      dy: 5,
+      r: 4
     };
     var obj = new factory.Shape(type, parameters);
     utils.logKeys(obj, type + ' properties');

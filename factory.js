@@ -101,10 +101,16 @@ var description = {
         restitution: 0.2,
         color: 0x333333,
         opacity: 1
+      },
+      constructors: {
+        three: ['MeshBasicMaterial', 'parameters']
       }
     },
     phong: {
-      extends: ['material', 'basic']
+      extends: ['material', 'basic'],
+      constructors: {
+        three: []
+      }
     }
   },
   body: {
@@ -143,7 +149,8 @@ function instantiate(constructor, args) {
 }
 
 //create an instance of an object, using the description
-function construct(lib, list, desc) {
+function construct(lib, list, parameters) {
+  parameters || (parameters = {});
   var argumentsList = [];
   var arg;
   var fn;
@@ -169,9 +176,11 @@ function construct(lib, list, desc) {
           argumentsList.push(arg);
           break;
         case 'string':
-          //if its a string and is a parameters, use parameters value
-          if (desc[arg] !== undefined) {
-            argumentsList.push(desc[arg]);
+          if (arg == 'parameters') {
+            argumentsList.push(_.clone(parameters));
+          } else if (parameters[arg] !== undefined) {
+            //if its a string and is a parameters, use parameters value
+            argumentsList.push(parameters[arg]);
           } else {
             //evaluate the value
             argumentsList.push(tryEval(arg));
@@ -179,7 +188,7 @@ function construct(lib, list, desc) {
           break;
         case 'object':
           //when the arg is a list, use recursion
-          argumentsList.push(construct(lib, arg, desc));
+          argumentsList.push(construct(lib, arg, parameters));
           break;
         default:
           //numbers, undefined, boolean
@@ -235,9 +244,14 @@ function Shape(type, parameters) {
   extendFromDescription(this, 'shape', type, parameters);
 }
 
+function Material(type, parameters) {
+  extendFromDescription(this, 'material', type, parameters);
+}
+
 module.exports = {
   addLibrary: addLibrary,
   description: description,
   construct: construct,
-  Shape: Shape
+  Shape: Shape,
+  Material: Material
 };
