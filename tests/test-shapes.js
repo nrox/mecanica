@@ -7,7 +7,7 @@ var utils = require('./test-utils.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var factory = require('../factory.js');
-var _ = require('../lib/underscore.js')
+var _ = require('../lib/underscore.js');
 
 factory.addLibrary(ammo);
 factory.addLibrary(three);
@@ -26,7 +26,7 @@ function shape(type) {
     utils.logKeys(obj.three, type + '.three properties');
     utils.checkValues(obj,
       _.pick(parameters, _.keys(factory.description.shape[type].parameters)),
-      'checking box values');
+      'checking ' + type + ' values');
   };
 }
 

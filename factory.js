@@ -1,3 +1,4 @@
+'use strict';
 /*
  Data representation of objects
  */
@@ -8,14 +9,51 @@ var library = {
   three: undefined
 };
 
+var descriptionFormat = {
+  //format
+  group: {
+    type: {
+      extends: ['group', 'type'],
+      parameters: {
+        p1: 0, p2: 1, etc: 'default'
+      },
+      constructors: {
+        library1: ['fun', 'etc', 'p2'],
+        library2: ['fun', ['fun2', 'p1', 1]]
+      }
+    },
+    type2: {
+      extends: ['group', 'type'],
+      parameters: {
+        etc: 'overwritten'
+      },
+      constructors: {
+        library1: ['fun', 'p1', 'p2', 'etc'],
+        library3: ['fun3', 'p1']
+      }
+    }
+  },
+  group2: {
+    type: {
+
+    }
+  }
+};
+
 var description = {
   physics: {
-    //position x,y,z and as an array
-    x: 0, y: 0, z: 0,
-    position: [0, 0, 0],
-    //velocity in each coordinate and as array
-    vx: 1, vy: 1, vz: 1,
-    velocity: [0, 0, 0]
+    position: {
+      parameters: {
+        x: 0, y: 0, z: 0
+      },
+      constructors: {
+        ammo: ['btVector3', 'x', 'y', 'z'],
+        three: ['Vector3', 'x', 'y', 'z']
+      }
+    },
+    velocity: {
+      extends: ['physics', 'position']
+    }
   },
   //shapes
   shape: {
@@ -57,14 +95,16 @@ var description = {
     }
   },
   material: {
-    friction: 0.1,
-    restitution: 0.1,
-    color: 333333, //hex
-    opacity: 1,
-    type: {
-      phong: {
-
+    basic: {
+      parameters: {
+        friction: 0.3,
+        restitution: 0.2,
+        color: 0x333333,
+        opacity: 1
       }
+    },
+    phong: {
+      extends: ['material', 'basic']
     }
   },
   body: {
@@ -73,6 +113,23 @@ var description = {
     material: {}
   }
 };
+
+function ifEval(s) {
+  try {
+    eval(s);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function tryEval(s) {
+  try {
+    return eval(s);
+  } catch (e) {
+    return s;
+  }
+}
 
 //create an instance using a list of arguments
 function instantiate(constructor, args) {
@@ -87,36 +144,54 @@ function instantiate(constructor, args) {
 
 //create an instance of an object, using the description
 function construct(lib, list, desc) {
-  var args = [];
+  var argumentsList = [];
   var arg;
-  var s;
   var fn;
   for (var i in list) {
     if (!list.hasOwnProperty(i)) continue;
     arg = list[i];
+    //if its the first entry in the array, check if we can use it as a function
     if (i == 0) {
-      fn = lib[arg];
-      continue;
-    }
-    switch (typeof arg) {
-      case 'number':
-        args.push(arg);
-        break;
-      case 'string':
-        if (desc[arg] !== undefined) {
-          args.push(desc[arg]);
-        } else {
-          args.push(arg);
-        }
-        break;
-      case 'object':
-        args.push(construct(lib, arg, desc));
-        break;
-      default:
-        args.push(arg);
+      if (typeof lib[arg] == 'function') {
+        //if its a function in the library, use it to make an instance
+        fn = lib[arg];
+      } else if (lib[arg]) {
+        //else if its a parameters, use the value
+        argumentsList.push(lib[arg]);
+      } else {
+        //try using the environment value, or the literal string if fails
+        argumentsList.push(tryEval(arg));
+      }
+    } else {
+      switch (typeof arg) {
+        //if its a number use as is
+        case 'number':
+          argumentsList.push(arg);
+          break;
+        case 'string':
+          //if its a string and is a parameters, use parameters value
+          if (desc[arg] !== undefined) {
+            argumentsList.push(desc[arg]);
+          } else {
+            //evaluate the value
+            argumentsList.push(tryEval(arg));
+          }
+          break;
+        case 'object':
+          //when the arg is a list, use recursion
+          argumentsList.push(construct(lib, arg, desc));
+          break;
+        default:
+          //numbers, undefined, boolean
+          argumentsList.push(arg);
+      }
     }
   }
-  return instantiate(fn, args);
+  if (fn) {
+    return instantiate(fn, argumentsList);
+  } else {
+    return argumentsList;
+  }
 }
 
 function addLibrary(lib) {
@@ -136,6 +211,11 @@ function addLibrary(lib) {
 
 //extend an object using a description
 function extendFromDescription(obj, group, type, parameters) {
+  //if should extend from other description, do it first
+  var ext = description[group][type].extends;
+  if (ext) {
+    extendFromDescription(obj, ext[0], ext[1], parameters);
+  }
   //pick properties mentioned in the description
   var relevant = _.pick(parameters || {}, _.keys(description[group][type].parameters));
   //override default values
@@ -152,8 +232,7 @@ function extendFromDescription(obj, group, type, parameters) {
 }
 
 function Shape(type, parameters) {
-  var group, obj;
-  extendFromDescription(obj = this, group = 'shape', type, parameters);
+  extendFromDescription(this, 'shape', type, parameters);
 }
 
 module.exports = {

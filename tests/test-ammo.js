@@ -5,7 +5,7 @@
 
 var utils = require('./test-utils.js');
 var ammo = require('../lib/ammo.js');
-var _ = require('../lib/underscore.js')
+var _ = require('../lib/underscore.js');
 
 var test = {
   btVector3: function () {

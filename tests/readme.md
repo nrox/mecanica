@@ -1,12 +1,11 @@
 
-Instructions
-------------
-
 Three.js introduction
 
     xdg-open three-intro.html
 
-Ammo tests
+Other tests, example:
+
+    node test-ammo.js <object>
 
 
 
