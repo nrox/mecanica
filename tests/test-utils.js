@@ -1,5 +1,4 @@
 var _ = require('../lib/underscore.js');
-var path = require('path');
 
 module.exports = {
 
@@ -92,7 +91,7 @@ module.exports = {
     if (tests[item]) {
       tests[item]();
     } else {
-      var file = path.basename(filename);
+      var file = basename(filename);
       console.log('to run tests in ' + file + ' use one of these commands:');
       _.each(tests, function (value, key) {
         console.log('node ' + file + ' ' + key);
@@ -100,4 +99,8 @@ module.exports = {
     }
   }
 };
+
+function basename(path){
+  return path.substr(path.lastIndexOf('/')+1);
+}
 
