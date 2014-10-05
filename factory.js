@@ -141,15 +141,21 @@ function tryEval(s) {
   }
 }
 
-//create an instance using a list of arguments
-function instantiate(constructor, args) {
-  //http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
-  function F() {
-    return constructor.apply(this, args);
-  }
 
-  F.prototype = constructor.prototype;
-  return new F();
+//create an instance using a list of arguments
+var instantiateCache = [];
+function instantiate(constructor, args) {
+  args || (args = []);
+  var expression = instantiateCache[args.length];
+  if (!expression){
+    var list = [];
+    for (var i = 0; i < args.length; i++){
+      list.push('args[' + i + ']');
+    }
+    expression = 'new constructor(' + list.join(',') + ');';
+    instantiateCache[args.length] = expression;
+  }
+  return eval(expression);
 }
 
 //create an instance of an object, using the description
@@ -224,6 +230,9 @@ function addLibrary(lib) {
 
 //extend an object using a description
 function extendFromDescription(obj, group, type, parameters) {
+  if (!description[group] || !description[group][type]){
+    throw 'undefined description["' + group + '"]["' + type + '"]';
+  }
   //if should extend from other description, do it first
   var ext = description[group][type].extends;
   if (ext) {
