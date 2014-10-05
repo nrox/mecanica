@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testing require(script)</title>
+    <link rel='stylesheet' type='text/css' href='/styles/tests.css' />
+    <link rel='icon' type='image/png' href='/images/gear2.png'>
+    <script src='/require-scripts.js'></script>
+    <script src='/lib/jquery.js'></script>
+    <script src='/lib/underscore.js'></script>
+</head>
+<body>
+<div id='status'></div>
+<script>
+    if (true) (function () {
+        var verify = {
+            'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
+            'ammo.js': ['btVector3'],
+            'underscore.js': ['each', 'map', 'pick', 'pluck'],
+            //'jquery.js': ['ajax', 'css'],
+            'test-utils.js': ['run', 'all']
+        };
+
+        var utils = require('test-utils.js', undefined);
+
+        function testScript(script, list) {
+            var obj = require(script, undefined);
+            var pass = utils.checkKeys(obj, list, 'required keys of ' + script);
+            var $status = $('#status');
+            $status.html($status.html() + '<br />' + script + ' passed: ' + pass);
+        }
+        var n = 0;
+        _.each(verify, function (list, script) {
+            setTimeout(function () {
+                testScript(script, list);
+            }, 1000 * n++);
+        });
+    })();
+</script>
+</body>
+</html>

@@ -2,20 +2,16 @@
 <html>
 <head>
     <title>Testing Meshes</title>
-    <link rel='icon'  type='image/png'  href='/images/gear2.png'>
-    <style>canvas {
-        width: 100%;
-        height: 100%
-    }</style>
+    <link rel='stylesheet' type='text/css' href='/styles/tests.css'/>
+    <link rel='icon' type='image/png' href='/images/gear2.png'>
 </head>
 <body>
-<script src='/lib/jquery.js'></script>
 <script src='/require-scripts.js'></script>
-
+<script src='/lib/jquery.js'></script>
+<div id='status'/>
 <script>
 
-    require('test-shapes.js', 'all');
-
+    require('test-mesh.js', 'all');
 
 </script>
 </body>

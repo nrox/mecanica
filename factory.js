@@ -100,7 +100,8 @@ var description = {
         friction: 0.3,
         restitution: 0.2,
         color: 0x333333,
-        opacity: 1
+        opacity: 1,
+        wireframe: false
       },
       constructors: {
         three: ['MeshBasicMaterial', 'parameters']
@@ -108,8 +109,11 @@ var description = {
     },
     phong: {
       extends: ['material', 'basic'],
+      parameters: {
+        emmissive: 0x000000
+      },
       constructors: {
-        three: []
+        three: ['MeshPhongMaterial','parameters']
       }
     }
   },

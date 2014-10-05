@@ -31,6 +31,7 @@ module.exports = {
         title && console.log('  undefined: ' + property);
         return false;
       } else {
+        title && console.log('         ok: ' + property);
         return true;
       }
     });
@@ -76,16 +77,32 @@ module.exports = {
     return res;
   },
 
-  all: function (obj) {
+  /**
+   *  run all tests in object
+   * @param obj the object
+   * @param timeout if > 0 tests are called with this interval
+   * @returns {Function}
+   */
+  all: function (obj, timeout) {
     return function () {
       console.log('--testing all--');
       var keys = _.without(_.keys(obj), 'all');
       for (var i = 0; i < keys.length; i++) {
-        obj[keys[i]]();
+        if (timeout) {
+          setTimeout(obj[keys[i]], timeout * i);
+        } else {
+          obj[keys[i]]();
+        }
       }
     };
   },
 
+  /**
+   * Run each property of tests.
+   * @param tests the object whose properties are tests functions without arguments
+   * @param argv the node command line arguments. set argv[2] to name the property/test to perform
+   * @param filename the name of the test file
+   */
   run: function (tests, argv, filename) {
     var item = argv[2];
     if (tests[item]) {
@@ -100,7 +117,7 @@ module.exports = {
   }
 };
 
-function basename(path){
-  return path.substr(path.lastIndexOf('/')+1);
+function basename(path) {
+  return path.substr(path.lastIndexOf('/') + 1);
 }
 

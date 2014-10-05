@@ -8,25 +8,29 @@ var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
+var scene, currentMesh;
 
-factory.addLibrary(ammo);
 factory.addLibrary(three);
 
 function shape(type) {
   return function () {
     var parameters = {
-      dx: 3,
-      dy: 5,
-      r: 4
+      dx: 1,
+      dy: 0.5,
+      dz: 0.8,
+      r: 0.6,
+      color: 0x125487,
+      wireframe: true
     };
-    var obj = new factory.Shape(type, parameters);
-    utils.logKeys(obj, type + ' properties');
-    utils.logKeys(obj.prototype, type + '.prototype properties');
-    utils.logKeys(obj.ammo, type + '.ammo properties');
-    utils.logKeys(obj.three, type + '.three properties');
-    utils.checkValues(obj,
-      _.pick(parameters, _.keys(factory.description.shape[type].parameters)),
-      'checking ' + type + ' values');
+    document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
+    var s = new factory.Shape(type, parameters);
+    var m = new factory.Material('basic', parameters);
+    var mesh = new three.Mesh(s.three, m.three);
+    utils.logKeys(mesh, 'mesh.properties');
+    utils.logKeys(mesh.prototype, 'mesh.prototype properties');
+    utils.logKeys(s.three, 'mesh.three properties');
+    if (!scene) scene = makeScene();
+    currentMesh = replaceMesh(currentMesh, mesh);
   };
 }
 
@@ -38,6 +42,44 @@ _.each(factory.description.shape, function (desc, type) {
     test[type] = shape(type);
 });
 
-test.all = utils.all(test);
+function makeScene() {
+  var scene = new three.Scene();
+  var camera = new three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+  var renderer = new three.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  camera.position.z = 5;
+
+  var render = function () {
+    //limit animation frame
+    setTimeout(function () {
+      requestAnimationFrame(render);
+    }, 50);
+
+    //rotate the mesh
+    if (currentMesh) {
+      currentMesh.rotation.x += 0.01;
+      currentMesh.rotation.y += 0.03;
+      currentMesh.rotation.z -= 0.02;
+
+    }
+
+    renderer.render(scene, camera);
+  };
+
+  render();
+
+  return scene;
+}
+
+function replaceMesh(currentMesh, newMesh) {
+  if (currentMesh) scene.remove(currentMesh);
+  scene.add(newMesh);
+  return newMesh;
+}
+
+test.all = utils.all(test, 5000);
 utils.run(test, process.argv, __filename);
 
