@@ -1,12 +1,17 @@
 /**
  * A custom version of require for this library purpose
  * Allowing to run it with node and in the browser
+ *
+ * @param script the relative the url
+ * @param arg the argument for test scripts
+ * @returns {module.exports}
  */
 function require(script, arg) {
 
   //all paths are converted to absolute
   var name = script.substr(script.lastIndexOf('/') + 1);
   if (script.lastIndexOf('.js') < 0) return;
+  //and scripts location are predefined
   var url = (function () {
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
@@ -29,9 +34,9 @@ function require(script, arg) {
     module = process = exports = undefined;
   }
   jQuery.ajax(url, {
-    cache: !url.indexOf('/lib/'), //cache only if its under /lib/
-    async: false,
-    dataType: 'text',
+    cache: true, //!url.indexOf('/lib/'), //cache only if its under /lib/
+    async: false, //important async: false
+    dataType: 'text', //don't run automatically
     error: function (jqXHR, textStatus, errorThrown) {
       console.log('error in require ' + script);
       console.error(errorThrown);
@@ -52,7 +57,7 @@ function require(script, arg) {
   return module.exports;
 }
 
-function checkRequire(script, arg) {
+function canRequire(script, arg) {
   return !!require(script, arg);
 }
 
