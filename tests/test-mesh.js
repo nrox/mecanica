@@ -1,6 +1,5 @@
 /**
- * Test ammo.js library
- * @type {exports}
+ * Test mesh rendering
  */
 
 var utils = require('./test-utils.js');
@@ -18,19 +17,19 @@ function shape(type) {
       dx: 1,
       dy: 0.5,
       dz: 0.8,
-      r: 0.6,
-      color: 0x125487,
-      wireframe: true
+      r: 0.6
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
     var s = new factory.Shape(type, parameters);
-    var m = new factory.Material('basic', parameters);
+    var m = new factory.Material('lambert', {color: 0x125487, wireframe: true});
+    m = new factory.Material('basic', {color: 0x125487, wireframe: true});
     var mesh = new three.Mesh(s.three, m.three);
-    utils.logKeys(mesh, 'mesh.properties');
-    utils.logKeys(mesh.prototype, 'mesh.prototype properties');
-    utils.logKeys(s.three, 'mesh.three properties');
+    //utils.logKeys(mesh, 'mesh.properties');
+    //utils.logKeys(mesh.prototype, 'mesh.prototype properties');
+    //utils.logKeys(s.three, 'mesh.three properties');
     if (!scene) scene = makeScene();
     currentMesh = replaceMesh(currentMesh, mesh);
+    console.log(type);
   };
 }
 
@@ -63,7 +62,6 @@ function makeScene() {
       currentMesh.rotation.x += 0.01;
       currentMesh.rotation.y += 0.03;
       currentMesh.rotation.z -= 0.02;
-
     }
 
     renderer.render(scene, camera);
