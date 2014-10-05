@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testing Meshes</title>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+</head>
+<body>
+<a href='../'>back</a>
+<script src='../require-scripts.js'></script>
+<script src='../lib/jquery.js'></script>
+
+<h2>test javascript modules</h2>
+
+<p>
+    <button class='test'>test-factory.js</button>
+    <button class='test'>test-ammo.js</button>
+    <button class='test'>test-shapes.js</button>
+</p>
+<div>
+    <pre class='console'>
+
+    </pre>
+</div>
+
+<script>
+    /**
+     * replace console.log temporarily to log to a pre element
+     * and call each listed script
+     */
+
+    var consoleLogBack = console.log;
+    var $console;
+    var consoleLogNew = function consoleLogNew () {
+        consoleLogBack.apply(console, arguments);
+        if(!$console) return;
+        for (var i = 0; i < arguments.length; i++) {
+            $console.append(arguments[i] + ' ');
+        }
+        $console.append('\n');
+    };
+    (function () {
+        var root = location.href.replace('/tests/test-modules.html', '');
+        requireRoot(root);
+    })();
+    window.onload = function () {
+        $('.test').click(function (event) {
+            $console = $('.console');
+            $console.empty();
+            var test = $(event.target).text();
+            setTimeout(function () {
+                console.log = consoleLogNew;
+                console.log('-------------', test, '---------------\n');
+                require(test, 'all');
+                console.log = consoleLogBack;
+            }, 100);
+        });
+    };
+</script>
+</body>
+</html>

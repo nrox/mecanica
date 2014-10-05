@@ -125,16 +125,16 @@ var description = {
   }
 };
 
-/*
- function ifEval(s) {
- try {
- eval(s);
- return true;
- } catch (e) {
- return false;
- }
- }
- */
+
+function ifEval(s) {
+  try {
+    eval(s);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 
 function tryEval(s) {
   try {
@@ -268,6 +268,9 @@ module.exports = {
   addLibrary: addLibrary,
   description: description,
   construct: construct,
+  ifEval: ifEval,
+  tryEval: tryEval,
+  extendFromDescription: extendFromDescription,
   Shape: Shape,
   Material: Material
 };

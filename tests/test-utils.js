@@ -2,6 +2,10 @@ var _ = require('../lib/underscore.js');
 
 module.exports = {
 
+  logStatus: function (status, title) {
+    var s = status ? 'true/passed' : 'FALSE/FAILED ###################################';
+    title && console.log(s);
+  },
   /**
    * log all keys and value types defined in obj
    * @param obj the object
@@ -36,7 +40,7 @@ module.exports = {
       }
     });
     var res = _.every(results);
-    console.log('  success: ' + res);
+    this.logStatus(res, title);
     return res;
   },
 
@@ -61,6 +65,7 @@ module.exports = {
           title && console.log('       got: ' + objValue);
           return false;
         } else {
+          title && console.log('        ok: ' + property + '() === ' + value);
           return true;
         }
       } else if (obj[property] !== value) {
@@ -69,11 +74,26 @@ module.exports = {
         title && console.log('       got: ' + obj[property]);
         return false;
       } else {
+        title && console.log('        ok: ' + property + ' === ' + value);
         return true;
       }
     });
     var res = _.every(results);
-    console.log('  success: ' + res);
+    this.logStatus(res, title);
+    return res;
+  },
+
+  /**
+   * if object is instance of function
+   * @param obj the object
+   * @param fun the function
+   * @param title title to log
+   * @returns {boolean}
+   */
+  instanceOf: function (obj, fun, title) {
+    title && console.log('\n' + title);
+    var res = obj instanceof  fun;
+    this.logStatus(res, title);
     return res;
   },
 
@@ -98,6 +118,7 @@ module.exports = {
         }
       }
     }
+
     return run;
   },
 
