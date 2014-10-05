@@ -10,9 +10,11 @@
 <script src='../lib/jquery.js'></script>
 <div id='status'/>
 <script>
-
-    require('test-mesh.js', 'all');
-
+    (function () {
+        var root = location.href.replace('/tests/test-mesh.html', '');
+        requireRoot(root);
+        require('test-mesh.js', 'all');
+    })();
 </script>
 </body>
 </html>
