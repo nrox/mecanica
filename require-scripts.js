@@ -15,7 +15,7 @@ function require(script, arg) {
   var url = (function () {
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
-    return folder + name;
+    return requireRoot() + folder + name;
   })();
 
   //node.js stubs
@@ -55,6 +55,14 @@ function require(script, arg) {
     type: 'GET'
   });
   return module.exports;
+}
+
+var _requireRoot = location.origin;
+function requireRoot(root){
+  if (root){
+    _requireRoot = root;
+  }
+  return _requireRoot;
 }
 
 function canRequire(script, arg) {

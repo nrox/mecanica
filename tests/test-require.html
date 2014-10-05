@@ -2,11 +2,11 @@
 <html>
 <head>
     <title>Testing require(script)</title>
-    <link rel='stylesheet' type='text/css' href='/styles/tests.css' />
-    <link rel='icon' type='image/png' href='/images/gear2.png'>
-    <script src='/lib/jquery.js'></script>
-    <script src='/lib/underscore.js'></script>
-    <script src='/require-scripts.js'></script>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css' />
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+    <script src='../lib/jquery.js'></script>
+    <script src='../lib/underscore.js'></script>
+    <script src='../require-scripts.js'></script>
 
 </head>
 <body>
@@ -18,6 +18,8 @@
     //some issues appeared when require-script.js script was inserted
     //after jquery and underscore. was it due to caching in early programming stage?
     if (true) (function () {
+        var root = location.href.replace('/tests/test-require.html','');
+        requireRoot(root);
         var verify = {
             'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
             'ammo.js': ['btVector3'],
