@@ -14,7 +14,7 @@ var library = {
  //format
  group: {
  type: {
- extends: ['group', 'type'],
+ extend: ['group', 'type'],
  parameters: {
  p1: 0, p2: 1, etc: 'default'
  },
@@ -24,7 +24,7 @@ var library = {
  }
  },
  type2: {
- extends: ['group', 'type'],
+ extend: ['group', 'type'],
  parameters: {
  etc: 'overwritten'
  },
@@ -53,7 +53,7 @@ var description = {
       }
     },
     velocity: {
-      extends: ['physics', 'position']
+      extend: ['physics', 'position']
     }
   },
   //shapes
@@ -109,7 +109,7 @@ var description = {
       }
     },
     phong: {
-      extends: ['material', 'basic'],
+      extend: ['material', 'basic'],
       parameters: {
         emmissive: 0x000000
       },
@@ -119,9 +119,11 @@ var description = {
     }
   },
   body: {
-    physics: {},
-    shape: {},
-    material: {}
+    include: [
+      ['physics'],
+      ['shape'],
+      ['material']
+    ]
   }
 };
 
@@ -237,7 +239,7 @@ function extendFromDescription(obj, group, type, parameters) {
     throw 'undefined description["' + group + '"]["' + type + '"]';
   }
   //if should extend from other description, do it first
-  var ext = description[group][type].extends;
+  var ext = description[group][type].extend;
   if (ext) {
     extendFromDescription(obj, ext[0], ext[1], parameters);
   }
