@@ -9,36 +9,37 @@ var library = {
   three: undefined
 };
 
-var descriptionFormat = {
-  //format
-  group: {
-    type: {
-      extends: ['group', 'type'],
-      parameters: {
-        p1: 0, p2: 1, etc: 'default'
-      },
-      constructors: {
-        library1: ['fun', 'etc', 'p2'],
-        library2: ['fun', ['fun2', 'p1', 1]]
-      }
-    },
-    type2: {
-      extends: ['group', 'type'],
-      parameters: {
-        etc: 'overwritten'
-      },
-      constructors: {
-        library1: ['fun', 'p1', 'p2', 'etc'],
-        library3: ['fun3', 'p1']
-      }
-    }
-  },
-  group2: {
-    type: {
-
-    }
-  }
-};
+/*
+ var descriptionFormat = {
+ //format
+ group: {
+ type: {
+ extends: ['group', 'type'],
+ parameters: {
+ p1: 0, p2: 1, etc: 'default'
+ },
+ constructors: {
+ library1: ['fun', 'etc', 'p2'],
+ library2: ['fun', ['fun2', 'p1', 1]]
+ }
+ },
+ type2: {
+ extends: ['group', 'type'],
+ parameters: {
+ etc: 'overwritten'
+ },
+ constructors: {
+ library1: ['fun', 'p1', 'p2', 'etc'],
+ library3: ['fun3', 'p1']
+ }
+ }
+ },
+ group2: {
+ type: {
+ }
+ }
+ };
+ */
 
 var description = {
   physics: {
@@ -59,11 +60,11 @@ var description = {
   shape: {
     sphere: {
       parameters: {
-        r: 1
+        r: 1, segments: 12
       },
       constructors: {
         ammo: ['btSphereShape', 'r'],
-        three: ['SphereGeometry', 'r']
+        three: ['SphereGeometry', 'r','segments','segments']
       }
     },
     box: {
@@ -77,20 +78,20 @@ var description = {
     },
     cylinder: {
       parameters: {
-        r: 1, dy: 1
+        r: 1, dy: 1, segments: 12
       },
       constructors: {
         ammo: ['btCylinderShape', ['btVector3', 'r', 'dy', 'r']],
-        three: ['CylinderGeometry', 'r', 'r', 'dy']
+        three: ['CylinderGeometry', 'r', 'r', 'dy', 'segments']
       }
     },
     cone: {
       parameters: {
-        r: 1, dy: 1
+        r: 1, dy: 1, segments: 12
       },
       constructors: {
         ammo: ['btConeShape', 'r', 'dy'],
-        three: ['CylinderGeometry', 0, 'r', 'dy']
+        three: ['CylinderGeometry', 0, 'r', 'dy', 'segments']
       }
     }
   },
@@ -113,7 +114,7 @@ var description = {
         emmissive: 0x000000
       },
       constructors: {
-        three: ['MeshPhongMaterial','parameters']
+        three: ['MeshPhongMaterial', 'parameters']
       }
     }
   },
@@ -124,14 +125,16 @@ var description = {
   }
 };
 
-function ifEval(s) {
-  try {
-    eval(s);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+/*
+ function ifEval(s) {
+ try {
+ eval(s);
+ return true;
+ } catch (e) {
+ return false;
+ }
+ }
+ */
 
 function tryEval(s) {
   try {
@@ -147,9 +150,9 @@ var instantiateCache = [];
 function instantiate(constructor, args) {
   args || (args = []);
   var expression = instantiateCache[args.length];
-  if (!expression){
+  if (!expression) {
     var list = [];
-    for (var i = 0; i < args.length; i++){
+    for (var i = 0; i < args.length; i++) {
       list.push('args[' + i + ']');
     }
     expression = 'new constructor(' + list.join(',') + ');';
@@ -230,7 +233,7 @@ function addLibrary(lib) {
 
 //extend an object using a description
 function extendFromDescription(obj, group, type, parameters) {
-  if (!description[group] || !description[group][type]){
+  if (!description[group] || !description[group][type]) {
     throw 'undefined description["' + group + '"]["' + type + '"]';
   }
   //if should extend from other description, do it first
@@ -247,10 +250,10 @@ function extendFromDescription(obj, group, type, parameters) {
   //get the constructors
   var constructionLists = description[group][type].constructors || {};
   //for each library create the object and add it as a property with the library name as key
-  for (var l in library) { //lib{ammo, three}
-    if (library.hasOwnProperty(l) && library[l] && constructionLists[l])
-      obj[l] = construct(library[l], constructionLists[l], parameters);
-  }
+  _.each(library, function (lib, name) { //lib{ammo, three}
+    if (lib && constructionLists[name])
+      obj[name] = construct(lib, constructionLists[name], parameters);
+  });
 }
 
 function Shape(type, parameters) {

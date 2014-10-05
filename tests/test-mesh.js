@@ -21,8 +21,7 @@ function shape(type) {
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
     var s = new factory.Shape(type, parameters);
-    var m = new factory.Material('lambert', {color: 0x125487, wireframe: true});
-    m = new factory.Material('basic', {color: 0x125487, wireframe: true});
+    var m = new factory.Material('basic', {color: utils.randomColor(), wireframe: true});
     var mesh = new three.Mesh(s.three, m.three);
     //utils.logKeys(mesh, 'mesh.properties');
     //utils.logKeys(mesh.prototype, 'mesh.prototype properties');
@@ -78,6 +77,6 @@ function replaceMesh(currentMesh, newMesh) {
   return newMesh;
 }
 
-test.all = utils.all(test, 5000);
+test.all = utils.all(test, 3500, true);
 utils.run(test, process.argv, __filename);
 
