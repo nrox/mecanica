@@ -4,29 +4,35 @@
     <title>Testing require(script)</title>
     <link rel='stylesheet' type='text/css' href='/styles/tests.css' />
     <link rel='icon' type='image/png' href='/images/gear2.png'>
-    <script src='/require-scripts.js'></script>
     <script src='/lib/jquery.js'></script>
     <script src='/lib/underscore.js'></script>
+    <script src='/require-scripts.js'></script>
+
 </head>
 <body>
-<div id='status'></div>
+<h1>require() tests:</h1>
+<table class='results'>
+    <tr><th>library</th><th>passed</th></tr>
+</table>
 <script>
+    //some issues appeared when require-script.js script was inserted
+    //after jquery and underscore. was it due to caching in early programming stage?
     if (true) (function () {
         var verify = {
             'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
             'ammo.js': ['btVector3'],
             'underscore.js': ['each', 'map', 'pick', 'pluck'],
-            //'jquery.js': ['ajax', 'css'],
+            'jquery.js': ['ajax', 'css', 'attr','text','parseJSON','parseXML'],
             'test-utils.js': ['run', 'all']
         };
 
         var utils = require('test-utils.js', undefined);
-
-        function testScript(script, list) {
-            var obj = require(script, undefined);
-            var pass = utils.checkKeys(obj, list, 'required keys of ' + script);
-            var $status = $('#status');
-            $status.html($status.html() + '<br />' + script + ' passed: ' + pass);
+        var template = _.template('<tr><td><%- library %></td><td><%- passed %></td></tr>');
+        var $results = $('table.results');
+        function testScript(library, list) {
+            var obj = require(library, undefined);
+            var passed = utils.checkKeys(obj, list, 'required keys of ' + library);
+            $results.append(template({library: library, passed: passed}));
         }
         var n = 0;
         _.each(verify, function (list, script) {
