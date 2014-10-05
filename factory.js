@@ -64,7 +64,7 @@ var description = {
       },
       constructors: {
         ammo: ['btSphereShape', 'r'],
-        three: ['SphereGeometry', 'r','segments','segments']
+        three: ['SphereGeometry', 'r', 'segments', 'segments']
       }
     },
     box: {
@@ -150,15 +150,9 @@ var instantiateCache = [];
 function instantiate(constructor, args) {
   args || (args = []);
   var expression = instantiateCache[args.length];
-<<<<<<< HEAD
   if (!expression) {
     var list = [];
     for (var i = 0; i < args.length; i++) {
-=======
-  if (!expression){
-    var list = [];
-    for (var i = 0; i < args.length; i++){
->>>>>>> ae4670ba68097d029c020c3e4f081dbbd4ea4c3a
       list.push('args[' + i + ']');
     }
     expression = 'new constructor(' + list.join(',') + ');';
@@ -239,11 +233,7 @@ function addLibrary(lib) {
 
 //extend an object using a description
 function extendFromDescription(obj, group, type, parameters) {
-<<<<<<< HEAD
   if (!description[group] || !description[group][type]) {
-=======
-  if (!description[group] || !description[group][type]){
->>>>>>> ae4670ba68097d029c020c3e4f081dbbd4ea4c3a
     throw 'undefined description["' + group + '"]["' + type + '"]';
   }
   //if should extend from other description, do it first

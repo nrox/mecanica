@@ -7,7 +7,7 @@
  * @returns {module.exports}
  */
 function require(script, arg) {
-
+  console.log('require ', script);
   //all paths are converted to absolute
   var name = script.substr(script.lastIndexOf('/') + 1);
   if (script.lastIndexOf('.js') < 0) return;

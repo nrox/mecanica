@@ -14,8 +14,7 @@ factory.addLibrary(three);
 function shape(type) {
   return function () {
     var parameters = {
-<<<<<<< HEAD
-      dx: Math.random()  + 0.1,
+      dx: Math.random() + 0.1,
       dy: Math.random() + 0.1,
       dz: Math.random() + 0.1,
       r: Math.random() + 0.1,
@@ -24,17 +23,7 @@ function shape(type) {
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
     var s = new factory.Shape(type, parameters);
     var m = new factory.Material('basic', {color: utils.randomColor(), wireframe: true});
-=======
-      dx: 1,
-      dy: 0.5,
-      dz: 0.8,
-      r: 0.6
-    };
-    document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
-    var s = new factory.Shape(type, parameters);
-    var m = new factory.Material('lambert', {color: 0x125487, wireframe: true});
-    m = new factory.Material('basic', {color: 0x125487, wireframe: true});
->>>>>>> ae4670ba68097d029c020c3e4f081dbbd4ea4c3a
+
     var mesh = new three.Mesh(s.three, m.three);
     //utils.logKeys(mesh, 'mesh.properties');
     //utils.logKeys(mesh.prototype, 'mesh.prototype properties');
