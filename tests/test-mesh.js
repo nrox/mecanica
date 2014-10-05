@@ -14,10 +14,11 @@ factory.addLibrary(three);
 function shape(type) {
   return function () {
     var parameters = {
-      dx: 1,
-      dy: 0.5,
-      dz: 0.8,
-      r: 0.6
+      dx: Math.random()  + 0.1,
+      dy: Math.random() + 0.1,
+      dz: Math.random() + 0.1,
+      r: Math.random() + 0.1,
+      segments: ~~(Math.random() * 18 + 6)
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
     var s = new factory.Shape(type, parameters);
