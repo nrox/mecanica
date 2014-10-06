@@ -29,10 +29,10 @@
      * and call each listed script
      */
 
-    var consoleLogBack = console.log;
+    var logBackup = console.log;
     var $console;
-    var consoleLogNew = function consoleLogNew () {
-        consoleLogBack.apply(console, arguments);
+    var logToElement = function () {
+        logBackup.apply(console, arguments);
         if(!$console) return;
         for (var i = 0; i < arguments.length; i++) {
             $console.append(arguments[i] + ' ');
@@ -45,10 +45,10 @@
             $console.empty();
             var test = $(event.target).text();
             setTimeout(function () {
-                console.log = consoleLogNew;
+                console.log = logToElement;
                 console.log('-------------', test, '---------------\n');
                 require(test, 'all');
-                console.log = consoleLogBack;
+                console.log = logBackup;
             }, 100);
         });
     };

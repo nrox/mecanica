@@ -25,10 +25,10 @@
 </div>
 
 <script>
-    var consoleLogBack = console.log;
+    var logBackup = console.log;
     var $console;
-    var consoleLogNew = function consoleLogNew() {
-        consoleLogBack.apply(console, arguments);
+    var logToElement = function () {
+        logBackup.apply(console, arguments);
         if (!$console) return;
         for (var i = 0; i < arguments.length; i++) {
             $console.append(arguments[i] + ' ');
@@ -43,7 +43,6 @@
             'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
             'test-utils.js': ['run', 'all'],
             'factory.js': ['addLibrary', 'extendFromDescription','description','Shape']
-
         };
         var $verify = $('#verify');
         for (var i in verify) {
@@ -64,14 +63,14 @@
             }
             function runRequireTest(library) {
                 setTimeout(function () {
-                    console.log = consoleLogNew;
+                    console.log = logToElement;
                     console.log('\n-------------', library, '---------------\n');
 
                     var obj = require(library, undefined);
 
                     utils.checkKeys(obj, verify[library], 'check keys in ' + library);
 
-                    console.log = consoleLogBack;
+                    console.log = logBackup;
                 }, 100);
             }
         });
