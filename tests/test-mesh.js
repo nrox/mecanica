@@ -14,10 +14,10 @@ factory.addLibrary(three);
 function shape(type) {
   return function () {
     var parameters = {
-      dx: Math.random() + 0.1,
-      dy: Math.random() + 0.1,
-      dz: Math.random() + 0.1,
-      r: Math.random() + 0.1,
+      dx: Math.random() + 1,
+      dy: Math.random() + 1,
+      dz: Math.random() + 1,
+      r: Math.random() + 1,
       segments: ~~(Math.random() * 18 + 6)
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
