@@ -39,10 +39,6 @@
         }
         $console.append('\n');
     };
-    (function () {
-        var root = location.href.replace('/tests/test-modules.html', '');
-        requireRoot(root);
-    })();
     window.onload = function () {
         $('.test').click(function (event) {
             $console = $('.console');

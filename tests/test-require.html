@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Testing require(script)</title>
-    <link rel='stylesheet' type='text/css' href='../styles/tests.css' />
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
     <link rel='icon' type='image/png' href='../images/gear2.png'>
     <script src='../lib/jquery.js'></script>
     <script src='../lib/underscore.js'></script>
@@ -11,39 +11,73 @@
 </head>
 <body>
 <a href='../'>back</a>
-<h2>require() tests:</h2>
-<table class='results'>
-    <tr><th>library</th><th>passed</th></tr>
-</table>
+
+<h2>test custom require</h2>
+
+<p id='verify'>
+    <button class='test'>all</button>
+    <br/>
+</p>
+<div>
+    <pre class='console'>
+
+    </pre>
+</div>
+
 <script>
-    //some issues appeared when require-script.js script was inserted
-    //after jquery and underscore. was it due to caching in early programming stage?
-    if (true) (function () {
-        var root = location.href.replace('/tests/test-require.html','');
-        requireRoot(root);
+    var consoleLogBack = console.log;
+    var $console;
+    var consoleLogNew = function consoleLogNew() {
+        consoleLogBack.apply(console, arguments);
+        if (!$console) return;
+        for (var i = 0; i < arguments.length; i++) {
+            $console.append(arguments[i] + ' ');
+        }
+        $console.append('\n');
+    };
+    window.onload = function () {
         var verify = {
             'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
             'ammo.js': ['btVector3'],
             'underscore.js': ['each', 'map', 'pick', 'pluck'],
-            'jquery.js': ['ajax', 'css', 'attr','text','parseJSON','parseXML'],
-            'test-utils.js': ['run', 'all']
-        };
+            'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
+            'test-utils.js': ['run', 'all'],
+            'factory.js': ['addLibrary', 'extendFromDescription','description','Shape']
 
-        var utils = require('test-utils.js', undefined);
-        var template = _.template('<tr><td><%- library %></td><td><%- passed %></td></tr>');
-        var $results = $('table.results');
-        function testScript(library, list) {
-            var obj = require(library, undefined);
-            var passed = utils.checkKeys(obj, list, 'required keys of ' + library);
-            $results.append(template({library: library, passed: passed}));
+        };
+        var $verify = $('#verify');
+        for (var i in verify) {
+          $verify.append("<button class='test'>" + i + "</button>");
         }
-        var n = 0;
-        _.each(verify, function (list, script) {
-            setTimeout(function () {
-                testScript(script, list);
-            }, 1000 * n++);
+        var utils = require('test-utils.js', undefined);
+
+        $('.test').click(function (event) {
+            $console = $('.console');
+            $console.empty();
+            var library = $(event.target).text();
+            if (library == 'all') {
+                for(var i in verify){
+                    runRequireTest(i);
+                }
+            } else {
+                runRequireTest(library);
+            }
+            function runRequireTest(library) {
+                setTimeout(function () {
+                    console.log = consoleLogNew;
+                    console.log('\n-------------', library, '---------------\n');
+
+                    var obj = require(library, undefined);
+
+                    utils.checkKeys(obj, verify[library], 'check keys in ' + library);
+
+                    console.log = consoleLogBack;
+                }, 100);
+            }
         });
-    })();
+    };
+
+
 </script>
 </body>
 </html>

@@ -7,16 +7,40 @@
  * @returns {module.exports}
  */
 function require(script, arg) {
+
   console.log('require ', script);
-  //all paths are converted to absolute
-  var name = script.substr(script.lastIndexOf('/') + 1);
-  if (script.lastIndexOf('.js') < 0) return;
-  //and scripts location are predefined
-  var url = (function () {
+
+  function scriptName(script) {
+    return script.substr(script.lastIndexOf('/') + 1);
+  }
+
+  function scriptFolder(script) {
+    var name = scriptName(script);
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
-    return requireRoot() + folder + name;
-  })();
+    return folder;
+  }
+
+  function requireRoot() {
+    var hrefFolder = scriptFolder(location.href);
+    var hrefName = scriptName(location.href);
+    var index = location.href.indexOf(hrefFolder + hrefName);
+    return location.href.substring(0, index);
+  }
+
+  function scriptURL(script) {
+    return requireRoot() + scriptFolder(script) + scriptName(script);
+  }
+
+  function isAmmoScript(script) {
+    return scriptName(script) == 'ammo.js';
+  }
+
+  //all paths are converted to absolute
+  var name = scriptName(script);
+  if (script.lastIndexOf('.js') < 0) return;
+  //and scripts location are predefined
+  var url = scriptURL(script);
 
   //node.js stubs
   var process = {
@@ -28,11 +52,11 @@ function require(script, arg) {
     exports: {}
   };
   var exports = {};
-
   //in case of ammo remove stubs, or it will require fs and path
-  if (name == 'ammo.js') {
+  if (isAmmoScript(script)) {
     module = process = exports = undefined;
   }
+
   jQuery.ajax(url, {
     cache: true, //!url.indexOf('/lib/'), //cache only if its under /lib/
     async: false, //important async: false
@@ -43,7 +67,7 @@ function require(script, arg) {
     },
     global: false,
     success: function (data, textStatus, jqXHR) {
-      if (name == 'ammo.js') {
+      if (isAmmoScript(script)) {
         eval(data);
         var Ammo = Ammo || {};
         module = {
@@ -56,16 +80,3 @@ function require(script, arg) {
   });
   return module.exports;
 }
-
-var _requireRoot = location.origin;
-function requireRoot(root){
-  if (root){
-    _requireRoot = root;
-  }
-  return _requireRoot;
-}
-
-function canRequire(script, arg) {
-  return !!require(script, arg);
-}
-
