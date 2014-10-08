@@ -26,7 +26,7 @@ var test = {
   },
   'physics.velocity': function () {
     var obj = {};
-    var pars = {x: 4, y: 3, dz: 1};
+    var pars = {x: 4, y: 3, z: 1.1};
     var titlePrefix = 'physics.velocity';
     factory.extendFromDescription(obj, 'physics', 'velocity', pars);
     utils.checkValues(obj, pars, titlePrefix + ' property values');
