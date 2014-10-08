@@ -19,13 +19,13 @@ function shape(type) {
       dy: 5,
       r: 4
     };
-    var obj = new factory.Shape(type, parameters);
+    var obj = factory.make('shape', type, parameters);
     utils.logKeys(obj, type + ' properties');
     utils.logKeys(obj.prototype, type + '.prototype properties');
     utils.logKeys(obj.ammo, type + '.ammo properties');
     utils.logKeys(obj.three, type + '.three properties');
     utils.checkValues(obj,
-      _.pick(parameters, _.keys(factory.description.shape[type].parameters)),
+      _.pick(parameters, _.keys(factory.options(obj))),
       'checking ' + type + ' values');
   };
 }
@@ -33,9 +33,8 @@ function shape(type) {
 var test = {
 };
 
-_.each(factory.description.shape, function (desc, type) {
-  if ((typeof desc == 'object') && desc.constructors)
-    test[type] = shape(type);
+_.each(factory.structure().shape, function (cons, type) {
+  test[type] = shape(type);
 });
 
 test.all = utils.all(test);

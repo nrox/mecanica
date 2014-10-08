@@ -21,10 +21,12 @@ function shape(type) {
       segments: ~~(Math.random() * 18 + 6)
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
-    var s = new factory.Shape(type, parameters);
-    var m = new factory.Material('basic', {color: utils.randomColor(), wireframe: true});
-
-    var mesh = new three.Mesh(s.three, m.three);
+    var s =  factory.make('shape', type, parameters);
+    var m = factory.make('material','basic', {color: utils.randomColor(), wireframe: true});
+    var ms = factory.make('body', {
+      shape: s, material: m
+    });
+    var mesh = ms.three; //new three.Mesh(s.three, m.three);
     //utils.logKeys(mesh, 'mesh.properties');
     //utils.logKeys(mesh.prototype, 'mesh.prototype properties');
     //utils.logKeys(s.three, 'mesh.three properties');
@@ -37,9 +39,8 @@ function shape(type) {
 var test = {
 };
 
-_.each(factory.description.shape, function (desc, type) {
-  if ((typeof desc == 'object') && desc.constructors)
-    test[type] = shape(type);
+_.each(factory.structure().shape, function (cons, type) {
+  test[type] = shape(type);
 });
 
 function makeScene() {
