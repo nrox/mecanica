@@ -16,6 +16,21 @@ var test = {
   'unpack': function () {
     utils.checkKeys(factory, ['unpack'], 'factory.unpack')
   },
+  'include' : function(){
+    var defaults = {a:1, b:2, c:3, e:4};
+    var options = {a:9, b:8, d:1, e:undefined, g:3};
+    var target = {a:3, e: 1, f:3, g:4};
+    factory.include(target, options, defaults);
+    utils.checkValues(target, {
+      a:9, //from options
+      b:8, //from options
+      c:3, //from defaults
+      d: undefined, //does not exist in defaults
+      e:undefined, //overwritten from options, though undefined
+      f:3, //already there in target, not in defaults or options
+      g: 4 //is not overwritten by options because its not in defaults
+    }, 'include results');
+  },
   'shape.box': function () {
     var options = {dx: 4, dy: 3, dz: 6};
     var titlePrefix = 'shape.box';

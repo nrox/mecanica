@@ -227,5 +227,6 @@ module.exports = {
   make: make,
   unpack: unpack,
   structure: structure,
-  options: options
+  options: options,
+  include: include
 };

@@ -54,10 +54,7 @@ module.exports = {
   checkValues: function (obj, keyValue, title) {
     title && console.log('\n' + title);
     var results = _.map(keyValue, function (value, property) {
-      if (obj[property] === undefined) {
-        title && console.log('  undefined: ' + property);
-        return false;
-      } else if ((typeof obj[property] == 'function')) {
+      if ((typeof obj[property] == 'function')) {
         var objValue = obj[property]();
         if (objValue !== value) {
           title && console.log('  mismatch: ' + property + '()');
