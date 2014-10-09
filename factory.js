@@ -72,7 +72,9 @@ var description = {
     include(this, options, {
       shape: undefined, material: undefined
     });
-    if (THREE) this.three = new THREE.Mesh(this.shape.three, this.material.three);
+    if (THREE && this.shape && this.material && this.shape.three && this.material.three) {
+      this.three = new THREE.Mesh(this.shape.three, this.material.three);
+    }
   }
 };
 
@@ -114,9 +116,15 @@ function addLibrary(lib) {
  * @returns {object}
  */
 function make() {
-  var options = arguments[arguments.length - 1] || {};
+  var len = arguments.length;
+  var options = (typeof arguments[len - 1] == 'object') && arguments[len - 1];
+  if (!options) {
+    options = {};
+  } else {
+    len--;
+  }
   var constructor = description;
-  for (var i = 0; i < arguments.length - 1; i++) {
+  for (var i = 0; i < len; i++) {
     if (constructor[arguments[i]]) constructor = constructor[arguments[i]];
   }
   if (typeof constructor == 'function') {
@@ -131,7 +139,10 @@ function structure() {
   _.each(description, function (group, key) {
     obj[key] = {};
     _.each(group, function (fun, name) {
-      obj[key][name] = 'function({...})';
+      var m = make(key, name);
+      if (m) {
+        obj[key][name] = options(m);
+      }
     });
   });
   return obj;

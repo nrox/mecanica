@@ -40,6 +40,10 @@ var test = {
     utils.checkValues(obj, pars, titlePrefix + ' property values');
     utils.checkKeys(obj.three, ['color', 'ambient', 'specular','metal'], titlePrefix + '.three keys');
     utils.instanceOf(obj.three, THREE.MeshPhongMaterial, titlePrefix + '.three is MeshPhongMaterial');
+  },
+  'scructure': function(){
+    console.log('\n\nstructure');
+    console.log(JSON.stringify(factory.structure(),null, '  '));
   }
 };
 
