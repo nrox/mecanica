@@ -36,6 +36,10 @@ function require(script, arg) {
     return scriptName(script) == 'ammo.js';
   }
 
+  function isLocalhost() {
+    return location.hostname == 'localhost';
+  }
+
   //all paths are converted to absolute
   var name = scriptName(script);
   if (script.lastIndexOf('.js') < 0) return;
@@ -58,8 +62,8 @@ function require(script, arg) {
   }
 
   jQuery.ajax(url, {
-    cache: true, //!url.indexOf('/lib/'), //cache only if its under /lib/
-    async: false, //important async: false
+    cache: !isLocalhost(), //during development dont cache
+    async: false, //important async: false to return the required object immediately
     dataType: 'text', //don't run automatically
     error: function (jqXHR, textStatus, errorThrown) {
       console.log('error in require ' + script);

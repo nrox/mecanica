@@ -13,6 +13,9 @@ factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 
 var test = {
+  'unpack': function () {
+    utils.checkKeys(factory, ['unpack'], 'factory.unpack')
+  },
   'shape.box': function () {
     var options = {dx: 4, dy: 3, dz: 6};
     var titlePrefix = 'shape.box';
@@ -38,12 +41,12 @@ var test = {
     var titlePrefix = 'material.phong';
     var obj = factory.make('material', 'phong', pars);
     utils.checkValues(obj, pars, titlePrefix + ' property values');
-    utils.checkKeys(obj.three, ['color', 'ambient', 'specular','metal'], titlePrefix + '.three keys');
+    utils.checkKeys(obj.three, ['color', 'ambient', 'specular', 'metal'], titlePrefix + '.three keys');
     utils.instanceOf(obj.three, THREE.MeshPhongMaterial, titlePrefix + '.three is MeshPhongMaterial');
   },
-  'scructure': function(){
-    console.log('\n\nstructure');
-    console.log(JSON.stringify(factory.structure(),null, '  '));
+  'scructure': function () {
+    console.log('\n\n', 'structure');
+    console.log(JSON.stringify(factory.structure(), null, '  '));
   }
 };
 

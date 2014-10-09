@@ -11,7 +11,31 @@ var scene, currentMesh;
 
 factory.addLibrary(three);
 
-function shape(type) {
+function bodyBasic(type) {
+  return function () {
+    var parameters = {
+      shape: type,
+      material: 'basic',
+      dx: Math.random() + 1,
+      dy: Math.random() + 1,
+      dz: Math.random() + 1,
+      r: Math.random() + 1,
+      color: utils.randomColor(),
+      wireframe: true,
+      segments: ~~(Math.random() * 18 + 6)
+    };
+    document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
+    var body = factory.make('body', 'basic', parameters);
+    //utils.logKeys(mesh, 'mesh.properties');
+    //utils.logKeys(mesh.prototype, 'mesh.prototype properties');
+    //utils.logKeys(s.three, 'mesh.three properties');
+    if (!scene) scene = makeScene();
+    currentMesh = replaceMesh(currentMesh, body.three);
+    console.log(type);
+  };
+}
+
+function bodyPredefined(type) {
   return function () {
     var parameters = {
       dx: Math.random() + 1,
@@ -21,9 +45,9 @@ function shape(type) {
       segments: ~~(Math.random() * 18 + 6)
     };
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
-    var s =  factory.make('shape', type, parameters);
-    var m = factory.make('material','basic', {color: utils.randomColor(), wireframe: true});
-    var ms = factory.make('body', {
+    var s = factory.make('bodyBasic', type, parameters);
+    var m = factory.make('material', 'basic', {color: utils.randomColor(), wireframe: true});
+    var ms = factory.make('body', 'predefined', {
       shape: s, material: m
     });
     var mesh = ms.three; //new three.Mesh(s.three, m.three);
@@ -40,7 +64,7 @@ var test = {
 };
 
 _.each(factory.structure().shape, function (cons, type) {
-  test[type] = shape(type);
+  test[type] = bodyBasic(type);
 });
 
 function makeScene() {

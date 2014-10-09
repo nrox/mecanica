@@ -63,17 +63,72 @@ var description = {
     },
     phong: function (options) {
       include(this, options, {
-        friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, emmissive: 0x345678
+        friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, emissive: 0x345678
       });
       if (THREE) this.three = new THREE.MeshPhongMaterial(this.options);
     }
   },
-  body: function (options) {
-    include(this, options, {
-      shape: undefined, material: undefined
-    });
-    if (THREE && this.shape && this.material && this.shape.three && this.material.three) {
-      this.three = new THREE.Mesh(this.shape.three, this.material.three);
+  body: {
+    basic: function (options) {
+      include(this, options, {
+        shape: 'box', material: 'basic', wireframe: false, color: 0x999999
+      });
+      if (THREE) {
+        var shape = make('shape', this.shape, this.options);
+        var material = make('material', this.material, this.options);
+        this.three = new THREE.Mesh(shape.three, material.three);
+      }
+    },
+    predefined: function (options) {
+      include(this, options, {
+        shape: '', material: ''
+      });
+      if (THREE && this.shape && this.material && this.shape.three && this.material.three) {
+        this.three = new THREE.Mesh(this.shape.three, this.material.three);
+      }
+    }
+  },
+  scene: {
+    basic: function (options) {
+      include(this, options, {
+        camera: 'perspective', renderer: 'webgl'
+      });
+      if (THREE) {
+        this.three = new THREE.Scene();
+        var camera = make('camera', this.camera, this.options).three;
+        var renderer = make('renderer', this.renderer, this.options).three;
+        if (document && this.append) document.body.appendChild(renderer.domElement);
+      }
+    }
+  },
+  renderer: {
+    webgl: function (options) {
+      include(this, options, {
+        width: 500, height: 500
+      });
+      if (THREE) {
+        this.three = new THREE.WebGLRenderer();
+        this.three.setSize(this.width, this.height);
+      }
+    },
+    canvas: function (options) {
+      include(this, options, {
+        width: 500, height: 500
+      });
+      if (THREE) {
+        this.three = new THREE.CanvasRenderer();
+        this.three.setSize(this.width, this.height);
+      }
+    }
+  },
+  camera: {
+    perspective: function (options) {
+      include(this, options, {
+        fov: 75, aspect: 1, near: 0.1, far: 1000
+      });
+      if (THREE) {
+        this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+      }
     }
   }
 };
@@ -124,14 +179,29 @@ function make() {
     len--;
   }
   var constructor = description;
+  var maker = [];
+  var obj;
   for (var i = 0; i < len; i++) {
-    if (constructor[arguments[i]]) constructor = constructor[arguments[i]];
+    if (constructor[arguments[i]]) {
+      maker.push(arguments[i]);
+      constructor = constructor[arguments[i]];
+    }
   }
   if (typeof constructor == 'function') {
-    return new constructor(options);
-  } else {
-    return undefined;
+    obj = new constructor(options);
+    if (obj)
+      obj.maker = maker;
   }
+  return obj;
+}
+
+
+/**
+ * build a world based on the json data
+ * @param json
+ */
+function unpack(json) {
+
 }
 
 function structure() {
@@ -155,6 +225,7 @@ function options(obj) {
 module.exports = {
   addLibrary: addLibrary,
   make: make,
+  unpack: unpack,
   structure: structure,
   options: options
 };

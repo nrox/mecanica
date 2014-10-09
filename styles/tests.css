@@ -1,6 +1,47 @@
+body {
+    background: #151515;
+    color: #eee;
+    padding: 2%;
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+a{
+    color: #aae;
+    font-weight: bolder;
+}
+
+a[href='../']{
+    text-decoration: none;
+    margin: 5px;
+}
+h1 {
+    color: #eee;
+}
+
+h2 {
+    color: #ddd;
+}
+
+h3 {
+    color: #ccc;
+}
+
+button {
+    margin: 3px;
+    padding: 3px 13px;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    background: #151515;
+    color: #eee;
+    border-radius: 3px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
 canvas {
-    width: 100%;
-    height: 100%
+    border: 1px solid #eee;
+    width: 90%;
+    height: 95%;
 }
 
 table.results {
@@ -10,4 +51,11 @@ table.results {
 table.results td, table.results th {
     border: 1px solid black;
     min-width: 100px;
+}
+
+.console {
+    border-radius: 5px 5px 1px 1px;
+    border: 2px solid #999;
+    border-top: 20px solid #eee;
+    padding: 20px;
 }

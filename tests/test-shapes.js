@@ -20,10 +20,12 @@ function shape(type) {
       r: 4
     };
     var obj = factory.make('shape', type, parameters);
-    utils.logKeys(obj, type + ' properties');
-    utils.logKeys(obj.prototype, type + '.prototype properties');
-    utils.logKeys(obj.ammo, type + '.ammo properties');
-    utils.logKeys(obj.three, type + '.three properties');
+    /*
+     utils.logKeys(obj, type + ' properties');
+     utils.logKeys(obj.prototype, type + '.prototype properties');
+     utils.logKeys(obj.ammo, type + '.ammo properties');
+     utils.logKeys(obj.three, type + '.three properties');
+     */
     utils.checkValues(obj,
       _.pick(parameters, _.keys(factory.options(obj))),
       'checking ' + type + ' values');
