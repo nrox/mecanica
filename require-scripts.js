@@ -58,7 +58,7 @@ function require(script, arg) {
   }
 
   jQuery.ajax(url, {
-    cache: !url.indexOf('/lib/'), //cache only if its under /lib/
+    cache: true, //!url.indexOf('/lib/'), //cache only if its under /lib/
     async: false, //important async: false
     dataType: 'text', //don't run automatically
     error: function (jqXHR, textStatus, errorThrown) {
