@@ -17,6 +17,7 @@ function require(script, arg) {
   function scriptFolder(script) {
     var name = scriptName(script);
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
+    if (script.indexOf('/ware/' + name)>-1) folder = '/ware/';
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
     return folder;
   }
@@ -55,7 +56,7 @@ function require(script, arg) {
   var module = {
     exports: {}
   };
-  var exports = {};
+  var exports = module.exports;
   //in case of ammo remove stubs, or it will require fs and path
   if (isAmmoScript(script)) {
     module = process = exports = undefined;

@@ -7,6 +7,7 @@
 var _ = require('./lib/underscore.js');
 var Ammo, THREE;
 
+//this structure helps swapping worlds to json
 var description = {
   physics: {
     position: function (options) {
@@ -59,13 +60,13 @@ var description = {
       include(this, options, {
         friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, wireframe: false
       });
-      if (THREE) this.three = new THREE.MeshBasicMaterial(this.options);
+      if (THREE) this.three = new THREE.MeshBasicMaterial(opt(this));
     },
     phong: function (options) {
       include(this, options, {
         friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, emissive: 0x345678
       });
-      if (THREE) this.three = new THREE.MeshPhongMaterial(this.options);
+      if (THREE) this.three = new THREE.MeshPhongMaterial(opt(this));
     }
   },
   body: {
@@ -74,8 +75,8 @@ var description = {
         shape: 'box', material: 'basic', wireframe: false, color: 0x999999
       });
       if (THREE) {
-        var shape = make('shape', this.shape, this.options);
-        var material = make('material', this.material, this.options);
+        var shape = make('shape', this.shape, oid(this));
+        var material = make('material', this.material, oid(this));
         this.three = new THREE.Mesh(shape.three, material.three);
       }
     },
@@ -95,8 +96,8 @@ var description = {
       });
       if (THREE) {
         this.three = new THREE.Scene();
-        var camera = make('camera', this.camera, this.options).three;
-        var renderer = make('renderer', this.renderer, this.options).three;
+        var camera = make('camera', this.camera, oid(this)).three;
+        var renderer = make('renderer', this.renderer, oid(this)).three;
         if (document && this.append) document.body.appendChild(renderer.domElement);
       }
     }
@@ -143,10 +144,28 @@ var description = {
  * @param defaults object
  */
 function include(target, options, defaults) {
-  options = _.extend(defaults, _.pick(options, _.keys(defaults)));
+  options = _.extend(defaults, _.pick(options, _.keys(defaults), 'id'));
   _.extend(target, options);
-  target.options = options;
+  target._options = options;
   return options;
+}
+
+/**
+ * return obj._options without property 'id'
+ * @param obj
+ * @returns {*}
+ */
+function oid(obj) {
+  return _.omit(obj._options, 'id');
+}
+
+/**
+ * return obj._options
+ * @param obj
+ * @returns {*|LazyTransform._options}
+ */
+function opt(obj) {
+  return obj._options;
 }
 
 /**
@@ -201,7 +220,16 @@ function make() {
  * @param json
  */
 function unpack(json) {
-
+  var pack = {};
+  _.each(json, function (groupObject, group) {
+    _.each(groupObject, function (typeObject, id) {
+      _.each(typeObject, function (options, type) {
+        options.id = id;
+        pack[id] = make(group, type, options);
+      });
+    });
+  });
+  return pack;
 }
 
 function structure() {
@@ -219,7 +247,7 @@ function structure() {
 }
 
 function options(obj) {
-  return obj.options;
+  return obj._options;
 }
 
 module.exports = {
@@ -228,5 +256,6 @@ module.exports = {
   unpack: unpack,
   structure: structure,
   options: options,
-  include: include
+  include: include,
+  omitId: oid
 };

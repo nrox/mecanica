@@ -1,7 +1,7 @@
-var world = {
+module.exports = {
   scene: {
     s1: {
-      basic: {  camera: {}, renderer: {} }
+      basic: {}
     }
   },
   shape: {
