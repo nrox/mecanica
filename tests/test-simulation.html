@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test simulation</title>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+</head>
+<body>
+<a href='../'>../</a>
+<script src='../require-scripts.js'></script>
+<script src='../lib/jquery.js'></script>
+
+<h1>Test modules</h1>
+
+<p id='tests'></p>
+<div id='container'></div>
+
+<div>
+    <pre class='console'></pre>
+</div>
+
+<script>
+    var utils = require('./test-utils.js', undefined);
+    var Ammo = require('../lib/ammo.js', undefined);
+    var THREE = require('../lib/three.js', undefined);
+    var factory = require('../factory.js', undefined);
+    var _ = require('../lib/underscore.js', undefined);
+
+    factory.addLibrary(Ammo);
+    factory.addLibrary(THREE);
+
+    var test = {
+        'sphere fall': function () {
+            var bodyOptions = {
+                shape: {type: 'sphere', r: 1, segments: 16},
+                material: {type: 'basic', wireframe: true, color: utils.randomColor()},
+                position: {x: 0, y: 5, z: 0},
+                mass: 0.1
+            };
+            var floorOptions = {
+                shape: {type: 'box', dx: 10, dz: 10, dy:3, segments: 8},
+                material: {type: 'basic', wireframe: true, color: 0x338855},
+                position: {x: 0, y: -5, z: 0},
+                mass: 0
+            };
+            var scene = factory.make('scene', 'basic', {});
+            var body = factory.make('body', 'basic', bodyOptions);
+            var floor = factory.make('body', 'basic', floorOptions);
+
+            var camera = factory.make('camera', 'perspective', {});
+            var renderer = factory.make('renderer', 'webgl', {});
+            scene.ammo.addRigidBody(body.ammo);
+            scene.three.add(body.three);
+            scene.ammo.addRigidBody(floor.ammo);
+            scene.three.add(floor.three);
+            $('#container').append(renderer.three.domElement);
+            var trans = new Ammo.btTransform();
+            var render = function () {
+                //limit animation frame
+                setTimeout(function () {
+                    requestAnimationFrame(render);
+                }, 50);
+                scene.ammo.stepSimulation(1/60, 10);
+                body.ammo.getMotionState().getWorldTransform(trans);
+                var pos = trans.getOrigin();
+                body.three.position.x = pos.x();
+                body.three.position.y = pos.y();
+                body.three.position.z = pos.z();
+                renderer.three.render(scene.three, camera.three);
+                camera.three.position.x = 1 * Math.sin(new Date().getTime()/1000);
+                camera.three.position.y = 2 * Math.cos(new Date().getTime()/1000);
+            };
+            render();
+        }
+    };
+
+    test.all = utils.all(test);
+    window.onload = function () {
+        var $tests = $('#tests');
+        _.each(test, function (fun, name) {
+            $tests.append("<button class='test'>" + name + "</button>");
+        });
+        $('.test').click(function (event) {
+            setConsole('.console');
+            var name = $(event.target).text();
+            setTimeout(function () {
+                console.log('-------------', name, '---------------\n');
+                test[name]();
+                setConsole(null);
+            }, 100);
+        });
+    };
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Testing Meshes</title>
+    <title>Test modules</title>
     <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
     <link rel='icon' type='image/png' href='../images/gear2.png'>
 </head>
@@ -24,31 +24,14 @@
 </div>
 
 <script>
-    /**
-     * replace console.log temporarily to log to a pre element
-     * and call each listed script
-     */
-
-    var logBackup = console.log;
-    var $console;
-    var logToElement = function () {
-        logBackup.apply(console, arguments);
-        if(!$console) return;
-        for (var i = 0; i < arguments.length; i++) {
-            $console.append(arguments[i] + ' ');
-        }
-        $console.append('\n');
-    };
     window.onload = function () {
         $('.test').click(function (event) {
-            $console = $('.console');
-            $console.empty();
+            setConsole('.console');
             var test = $(event.target).text();
             setTimeout(function () {
-                console.log = logToElement;
                 console.log('-------------', test, '---------------\n');
                 require(test, 'all');
-                console.log = logBackup;
+                setConsole(null);
             }, 100);
         });
     };

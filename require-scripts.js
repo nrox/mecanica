@@ -17,7 +17,7 @@ function require(script, arg) {
   function scriptFolder(script) {
     var name = scriptName(script);
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
-    if (script.indexOf('/ware/' + name)>-1) folder = '/ware/';
+    if (script.indexOf('/ware/' + name) > -1) folder = '/ware/';
     folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
     return folder;
   }
@@ -42,7 +42,6 @@ function require(script, arg) {
   }
 
   //all paths are converted to absolute
-  var name = scriptName(script);
   if (script.lastIndexOf('.js') < 0) return;
   //and scripts location are predefined
   var url = scriptURL(script);
@@ -85,3 +84,45 @@ function require(script, arg) {
   });
   return module.exports;
 }
+
+(function () {
+  var logBackup = console.log;
+  var errorBackup = console.error;
+  var $console;
+
+  window.setConsole = function (selector) {
+    if (selector) {
+      $console = $(selector);
+      if ($console.length) {
+        $console.empty();
+        console.log = logToElement;
+        console.error = errorToElement;
+      }
+    } else {
+      console.log = logBackup;
+      console.error = errorBackup;
+    }
+  };
+
+  window.clearConsole = function () {
+    $console && $console.empty();
+  };
+
+  function logToElement() {
+    logBackup.apply(console, arguments);
+    if (!$console) return;
+    for (var i = 0; i < arguments.length; i++) {
+      $console.append(arguments[i] + ' ');
+    }
+    $console.append('\n');
+  }
+
+  function errorToElement() {
+    errorBackup.apply(console, arguments);
+    if (!$console) return;
+    for (var i = 0; i < arguments.length; i++) {
+      $console.append(arguments[i] + ' ');
+    }
+    $console.append('\n');
+  }
+})();

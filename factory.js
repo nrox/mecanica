@@ -35,10 +35,15 @@ var description = {
     },
     box: function (options) {
       include(this, options, {
-        dx: 1, dy: 1, dz: 1
+        dx: 1, dy: 1, dz: 1, segments: 1
       });
       if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx, this.dy, this.dz));
-      if (THREE) this.three = new THREE.BoxGeometry(this.dx, this.dy, this.dz);
+      if (THREE) {
+        this.three = new THREE.BoxGeometry(
+          this.dx, this.dy, this.dz,
+          this.segments, this.segments, this.segments
+        );
+      }
     },
     cylinder: function (options) {
       include(this, options, {
@@ -72,33 +77,49 @@ var description = {
   body: {
     basic: function (options) {
       include(this, options, {
-        shape: 'box', material: 'basic', wireframe: false, color: 0x999999
+        shape: {type: 'box'},
+        material: {type: 'basic', wireframe: false, color: 0x999999},
+        mass: 0.1, position: {}
       });
+      var shape = make('shape', this.shape);
+      var material = make('material', this.material);
+      var position = make('physics', 'position', this.position);
       if (THREE) {
-        var shape = make('shape', this.shape, oid(this));
-        var material = make('material', this.material, oid(this));
         this.three = new THREE.Mesh(shape.three, material.three);
+        this.three.position.copy(position.three);
       }
-    },
-    predefined: function (options) {
-      include(this, options, {
-        shape: '', material: ''
-      });
-      if (THREE && this.shape && this.material && this.shape.three && this.material.three) {
-        this.three = new THREE.Mesh(this.shape.three, this.material.three);
+      if (Ammo) {
+        var transform = new Ammo.btTransform();
+        transform.setIdentity();
+        transform.setOrigin(position.ammo);
+        var inertia = new Ammo.btVector3(0, 0, 0);
+        if (this.mass) shape.ammo.calculateLocalInertia(this.mass, inertia);
+        var motionState = new Ammo.btDefaultMotionState(transform);
+        var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, shape.ammo, inertia);
+        this.ammo = new Ammo.btRigidBody(rbInfo);
       }
     }
   },
-  scene: {
+  scene: { //the same as world
     basic: function (options) {
       include(this, options, {
-        camera: 'perspective', renderer: 'webgl'
+        gravity: -9.81
       });
       if (THREE) {
         this.three = new THREE.Scene();
-        var camera = make('camera', this.camera, oid(this)).three;
-        var renderer = make('renderer', this.renderer, oid(this)).three;
-        if (document && this.append) document.body.appendChild(renderer.domElement);
+      }
+      if (Ammo) {
+        this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+        this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
+        this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
+        this.btSequentialImpulseConstraintSolver = new Ammo.btSequentialImpulseConstraintSolver();
+        this.ammo = new Ammo.btDiscreteDynamicsWorld(
+          this.btCollisionDispatcher,
+          this.btDbvtBroadphase,
+          this.btSequentialImpulseConstraintSolver,
+          this.btDefaultCollisionConfiguration
+        );
+        this.ammo.setGravity(new Ammo.btVector3(0, this.gravity, 0));
       }
     }
   },
@@ -125,10 +146,12 @@ var description = {
   camera: {
     perspective: function (options) {
       include(this, options, {
-        fov: 75, aspect: 1, near: 0.1, far: 1000
+        fov: 75, aspect: 1, near: 0.1, far: 1000,
+        position: {x: 0, y: 0, z: 10}
       });
       if (THREE) {
         this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+        this.three.position.copy(make('physics', 'position', this.position).three);
       }
     }
   }
@@ -190,26 +213,32 @@ function addLibrary(lib) {
  * @returns {object}
  */
 function make() {
-  var len = arguments.length;
-  var options = (typeof arguments[len - 1] == 'object') && arguments[len - 1];
-  if (!options) {
-    options = {};
-  } else {
-    len--;
+  var group, type, options;
+  switch (arguments.length) {
+    case 3:
+      options = arguments[2];
+      group = arguments[0];
+      type = arguments[1];
+      break;
+    case 2:
+      options = arguments[1];
+      group = arguments[0];
+      type = options.type;
+      break;
+    case 1:
+      options = arguments[0];
+      group = options.group;
+      type = options.type;
+      break;
   }
-  var constructor = description;
-  var maker = [];
+  var constructor = description[group] && description[group][type];
   var obj;
-  for (var i = 0; i < len; i++) {
-    if (constructor[arguments[i]]) {
-      maker.push(arguments[i]);
-      constructor = constructor[arguments[i]];
-    }
-  }
   if (typeof constructor == 'function') {
     obj = new constructor(options);
-    if (obj)
-      obj.maker = maker;
+    if (obj) {
+      obj.group = group;
+      obj.type = type;
+    }
   }
   return obj;
 }
@@ -237,7 +266,7 @@ function structure() {
   _.each(description, function (group, key) {
     obj[key] = {};
     _.each(group, function (fun, name) {
-      var m = make(key, name);
+      var m = make(key, name, {});
       if (m) {
         obj[key][name] = options(m);
       }

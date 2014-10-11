@@ -102,7 +102,6 @@ module.exports = {
    */
   all: function (obj, timeout, repeat) {
     function run() {
-      console.log('--testing all--');
       var keys = _.without(_.keys(obj), 'all');
       if (timeout && repeat) {
         setTimeout(run, keys.length * timeout);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Testing require(script)</title>
+    <title>Test require</title>
     <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
     <link rel='icon' type='image/png' href='../images/gear2.png'>
     <script src='../lib/jquery.js'></script>
@@ -25,16 +25,6 @@
 </div>
 
 <script>
-    var logBackup = console.log;
-    var $console;
-    var logToElement = function () {
-        logBackup.apply(console, arguments);
-        if (!$console) return;
-        for (var i = 0; i < arguments.length; i++) {
-            $console.append(arguments[i] + ' ');
-        }
-        $console.append('\n');
-    };
     window.onload = function () {
         var verify = {
             'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
@@ -50,10 +40,7 @@
           $verify.append("<button class='test'>" + i + "</button>");
         }
         var utils = require('test-utils.js', undefined);
-
         $('.test').click(function (event) {
-            $console = $('.console');
-            $console.empty();
             var library = $(event.target).text();
             if (library == 'all') {
                 for(var i in verify){
@@ -63,15 +50,12 @@
                 runRequireTest(library);
             }
             function runRequireTest(library) {
+                setConsole('.console');
                 setTimeout(function () {
-                    console.log = logToElement;
                     console.log('\n-------------', library, '---------------\n');
-
                     var obj = require(library, undefined);
-
                     utils.checkKeys(obj, verify[library], 'check keys in ' + library);
-
-                    console.log = logBackup;
+                    setConsole(null);
                 }, 100);
             }
         });
