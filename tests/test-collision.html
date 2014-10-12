@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test simulation</title>
+    <title>Test collision</title>
     <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
     <link rel='icon' type='image/png' href='../images/gear2.png'>
 </head>
@@ -10,15 +10,13 @@
 <script src='../require-scripts.js'></script>
 <script src='../lib/jquery.js'></script>
 
-<h1>Test simulation</h1>
+<h1>Test collision</h1>
 
 <p id='tests'></p>
 
 <div id='container'></div>
 
-<div>
-    <pre class='console'></pre>
-</div>
+<div class='console'></div>
 
 <script>
     var utils = require('./test-utils.js', undefined);
@@ -80,6 +78,12 @@
         return function () {
             console.log(title);
             var scene = factory.make('scene', 'basic', {});
+            bodyOptions.rotation.x = 2 * Math.PI * Math.random();
+            bodyOptions.rotation.y = 2 * Math.PI * Math.random();
+            bodyOptions.rotation.z = 0;
+            _.each(bodyOptions.position, function (value, key, position) {
+                position[key] += 1.6 * Math.random() - 0.8;
+            });
             var body = factory.make('body', 'basic', bodyOptions);
             var floor = factory.make('body', 'basic', floorOptions);
 
@@ -89,7 +93,7 @@
             scene.three.add(body.three);
             scene.ammo.addRigidBody(floor.ammo);
             scene.three.add(floor.three);
-            scene.three.add(new THREE.AxisHelper( 5 ));
+            scene.three.add(new THREE.AxisHelper(5));
             $(renderer.three.domElement).attr('renderer', title);
             $('#container').append(renderer.three.domElement);
             var phase = Math.PI * Math.random();
@@ -97,7 +101,7 @@
             objects.body[title] = body;
             objects.camera[title] = camera;
             objects.renderer[title] = renderer;
-            var log = true;
+            var frequency = 30;
             var render = function () {
                 var scene = objects.scene[title];
                 var body = objects.body[title];
@@ -107,8 +111,10 @@
                 //limit animation frame
                 objects.timeout[title] = setTimeout(function () {
                     objects.animationFrame[title] = requestAnimationFrame(render);
-                }, 1000 / 60);
-                scene.ammo.stepSimulation(1 / 60, 10);
+                }, 1000 / frequency);
+                //timeStep < maxSubSteps * fixedTimeStep
+                // 1/30 < 10 * 1/60
+                scene.ammo.stepSimulation(1 / frequency, 10);
                 transferPhysics(body, trans);
                 renderer.three.render(scene.three, camera.three);
                 var time = new Date().getTime();
@@ -121,8 +127,8 @@
         };
     }
 
-    function transferPhysics(body, trans){
-        if (!trans){
+    function transferPhysics(body, trans) {
+        if (!trans) {
             trans = new Ammo.btTransform();
         }
         body.ammo.getMotionState().getWorldTransform(trans);
@@ -142,18 +148,15 @@
                 r: 1, dx: 1, dy: 1.2, dz: 1.4,
                 segments: undefined
             },
-            position: {
-                x: 0,
-                y: 5,
-                z: 0
-            },
+            position: { x: 0, y: 5, z: 0 },
+            rotation: { x: undefined, y: undefined, z: 0 },
             material: {type: 'basic', wireframe: true, color: 0x991122},
             mass: 0.1
         };
         var floor = {
             shape: {
                 type: undefined,
-                dx: 10, dz: 2, dy: 3, r: 10,
+                dx: 10, dz: 5, dy: 3, r: 9,
                 segments: undefined
             },
             position: {
@@ -182,7 +185,7 @@
             cone: -3,
             cylinder: -5
         };
-        var shapes = ['box', 'sphere', 'cone','cylinder'];
+        var shapes = ['box', 'sphere', 'cone', 'cylinder'];
         _.each(shapes, function (floorType) {
             _.each(shapes, function (bodyType) {
                 floor.shape.type = floorType;

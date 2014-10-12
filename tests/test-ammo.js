@@ -4,7 +4,7 @@
  */
 
 var utils = require('./test-utils.js');
-var ammo = require('../lib/ammo.js');
+var Ammo = require('../lib/ammo.js');
 var _ = require('../lib/underscore.js');
 
 var test = {
@@ -13,15 +13,38 @@ var test = {
       x = 1.2,
       y = 2.3,
       z = 3.4;
-    var keys = ['getX', 'getY', 'getZ', 'x', 'y', 'z'];
-    var obj = new ammo.btVector3(x, y, z);
+    var keys = ['x', 'y', 'z', 'setX', 'setY', 'setZ'];
+    var obj = new Ammo.btVector3(x, y, z);
     utils.logKeys(obj, 'btVector3 properties');
     utils.checkKeys(obj, keys, 'checking btVector3 keys');
+    console.warn('the following test will fail because of float precision');
     utils.checkValues(obj, {
       x: x,
       y: y,
       z: z
     }, 'checking btVector3 values');
+  },
+  btQuaternion: function () {
+    //W = cos (0.5 × α)
+    //X = x × sin (0.5 × α)
+    //Y = y × sin (0.5 × α)
+    //Z = z × sin (0.5 × α)
+    var angle = Math.PI / 4;
+    var x = 1 * Math.sin(0.5 * angle);
+    var y = 1 * Math.sin(0.5 * angle);
+    var z = 1 * Math.sin(0.5 * angle);
+    var w = Math.cos(0.5 * angle);
+    var keys = ['x', 'y', 'z', 'w', 'setX', 'setY', 'setZ', 'setW'];
+    var obj = new Ammo.btQuaternion(x, y, z, w);
+    utils.logKeys(obj, 'btQuaternion properties');
+    utils.checkKeys(obj, keys, 'checking btQuaternion keys');
+    console.warn('the following test will fail because of float precision');
+    utils.checkValues(obj, {
+      x: x,
+      y: y,
+      z: z,
+      w: w
+    }, 'checking btQuaternion values');
   }
 };
 

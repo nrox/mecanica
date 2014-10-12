@@ -17,6 +17,33 @@ var description = {
       if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
       if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
     },
+    rotation: function (options) {
+      include(this, options, {
+        x: 0, y: 0, z: 0
+      });
+      if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+      if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
+    },
+    quaternion: function (options) {
+      include(this, options, {
+        x: 1, y: 0, z: 0, w: undefined
+      });
+      if (this.w === undefined) {
+        //XYZ order
+        var c1 = Math.cos(this.x / 2), c2 = Math.cos(this.y / 2), c3 = Math.cos(this.z / 2);
+        var s1 = Math.sin(this.x / 2), s2 = Math.sin(this.y / 2), s3 = Math.sin(this.z / 2);
+        this.x = s1 * c2 * c3 + c1 * s2 * s3;
+        this.y = c1 * s2 * c3 - s1 * c2 * s3;
+        this.z = c1 * c2 * s3 + s1 * s2 * c3;
+        this.w = c1 * c2 * c3 - s1 * s2 * s3;
+      }
+      if (Ammo) {
+        this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
+      }
+      if (THREE) {
+        this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
+      }
+    },
     velocity: function (options) {
       include(this, options, {
         x: 0, y: 0, z: 0
@@ -37,7 +64,7 @@ var description = {
       include(this, options, {
         dx: 1, dy: 1, dz: 1, segments: 1
       });
-      if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx/2, this.dy/2, this.dz/2));
+      if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
       if (THREE) {
         this.three = new THREE.BoxGeometry(
           this.dx, this.dy, this.dz,
@@ -49,7 +76,7 @@ var description = {
       include(this, options, {
         r: 1, dy: 1, segments: 12
       });
-      if (Ammo) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy, this.r));
+      if (Ammo) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
       if (THREE) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
     },
     cone: function (options) {
@@ -79,19 +106,27 @@ var description = {
       include(this, options, {
         shape: {type: 'box'},
         material: {type: 'basic', wireframe: false, color: 0x999999},
-        mass: 0.1, position: {}
+        mass: 0.1, position: {}, quaternion: undefined, rotation: undefined
       });
       var shape = make('shape', this.shape);
       var material = make('material', this.material);
       var position = make('physics', 'position', this.position);
+      var quaternion, rotation;
+      if (this.quaternion) {
+        quaternion = make('physics', 'quaternion', this.quaternion);
+      } else if (this.rotation) { //set from euler
+        quaternion = make('physics', 'quaternion', this.rotation);
+      }
       if (THREE) {
         this.three = new THREE.Mesh(shape.three, material.three);
         this.three.position.copy(position.three);
+        if (quaternion) this.three.quaternion.copy(quaternion.three);
       }
       if (Ammo) {
         var transform = new Ammo.btTransform();
         transform.setIdentity();
         transform.setOrigin(position.ammo);
+        if (quaternion) transform.setRotation(quaternion.ammo);
         var inertia = new Ammo.btVector3(0, 0, 0);
         if (this.mass) shape.ammo.calculateLocalInertia(this.mass, inertia);
         var motionState = new Ammo.btDefaultMotionState(transform);
