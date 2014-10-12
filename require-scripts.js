@@ -86,43 +86,48 @@ function require(script, arg) {
 }
 
 (function () {
-  var logBackup = console.log;
-  var errorBackup = console.error;
   var $console;
+  var backups = {
+    log: console.log,
+    error: console.error,
+    warn: console.warn,
+    info: console.info
+  };
+
+  var replacement = function (type) {
+    return function () {
+      if (!$console.length) return;
+      var message = '';
+      for (var i = 0; i < arguments.length; i++) {
+        message += arguments[i] + ' ';
+      }
+      message += '\n';
+      $console.append("<pre class='" + type + "'>" + message + "</pre>");
+      backups[type].apply(console, arguments);
+    };
+  };
 
   window.setConsole = function (selector) {
     if (selector) {
+      window.clearConsole();
       $console = $(selector);
       if ($console.length) {
         $console.empty();
-        console.log = logToElement;
-        console.error = errorToElement;
+        console.log = replacement('log');
+        console.info = replacement('info');
+        console.error = replacement('error');
+        console.warn = replacement('warn');
       }
     } else {
-      console.log = logBackup;
-      console.error = errorBackup;
+      console.log = backups.log;
+      console.error = backups.error;
+      console.warn = backups.warn;
+      console.info = backups.info;
+      $console = undefined;
     }
   };
 
   window.clearConsole = function () {
     $console && $console.empty();
   };
-
-  function logToElement() {
-    logBackup.apply(console, arguments);
-    if (!$console) return;
-    for (var i = 0; i < arguments.length; i++) {
-      $console.append(arguments[i] + ' ');
-    }
-    $console.append('\n');
-  }
-
-  function errorToElement() {
-    errorBackup.apply(console, arguments);
-    if (!$console) return;
-    for (var i = 0; i < arguments.length; i++) {
-      $console.append(arguments[i] + ' ');
-    }
-    $console.append('\n');
-  }
 })();

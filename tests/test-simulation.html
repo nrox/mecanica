@@ -47,11 +47,11 @@
     };
 
     function clearObjects() {
-        _.each(objects.timeout, function (timeout) {
-            clearTimeout(timeout);
-        });
         _.each(objects.animationFrame, function (frame) {
             cancelAnimationFrame(frame);
+        });
+        _.each(objects.timeout, function (timeout) {
+            clearTimeout(timeout);
         });
         _.each(objects.scene, function (scene, title) {
             if (!scene) return;
@@ -79,11 +79,8 @@
     function makeTest(bodyOptions, floorOptions, title) {
         return function () {
             console.log(title);
-            if (title.indexOf('box') > -1)
-                console.log('warning: boxes are failing. check ammo and three box origins.');
             var scene = factory.make('scene', 'basic', {});
             var body = factory.make('body', 'basic', bodyOptions);
-            body.three.useQuaternion = true;
             var floor = factory.make('body', 'basic', floorOptions);
 
             var camera = factory.make('camera', 'perspective', {});
@@ -170,19 +167,22 @@
         var bodySegments = {
             box: 4,
             sphere: 16,
-            cone: 32
+            cone: 32,
+            cylinder: 32
         };
         var floorSegments = {
             box: 8,
             sphere: 32,
-            cone: 64
+            cone: 64,
+            cylinder: 32
         };
         var floorY = {
             box: -5,
             sphere: -10,
-            cone: -3
+            cone: -3,
+            cylinder: -5
         };
-        var shapes = ['box', 'sphere', 'cone'];
+        var shapes = ['box', 'sphere', 'cone','cylinder'];
         _.each(shapes, function (floorType) {
             _.each(shapes, function (bodyType) {
                 floor.shape.type = floorType;
@@ -197,7 +197,7 @@
     }
     window.onload = function () {
         addAllTests();
-        test.all = utils.all(test);
+        test.all = utils.all(test, 1);
         var $tests = $('#tests');
         _.each(test, function (fun, name) {
             $tests.append("<button class='test'>" + name + "</button>");
@@ -209,8 +209,7 @@
             setTimeout(function () {
                 console.log('-------------', name, '---------------\n');
                 test[name]();
-                setConsole(null);
-            }, 100);
+            }, 1);
         });
     };
 </script>

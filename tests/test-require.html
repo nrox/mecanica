@@ -18,10 +18,7 @@
     <button class='test'>all</button>
     <br/>
 </p>
-<div>
-    <pre class='console'>
-
-    </pre>
+<div class='console'>
 </div>
 
 <script>
@@ -40,6 +37,15 @@
           $verify.append("<button class='test'>" + i + "</button>");
         }
         var utils = require('test-utils.js', undefined);
+
+        //preamble
+        setConsole('.console');
+        console.log('example of console.log');
+        console.error('example of console.error');
+        console.warn('example of console.warn');
+        console.info('example of console.info');
+        setConsole(null);
+
         $('.test').click(function (event) {
             var library = $(event.target).text();
             if (library == 'all') {
@@ -55,7 +61,7 @@
                     console.log('\n-------------', library, '---------------\n');
                     var obj = require(library, undefined);
                     utils.checkKeys(obj, verify[library], 'check keys in ' + library);
-                    setConsole(null);
+                    //setConsole(null);
                 }, 100);
             }
         });

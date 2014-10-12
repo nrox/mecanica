@@ -59,3 +59,20 @@ table.results td, table.results th {
     border-top: 20px solid #eee;
     padding: 20px;
 }
+
+.console > .pre {
+    margin: 0;
+    padding: 0;
+}
+
+.console > .error {
+    color: #e88;
+}
+
+.console > .info {
+    color: #88e;
+}
+
+.console > .warn {
+    color: #ee8;
+}
