@@ -143,6 +143,15 @@ module.exports = {
       color = ( color << 8) | ~~(0xff * Math.random());
     }
     return color;
+  },
+
+  /**
+   * return a copy of an object, using JSON.stringify and JSON.parse
+   * @param json a json object
+   * @returns {json}
+   */
+  deepCopy: function (json) {
+    return JSON.parse(JSON.stringify(json));
   }
 };
 
