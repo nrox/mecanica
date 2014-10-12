@@ -92,6 +92,7 @@
             scene.three.add(body.three);
             scene.ammo.addRigidBody(floor.ammo);
             scene.three.add(floor.three);
+            scene.three.add(new THREE.AxisHelper( 5 ));
             $(renderer.three.domElement).attr('renderer', title);
             $('#container').append(renderer.three.domElement);
             var phase = Math.PI * Math.random();
@@ -111,14 +112,7 @@
                     objects.animationFrame[title] = requestAnimationFrame(render);
                 }, 1000 / 60);
                 scene.ammo.stepSimulation(1 / 60, 10);
-                body.ammo.getMotionState().getWorldTransform(trans);
-                var pos = trans.getOrigin();
-                body.three.position.x = pos.x();
-                body.three.position.y = pos.y();
-                body.three.position.z = pos.z();
-                var q = trans.getRotation();
-                var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
-                body.three.quaternion.copy(quat);
+                transferPhysics(body, trans);
                 renderer.three.render(scene.three, camera.three);
                 var time = new Date().getTime();
                 camera.three.position.x = distance * Math.sin(phase + time / 2234);
@@ -128,6 +122,20 @@
             };
             render();
         };
+    }
+
+    function transferPhysics(body, trans){
+        if (!trans){
+            trans = new Ammo.btTransform();
+        }
+        body.ammo.getMotionState().getWorldTransform(trans);
+        var pos = trans.getOrigin();
+        body.three.position.x = pos.x();
+        body.three.position.y = pos.y();
+        body.three.position.z = pos.z();
+        var q = trans.getRotation();
+        var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
+        body.three.quaternion.copy(quat);
     }
 
     function addAllTests() {

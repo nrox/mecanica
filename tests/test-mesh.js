@@ -10,6 +10,20 @@ var _ = require('../lib/underscore.js');
 var scene, currentMesh;
 
 factory.addLibrary(three);
+factory.addLibrary(ammo);
+
+
+function transferPhysics(body){
+  var trans = new ammo.btTransform();
+  body.ammo.getMotionState().getWorldTransform(trans);
+  var pos = trans.getOrigin();
+  body.three.position.x = pos.x();
+  body.three.position.y = pos.y();
+  body.three.position.z = pos.z();
+  var q = trans.getRotation();
+  var quat = new three.Quaternion(q.x(), q.y(), q.z(), q.w());
+  body.three.quaternion.copy(quat);
+}
 
 function bodyBasic(type) {
   return function () {
@@ -29,13 +43,14 @@ function bodyBasic(type) {
         wireframe: true
       },
       position: {
-        x: Math.random() - 0.5,
-        y: Math.random() - 0.5,
-        z: Math.random() - 0.5
+        x: 0,
+        y: 0,
+        z: 0
       }
     };
     var body = factory.make('body', 'basic', parameters);
     if (!scene) scene = makeScene();
+    transferPhysics(body);
     currentMesh = replaceMesh(currentMesh, body.three);
     console.log(type);
     document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
@@ -51,14 +66,18 @@ _.each(factory.structure().shape, function (cons, type) {
 
 function makeScene() {
   var scene = new three.Scene();
+  scene.add(new three.AxisHelper( 5 ));
+
   var camera = new three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
   var renderer = new three.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  camera.position.z = 5;
-
+  camera.position.copy(new three.Vector3(3,3,3));
+  camera.lookAt(new three.Vector3(3,3,3));
+  var phase = Math.PI * Math.random();
+  var origin = new three.Vector3();
   var render = function () {
     //limit animation frame
     setTimeout(function () {
@@ -67,9 +86,12 @@ function makeScene() {
 
     //rotate the mesh
     if (currentMesh) {
-      currentMesh.rotation.x += 0.01;
-      currentMesh.rotation.y += 0.03;
-      currentMesh.rotation.z -= 0.02;
+      var time = new Date().getTime();
+      var distance = 10;
+      camera.position.x = distance * Math.sin(phase + time / 2234);
+      camera.position.z = distance * Math.cos(phase + time / 2234);
+      camera.position.y = distance * Math.cos(phase + time / 3345);
+      camera.lookAt(origin);
     }
 
     renderer.render(scene, camera);
