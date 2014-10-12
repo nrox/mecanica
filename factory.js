@@ -37,7 +37,7 @@ var description = {
       include(this, options, {
         dx: 1, dy: 1, dz: 1, segments: 1
       });
-      if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx, this.dy, this.dz));
+      if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx/2, this.dy/2, this.dz/2));
       if (THREE) {
         this.three = new THREE.BoxGeometry(
           this.dx, this.dy, this.dz,
