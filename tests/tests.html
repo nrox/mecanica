@@ -23,8 +23,7 @@
 <div class='console'></div>
 
 <script>
-    var useSearchPathForAutoload = true;
-    var library = {};
+    //add new tests here
     var scripts = {
         'require': 'test-require.js',
         'ammo': 'test-ammo.js',
@@ -33,7 +32,11 @@
         'rendering': 'test-render.js',
         'shapes': 'test-shapes.js'
     };
+</script>
 
+<script>
+    var useSearchPathForAutoload = false; //true is having strange behaviors
+    var library = {};
     function loadTest(event) {
         if (!useSearchPathForAutoload) {
             library && library.clearObjects && library.clearObjects();
