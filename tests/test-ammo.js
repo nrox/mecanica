@@ -49,5 +49,6 @@ var test = {
 };
 
 test.all = utils.all(test);
+module.exports = test;
 utils.run(test, process.argv, __filename);
 

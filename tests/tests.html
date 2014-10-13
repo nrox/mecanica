@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title class='title'>Tests</title>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+    <script src='../lib/jquery.js'></script>
+    <script src='../lib/underscore.js'></script>
+    <script src='../require-scripts.js'></script>
+
+</head>
+<body>
+<a href='../'>../</a>
+
+<h1 class='index'>Tests index</h1>
+
+<div><p id='index'></p></div>
+
+<h1 class='title'>Loaded tests</h1>
+<p id='verify'></p>
+<div class='console'></div>
+
+<script>
+    var test = {};
+    var scripts = {
+        'ammo': 'test-ammo.js',
+        'shapes': 'test-shapes.js'
+    };
+
+    function loadTest(event){
+        setConsole('.console');
+        var title = $(event.target).text();
+        $('.title').text(title);
+        var script = $(event.target).attr('script');
+        test = require(script, undefined);
+        var $verify = $('#verify');
+        $verify.empty();
+        _.each(test, function(fun, name){
+            $verify.append("<button class='test'>" + name + "</button>");
+        });
+        $verify.children('.test').on('click', runTest);
+    }
+
+    function runTest(event){
+        setConsole('.console');
+        var title = $(event.target).text();
+        console.info(title);
+        test[title]();
+    }
+
+    window.onload = function () {
+        var utils = require('test-utils.js', undefined);
+        var $index = $('#index');
+        _.each(scripts, function(script, title){
+            $index.append("<button class='test' script='" + script+ "'>" + title + "</button>");
+        });
+        $index.children('.test').on('click', loadTest);
+    };
+
+
+</script>
+</body>
+</html>

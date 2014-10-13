@@ -126,11 +126,11 @@ module.exports = {
    */
   run: function (tests, argv, filename) {
     var item = argv[2];
-    if (tests[item]) {
+    if (item && tests[item]) {
       tests[item]();
-    } else {
+    } else if (!this.isRunningOnBrowser()) {
       var file = basename(filename);
-      console.log('to run tests in ' + file + ' use one of these commands:');
+      console.info('to run tests in ' + file + ' use one of these commands:');
       _.each(tests, function (value, key) {
         console.log('node ' + file + ' ' + key);
       });
@@ -152,6 +152,10 @@ module.exports = {
    */
   deepCopy: function (json) {
     return JSON.parse(JSON.stringify(json));
+  },
+
+  isRunningOnBrowser: function () {
+    return !!(typeof window !== 'undefined' && window.document);
   }
 };
 

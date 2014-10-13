@@ -41,4 +41,4 @@ _.each(factory.structure().shape, function (cons, type) {
 
 test.all = utils.all(test);
 utils.run(test, process.argv, __filename);
-
+module.exports = test;
