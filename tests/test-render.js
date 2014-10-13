@@ -13,7 +13,7 @@ factory.addLibrary(three);
 factory.addLibrary(ammo);
 
 
-function transferPhysics(body){
+function transferPhysics(body) {
   var trans = new ammo.btTransform();
   body.ammo.getMotionState().getWorldTransform(trans);
   var pos = trans.getOrigin();
@@ -35,7 +35,7 @@ function bodyBasic(type) {
         dy: Math.random() + 1,
         dz: Math.random() + 1,
         r: Math.random() + 1,
-        segments: ~~(Math.random() * 18 + 6)
+        segments: ~~(Math.random() * 18 + 18)
       },
       material: {
         type: 'basic',
@@ -52,8 +52,8 @@ function bodyBasic(type) {
     if (!scene) scene = makeScene();
     transferPhysics(body);
     currentMesh = replaceMesh(currentMesh, body.three);
-    console.log(type);
-    document.getElementById('status').innerHTML = type + ' :<br />' + JSON.stringify(parameters);
+    console.log(type, ':');
+    console.log(JSON.stringify(parameters, '  '));
   };
 }
 
@@ -66,16 +66,16 @@ _.each(factory.structure().shape, function (cons, type) {
 
 function makeScene() {
   var scene = new three.Scene();
-  scene.add(new three.AxisHelper( 5 ));
+  scene.add(new three.AxisHelper(5));
 
   var camera = new three.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
   var renderer = new three.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  $('#container').append(renderer.domElement);
 
-  camera.position.copy(new three.Vector3(3,3,3));
-  camera.lookAt(new three.Vector3(3,3,3));
+  camera.position.copy(new three.Vector3(3, 3, 3));
+  camera.lookAt(new three.Vector3(3, 3, 3));
   var phase = Math.PI * Math.random();
   var origin = new three.Vector3();
   var render = function () {
@@ -108,6 +108,7 @@ function replaceMesh(currentMesh, newMesh) {
   return newMesh;
 }
 
-test.all = utils.all(test, 3500, true);
+//test.all = utils.all(test, 3500, true);
+module.exports.test = test;
 utils.run(test, process.argv, __filename);
 

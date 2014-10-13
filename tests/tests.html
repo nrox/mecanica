@@ -12,48 +12,59 @@
 <body>
 <a href='../'>../</a>
 
-<h1 class='index'>Tests index</h1>
+<h2 class='index'>Tests index</h2>
 
 <div><p id='index'></p></div>
+<h3 class='title'>&nbsp;</h3>
 
-<h1 class='title'>Loaded tests</h1>
 <p id='verify'></p>
+
+<div id='container'></div>
 <div class='console'></div>
 
 <script>
-    var test = {};
+    var library = {};
     var scripts = {
+        'require': 'test-require.js',
         'ammo': 'test-ammo.js',
+        'factory': 'test-factory.js',
+        'collision': 'test-collision.js',
+        'rendering': 'test-render.js',
         'shapes': 'test-shapes.js'
     };
 
-    function loadTest(event){
+    function loadTest(event) {
+        library && library.clearObjects && library.clearObjects();
+        $('#container').empty();
         setConsole('.console');
         var title = $(event.target).text();
-        $('.title').text(title);
+        $('.title').text('Test: ' + title);
         var script = $(event.target).attr('script');
-        test = require(script, undefined);
+        library = require(script, undefined);
         var $verify = $('#verify');
         $verify.empty();
-        _.each(test, function(fun, name){
+        _.each(library.test, function (fun, name) {
             $verify.append("<button class='test'>" + name + "</button>");
         });
         $verify.children('.test').on('click', runTest);
     }
 
-    function runTest(event){
+    function runTest(event) {
+        library && library.clearObjects && library.clearObjects();
         setConsole('.console');
         var title = $(event.target).text();
         console.info(title);
-        test[title]();
+        library.test[title]();
     }
 
     window.onload = function () {
         var utils = require('test-utils.js', undefined);
         var $index = $('#index');
-        _.each(scripts, function(script, title){
-            $index.append("<button class='test' script='" + script+ "'>" + title + "</button>");
+        _.each(scripts, function (script, title) {
+            $index.append("<button class='test' script='" + script + "'>" + title + "</button>");
         });
+        setConsole('.console');
+        console.info('ready');
         $index.children('.test').on('click', loadTest);
     };
 

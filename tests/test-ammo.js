@@ -30,9 +30,9 @@ var test = {
     //Y = y × sin (0.5 × α)
     //Z = z × sin (0.5 × α)
     var angle = Math.PI / 4;
-    var x = 1 * Math.sin(0.5 * angle);
-    var y = 1 * Math.sin(0.5 * angle);
-    var z = 1 * Math.sin(0.5 * angle);
+    var x =  Math.sin(0.5 * angle);
+    var y = Math.sin(0.5 * angle);
+    var z = Math.sin(0.5 * angle);
     var w = Math.cos(0.5 * angle);
     var keys = ['x', 'y', 'z', 'w', 'setX', 'setY', 'setZ', 'setW'];
     var obj = new Ammo.btQuaternion(x, y, z, w);
@@ -49,6 +49,6 @@ var test = {
 };
 
 test.all = utils.all(test);
-module.exports = test;
+module.exports.test = test;
 utils.run(test, process.argv, __filename);
 

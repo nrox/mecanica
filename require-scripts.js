@@ -62,7 +62,7 @@ function require(script, arg) {
   }
 
   jQuery.ajax(url, {
-    cache: !isLocalhost(), //during development dont cache
+    cache: !isLocalhost(), //during development don't cache
     async: false, //important async: false to return the required object immediately
     dataType: 'text', //don't run automatically
     error: function (jqXHR, textStatus, errorThrown) {

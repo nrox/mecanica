@@ -42,7 +42,7 @@ var test = {
     var basic = require('../ware/basic.js');
     utils.checkKeys(basic, ['scene'], 'scene property');
     var pack = factory.unpack(basic);
-    utils.checkKeys(pack, ['id1','s1'], 'some basic.js ids');
+    utils.checkKeys(pack, ['id1', 's1'], 'some basic.js ids');
   },
 
   'shape.box': function () {
@@ -83,5 +83,6 @@ var test = {
 };
 
 test.all = utils.all(test);
+module.exports.test = test;
 utils.run(test, process.argv, __filename);
 

@@ -2,5 +2,5 @@
 
 mechanism simulation with ammo.js and three.js
 
-[tests](https://nrox.github.io/mecanica/)
+[gh-pages](https://nrox.github.io/mecanica/)
 
