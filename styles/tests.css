@@ -26,7 +26,8 @@ h3 {
     color: #ccc;
 }
 
-button {
+button, a.test {
+    display:inline-block;
     margin: 3px;
     padding: 3px 13px;
     cursor: pointer;
@@ -36,6 +37,8 @@ button {
     border-radius: 3px;
     font-family: monospace;
     font-weight: bold;
+    font-size: 1em;
+    text-decoration: none;
 }
 
 canvas {

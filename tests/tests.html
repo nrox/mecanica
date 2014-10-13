@@ -12,7 +12,7 @@
 <body>
 <a href='../'>../</a>
 
-<h2 class='index'>Tests index</h2>
+<h2 class='index'>Test Groups</h2>
 
 <div><p id='index'></p></div>
 <h3 class='title'>&nbsp;</h3>
@@ -23,6 +23,7 @@
 <div class='console'></div>
 
 <script>
+    var useSearchPathForAutoload = true;
     var library = {};
     var scripts = {
         'require': 'test-require.js',
@@ -34,9 +35,11 @@
     };
 
     function loadTest(event) {
-        library && library.clearObjects && library.clearObjects();
-        $('#container').empty();
-        setConsole('.console');
+        if (!useSearchPathForAutoload) {
+            library && library.clearObjects && library.clearObjects();
+            $('#container').empty();
+            setConsole('.console');
+        }
         var title = $(event.target).text();
         $('.title').text('Test: ' + title);
         var script = $(event.target).attr('script');
@@ -44,28 +47,65 @@
         var $verify = $('#verify');
         $verify.empty();
         _.each(library.test, function (fun, name) {
-            $verify.append("<button class='test'>" + name + "</button>");
+            var e = useSearchPathForAutoload ? $('<a />') : $('<button />');
+            e.attr({
+                'href': '?group=' + title + '&test=' + name,
+                'class': 'test',
+                'group': title,
+                'test': name
+            });
+            e.text(name);
+            $verify.append(e);
         });
         $verify.children('.test').on('click', runTest);
     }
 
     function runTest(event) {
-        library && library.clearObjects && library.clearObjects();
-        setConsole('.console');
+        if (!useSearchPathForAutoload) {
+            library && library.clearObjects && library.clearObjects();
+            setConsole('.console');
+        }
         var title = $(event.target).text();
         console.info(title);
         library.test[title]();
+    }
+
+    function triggerAutoload() {
+        var res = {};
+        var search = decodeURIComponent(location.search.replace('?', '')).split('&');
+        _.each(search, function (pair) {
+            var duo = pair.split('=');
+            res[duo[0]] = duo[1] || '';
+        });
+        if (res.group) {
+            loadTest({target: $("#index a[group='" + res.group + "']")});
+            if (res.test) {
+                runTest({target: $("#verify a[test='" + res.test + "']")});
+            }
+        }
     }
 
     window.onload = function () {
         var utils = require('test-utils.js', undefined);
         var $index = $('#index');
         _.each(scripts, function (script, title) {
-            $index.append("<button class='test' script='" + script + "'>" + title + "</button>");
+            var e = useSearchPathForAutoload ? $('<a />') : $('<button />');
+            e.attr({
+                'href': '?group=' + title,
+                'class': 'test',
+                'group': title,
+                'script': script
+            });
+            e.text(title);
+            $index.append(e);
         });
         setConsole('.console');
-        console.info('ready');
-        $index.children('.test').on('click', loadTest);
+        if (useSearchPathForAutoload) {
+            triggerAutoload();
+        } else {
+            console.info('ready');
+            $index.children('.test').on('click', loadTest);
+        }
     };
 
 
