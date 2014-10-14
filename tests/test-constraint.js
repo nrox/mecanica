@@ -15,12 +15,12 @@ var objects = {
   renderer: {},
   camera: {},
   body: {},
-  floor: {}
+  fixedBody: {}
 };
 
 var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
-var distance = 10;
+var distance = 20;
 var test = {
 };
 
@@ -32,10 +32,22 @@ function clearObjects() {
   _.each(objects.timeout, function (timeout) {
     clearTimeout(timeout);
   });
-  _.each(objects.scene, function (scene) {
-    factory.destroy(scene);
+  _.each(objects.scene, function (scene, title) {
+    if (!scene) return;
+    while (scene.three.children.length) {
+      var child = scene.three.children[0];
+      child.geometry.dispose();
+      child.material.dispose();
+      scene.three.remove(child);
+    }
+    delete scene.three;
+    Ammo.destroy(scene.btDefaultCollisionConfiguration);
+    Ammo.destroy(scene.btCollisionDispatcher);
+    Ammo.destroy(scene.btDbvtBroadphase);
+    Ammo.destroy(scene.btSequentialImpulseConstraintSolver);
+    delete scene.ammo;
   });
-  _.each(['body', 'floor', 'camera', 'renderer', 'scene'], function (objType) {
+  _.each(['body', 'fixedBody', 'camera', 'renderer', 'scene'], function (objType) {
     _.each(objects[objType], function (obj, title) {
       objects[objType][title] = undefined;
     });
@@ -43,50 +55,49 @@ function clearObjects() {
   $("[renderer]").remove();
   //TODO destroy ammo objects in scene.ammo ?
 }
-function makeTest(bodyOptions, floorOptions, title) {
+function makeTest(bodyOptions, fixedBodyOptions, constraintType, constraintOptions) {
   return function () {
     var scene = factory.make('scene', 'basic', {});
-    bodyOptions.rotation.x = 2 * Math.PI * Math.random();
-    bodyOptions.rotation.y = 2 * Math.PI * Math.random();
-    bodyOptions.rotation.z = 0;
-    _.each(bodyOptions.position, function (value, key, position) {
-      position[key] += 0.5 * Math.random() - 0.8;
-    });
     var body = factory.make('body', 'basic', bodyOptions);
-    var floor = factory.make('body', 'basic', floorOptions);
+    var fixedBody = factory.make('body', 'basic', fixedBodyOptions);
 
     var camera = factory.make('camera', 'perspective', {});
     var renderer = factory.make('renderer', 'webgl', {});
     scene.ammo.addRigidBody(body.ammo);
     scene.three.add(body.three);
-    scene.ammo.addRigidBody(floor.ammo);
-    scene.three.add(floor.three);
+    scene.ammo.addRigidBody(fixedBody.ammo);
+    scene.three.add(fixedBody.three);
     scene.three.add(new THREE.AxisHelper(5));
-    $(renderer.three.domElement).attr('renderer', title);
+
+    var constraint = factory.make('constraint', constraintType, constraintOptions);
+    scene.ammo.addConstraint(constraint.ammo);
+
+    $(renderer.three.domElement).attr('renderer', constraintType);
     $('#container').append(renderer.three.domElement);
-    objects.scene[title] = scene;
-    objects.body[title] = body;
-    objects.floor[title] = floor;
-    objects.camera[title] = camera;
-    objects.renderer[title] = renderer;
+    var phase = 0; //Math.PI * Math.random();
+    objects.scene[constraintType] = scene;
+    objects.body[constraintType] = body;
+    objects.fixedBody[constraintType] = fixedBody;
+    objects.camera[constraintType] = camera;
+    objects.renderer[constraintType] = renderer;
     var frequency = 30;
     var render = function () {
-      var scene = objects.scene[title];
-      var body = objects.body[title];
-      var camera = objects.camera[title];
-      var renderer = objects.renderer[title];
+      var scene = objects.scene[constraintType];
+      var body = objects.body[constraintType];
+      var camera = objects.camera[constraintType];
+      var renderer = objects.renderer[constraintType];
 
       //limit animation frame
-      objects.timeout[title] = setTimeout(function () {
-        objects.animationFrame[title] = requestAnimationFrame(render);
+      objects.timeout[constraintType] = setTimeout(function () {
+        objects.animationFrame[constraintType] = requestAnimationFrame(render);
       }, 1000 / frequency);
       //timeStep < maxSubSteps * fixedTimeStep
       // 1/30 < 10 * 1/60
       scene.ammo.stepSimulation(1 / frequency, 10);
       transferPhysics(body, trans);
+      transferPhysics(fixedBody, trans);
       moveCamera(camera, distance);
       renderer.three.render(scene.three, camera.three);
-
     };
     render();
   };
@@ -100,6 +111,7 @@ function moveCamera(camera, distance){
   camera.three.position.y = -1 + 2 * Math.cos(phase + time / 3345);
   camera.three.lookAt(origin);
 }
+
 
 function transferPhysics(body, trans) {
   if (!trans) {
@@ -117,59 +129,37 @@ function transferPhysics(body, trans) {
 
 function addAllTests() {
   var body = {
+    id: 'b',
     shape: {
-      type: undefined,
-      r: 1, dx: 1, dy: 1.2, dz: 1.4,
-      segments: undefined
+      type: 'box',
+      dx: 1, dy: 1.2, dz: 1.4,
+      segments: 8
     },
-    position: { x: 0, y: 5, z: 0 },
-    rotation: { x: undefined, y: undefined, z: 0 },
+    position: { x: -1, y: -1, z: -1 },
+    rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
-    mass: 0.1
+    mass: 1
   };
-  var floor = {
+  var fixedBody = {
+    id: 'a',
     shape: {
-      type: undefined,
-      dx: 10, dz: 5, dy: 2, r: 9,
-      segments: undefined
+      type: 'box',
+      dx: 2, dz: 1.5, dy: 2.2,
+      segments: 2
     },
-    position: {
-      x: 0.3,
-      y: undefined,
-      z: 0.1
-    },
+    position: {  x: 2,  y: 2,   z: 2 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
     mass: 0
   };
-  var bodySegments = {
-    box: 4,
-    sphere: 16,
-    cone: 32,
-    cylinder: 32
+  var constraint = {
+      point: {
+        a: 'a', b:'b',
+        posA: { y: -2},
+        posB: {x: 0.5, z: -1}
+      }
   };
-  var floorSegments = {
-    box: 8,
-    sphere: 32,
-    cone: 64,
-    cylinder: 32
-  };
-  var floorY = {
-    box: -5,
-    sphere: -10,
-    cone: -3,
-    cylinder: -5
-  };
-  var shapes = ['box', 'sphere', 'cone', 'cylinder'];
-  _.each(shapes, function (floorType) {
-    _.each(shapes, function (bodyType) {
-      floor.shape.type = floorType;
-      floor.shape.segments = floorSegments[floorType];
-      floor.position.y = floorY[floorType];
-      body.shape.type = bodyType;
-      body.shape.segments = bodySegments[bodyType];
-      var title = bodyType + ' on ' + floorType;
-      test[title] = makeTest(utils.deepCopy(body), utils.deepCopy(floor), title);
-    });
+  _.each(constraint, function (options, type) {
+      test[type] = makeTest(body, fixedBody, type, options);
   });
 }
 

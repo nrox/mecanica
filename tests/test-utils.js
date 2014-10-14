@@ -3,8 +3,12 @@ var _ = require('../lib/underscore.js');
 module.exports = {
 
   logStatus: function (status, title) {
-    var s = status ? 'true/passed' : 'FALSE/FAILED ###################################';
-    title && console.log(s);
+    if (!title) return;
+    if (!!status){
+      console.log('true/passed');
+    } else {
+      console.error('FALSE/FAILED ###########################################');
+    }
   },
   /**
    * log all keys and value types defined in obj

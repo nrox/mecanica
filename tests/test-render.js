@@ -9,6 +9,7 @@ var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 var scene, currentMesh;
 
+factory.setDebug(true);
 factory.addLibrary(three);
 factory.addLibrary(ammo);
 
@@ -53,7 +54,7 @@ function bodyBasic(type) {
     transferPhysics(body);
     currentMesh = replaceMesh(currentMesh, body.three);
     console.log(type, ':');
-    console.log(JSON.stringify(parameters, '  '));
+    console.log(JSON.stringify(parameters, null, '  '));
   };
 }
 

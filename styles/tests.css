@@ -60,6 +60,7 @@ table.results td, table.results th {
     border-radius: 5px 5px 1px 1px;
     border: 2px solid #999;
     border-top: 20px solid #eee;
+    border-right: none;
     padding: 20px;
 }
 
