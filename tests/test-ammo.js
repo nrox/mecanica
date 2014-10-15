@@ -8,6 +8,14 @@ var Ammo = require('../lib/ammo.js');
 var _ = require('../lib/underscore.js');
 
 var test = {
+  constructors: function(){
+    utils.checkKeys(Ammo, [
+      'btBoxShape', 'btCompoundShape', 'btCylinderShape', 'btGeneric6DofConstraint',
+      'btCollisionDispatcher', 'btDbvtBroadphase', 'btHingeConstraint', 'btPoint2PointConstraint',
+      'btQuaternion', 'btRigidBody', 'btSliderConstraint', 'btSphereShape', 'btTransform',
+      'btVector3','btVector4', 'btDiscreteDynamicsWorld', 'btConeShape'
+    ], 'important constructors');
+  },
   btVector3: function () {
     var
       x = 1.2,

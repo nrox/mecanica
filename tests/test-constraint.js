@@ -19,7 +19,7 @@ var objects = {
 
 var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
-var distance = 10;
+var distance = 15;
 var test = {
 };
 
@@ -71,7 +71,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
 
     var constraintObject = factory.make('constraint', type, constraint);
     scene.ammo.addConstraint(constraintObject.ammo);
-
+    console.log(constraintObject);
     $(renderer.three.domElement).attr('renderer', type);
     $('#container').append(renderer.three.domElement);
     objects.scene[type] = scene;
@@ -129,7 +129,7 @@ function addAllTests() {
     id: 'a',
     group: 'body',
     type: 'basic',
-    shape: { type: 'box', dx: 1, dz: 1, dy: 1, segments: 4 },
+    shape: { type: 'box', dx: 1, dz: 1, dy: 1, segments: 8 },
     position: {  x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
     mass: 0
@@ -138,7 +138,7 @@ function addAllTests() {
     id: 'b',
     group: 'body',
     type: 'basic',
-    shape: { type: 'box', dx: 1, dy: 1, dz: 1, segments: 4 },
+    shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 16 },
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
@@ -149,27 +149,39 @@ function addAllTests() {
     group: 'connector',
     type: 'relative',
     body: bodyA.id,
-    base: {y: -1}
+    base: {y: -0.6},
+    up: {y: 1},
+    front: {x: 1}
   };
   var connectorB = {
     id: 'cB',
     group: 'connector',
     type: 'relative',
     body: bodyB.id,
-    base: {y: 1}
+    base: {x: 1, y: 1, z: 1},
+    up: {y: 1},
+    front: {x: 1}
   };
-  var constraintTemplate = {
+  var constraintOptions = {
     a: connectorA.id,
     b: connectorB.id,
     bodyA: bodyA.id,
     bodyB: bodyB.id
   };
   var type;
-  var constraint;
+  var ca, cb;
   //point constraint
   type = 'point';
-  constraint = utils.deepCopy(constraintTemplate);
-  test[type] = makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint);
+  test[type] = makeTest(bodyA, bodyB, connectorA, connectorB, type, constraintOptions);
+  //hinge constraint
+  type = 'hinge';
+  ca = utils.deepCopy(connectorA);
+  cb = utils.deepCopy(connectorB);
+  ca.base = {x: -0.5, y: -0.5, z: -0.5};
+  ca.up = {z: 1};
+  cb.base = {x: 1, y: 1, z: -1};
+  cb.up = {z: 1};
+  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 
 }
 

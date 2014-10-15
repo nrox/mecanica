@@ -190,6 +190,27 @@ var description = {
           this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
         );
       }
+    },
+    //TODO avoid code duplication
+    //for free wheels, doors
+    hinge: function (options) {
+      include(this, options, {
+        bodyA: undefined, //reference body id
+        bodyB: undefined, //satellite body
+        a: undefined, //connector id, in bodyA
+        b: undefined //connector id, in bodyB
+      });
+      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
+      if (Ammo) {
+        this.bodyA = objects.body[this.bodyA];
+        this.bodyB = objects.body[this.bodyB];
+        this.a = this.bodyA.connectors[this.a];
+        this.b = this.bodyB.connectors[this.b];
+        this.ammo = new Ammo.btHingeConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
+          this.a.up.ammo, this.b.up.ammo
+        );
+      }
     }
   },
   scene: { //the same as world
