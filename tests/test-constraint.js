@@ -54,12 +54,13 @@ function clearObjects() {
   $("[renderer]").remove();
   //TODO destroy ammo objects in scene.ammo ?
 }
-function makeTest(bodyOptions, fixedBodyOptions, constraintType, constraintOptions) {
+function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
     var scene = factory.make('scene', 'basic', {});
-    var body = factory.make('body', 'basic', bodyOptions);
-    var fixedBody = factory.make('body', 'basic', fixedBodyOptions);
-
+    var body = factory.make(bodyB);
+    var fixedBody = factory.make(bodyA);
+    factory.make(connectorA);
+    factory.make(connectorB);
     var camera = factory.make('camera', 'perspective', {});
     var renderer = factory.make('renderer', 'webgl', {});
     scene.ammo.addRigidBody(body.ammo);
@@ -68,27 +69,24 @@ function makeTest(bodyOptions, fixedBodyOptions, constraintType, constraintOptio
     scene.three.add(fixedBody.three);
     scene.three.add(new THREE.AxisHelper(5));
 
-    var constraint = factory.make('constraint', constraintType, constraintOptions);
-    scene.ammo.addConstraint(constraint.ammo);
+    var constraintObject = factory.make('constraint', type, constraint);
+    scene.ammo.addConstraint(constraintObject.ammo);
 
-    $(renderer.three.domElement).attr('renderer', constraintType);
+    $(renderer.three.domElement).attr('renderer', type);
     $('#container').append(renderer.three.domElement);
-    var phase = 0; //Math.PI * Math.random();
-    objects.scene[constraintType] = scene;
-    objects.body[constraintType] = body;
-    objects.fixedBody[constraintType] = fixedBody;
-    objects.camera[constraintType] = camera;
-    objects.renderer[constraintType] = renderer;
+    objects.scene[type] = scene;
+    objects.body[type] = body;
+    objects.fixedBody[type] = fixedBody;
+    objects.camera[type] = camera;
+    objects.renderer[type] = renderer;
     var frequency = 30;
     var render = function () {
-      var scene = objects.scene[constraintType];
-      var body = objects.body[constraintType];
-      var camera = objects.camera[constraintType];
-      var renderer = objects.renderer[constraintType];
-
-      //limit animation frame
-      objects.timeout[constraintType] = setTimeout(function () {
-        objects.animationFrame[constraintType] = requestAnimationFrame(render);
+      var scene = objects.scene[type];
+      var body = objects.body[type];
+      var camera = objects.camera[type];
+      var renderer = objects.renderer[type];
+      objects.timeout[type] = setTimeout(function () {
+        objects.animationFrame[type] = requestAnimationFrame(render);
       }, 1000 / frequency);
       //timeStep < maxSubSteps * fixedTimeStep
       // 1/30 < 10 * 1/60
@@ -102,7 +100,7 @@ function makeTest(bodyOptions, fixedBodyOptions, constraintType, constraintOptio
   };
 }
 
-function moveCamera(camera, distance){
+function moveCamera(camera, distance) {
   var phase = 0; //Math.PI * Math.random();
   var time = new Date().getTime();
   camera.three.position.x = distance * Math.sin(phase + time / 2234);
@@ -127,42 +125,55 @@ function transferPhysics(body, trans) {
 }
 
 function addAllTests() {
-  var body = {
+  var bodyA = {
+    id: 'a',
+    group: 'body',
+    type: 'basic',
+    shape: { type: 'box', dx: 1, dz: 1, dy: 1, segments: 4 },
+    position: {  x: 0, y: 0, z: 0 },
+    material: {type: 'basic', wireframe: true, color: 0x338855},
+    mass: 0
+  };
+  var bodyB = {
     id: 'b',
-    shape: {
-      type: 'box',
-      dx: 1, dy: 1.2, dz: 1.4,
-      segments: 8
-    },
-    position: { x: -1, y: -1, z: -1 },
+    group: 'body',
+    type: 'basic',
+    shape: { type: 'box', dx: 1, dy: 1, dz: 1, segments: 4 },
+    position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
     mass: 1
   };
-  var fixedBody = {
-    id: 'a',
-    shape: {
-      type: 'box',
-      dx: 2, dz: 1.5, dy: 2.2,
-      segments: 2
-    },
-    position: {  x: 2,  y: 2,   z: 2 },
-    material: {type: 'basic', wireframe: true, color: 0x338855},
-    mass: 0
+  var connectorA = {
+    id: 'cA',
+    group: 'connector',
+    type: 'relative',
+    body: bodyA.id,
+    base: {y: -1}
   };
-  var constraint = {
-      point: {
-        a: 'a', b:'b',
-        posA: { y: -2},
-        posB: {x: 0.5, z: -1}
-      }
+  var connectorB = {
+    id: 'cB',
+    group: 'connector',
+    type: 'relative',
+    body: bodyB.id,
+    base: {y: 1}
   };
-  _.each(constraint, function (options, type) {
-      test[type] = makeTest(body, fixedBody, type, options);
-  });
+  var constraintTemplate = {
+    a: connectorA.id,
+    b: connectorB.id,
+    bodyA: bodyA.id,
+    bodyB: bodyB.id
+  };
+  var type;
+  var constraint;
+  //point constraint
+  type = 'point';
+  constraint = utils.deepCopy(constraintTemplate);
+  test[type] = makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint);
+
 }
 
 addAllTests();
-test.all = utils.all(test,1);
+test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

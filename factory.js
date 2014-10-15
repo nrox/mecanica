@@ -14,6 +14,15 @@ var objects = {};
 //this structure helps swapping worlds to json
 var description = {
   physics: {
+    vector: function (options) {
+      include(this, options, {
+        x: 0, y: 0, z: 0
+      });
+      notifyUndefined(this);
+      if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+      if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
+    },
+    //TODO avoid code duplication
     position: function (options) {
       include(this, options, {
         x: 0, y: 0, z: 0
@@ -142,26 +151,44 @@ var description = {
       }
     }
   },
+  //reference for constraints, allowing to define axis and base of movements
+  connector: {
+    //base and axis are specified in local coordinates
+    relative: function (options) {
+      include(this, options, {
+        body: undefined, //the parent body id
+        base: {x: 0, y: 0, z: 0}, //origin
+        up: {x: 0, y: 0, z: 0}, //axis of rotation or direction of movement, normalized
+        front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
+      });
+      notifyUndefined(this, ['body', 'base', 'up', 'front']);
+      var body = objects.body[this.body];
+      if (!body.connectors) body.connectors = {};
+      body.connectors[this.id] = this;
+      this.body = body;
+      this.base = make('physics', 'position', this.base);
+      this.up = make('physics', 'vector', this.up);
+      this.front = make('physics', 'vector', this.front);
+    }
+  },
   constraint: {
+    //for pendulum-like constraints
     point: function (options) {
       include(this, options, {
-        a: undefined, b: undefined,
-        posA: {}, posB: {}
+        bodyA: undefined, //reference body id
+        bodyB: undefined, //satellite body
+        a: undefined, //connector id, in bodyA
+        b: undefined //connector id, in bodyB
       });
+      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
       if (Ammo) {
-        if (this.b === undefined) {
-          notifyUndefined(this, ['a','posA']);
-          var a = objects.body[this.a];
-          var posA = make('physics', 'position', this.posA);
-          this.ammo = new Ammo.btPoint2PointConstraint(a.ammo, posA.ammo);
-        } else {
-          notifyUndefined(this, ['a','posA','b','posB']);
-          var a = objects.body[this.a];
-          var posA = make('physics', 'position', this.posA);
-          var b = objects.body[this.b];
-          var posB = make('physics', 'position', this.posB);
-          this.ammo = new Ammo.btPoint2PointConstraint(a.ammo, b.ammo, posA.ammo, posB.ammo);
-        }
+        this.bodyA = objects.body[this.bodyA];
+        this.bodyB = objects.body[this.bodyB];
+        this.a = this.bodyA.connectors[this.a];
+        this.b = this.bodyB.connectors[this.b];
+        this.ammo = new Ammo.btPoint2PointConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
+        );
       }
     }
   },
@@ -421,10 +448,10 @@ function structure() {
     _.each(group, function (fun, name) {
       obj[key][name] = {};
       /*
-      var m = make(key, name, {});
-      if (m) {
-        obj[key][name] = options(m);
-      }*/
+       var m = make(key, name, {});
+       if (m) {
+       obj[key][name] = options(m);
+       }*/
     });
   });
   return obj;
