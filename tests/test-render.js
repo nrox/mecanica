@@ -9,7 +9,6 @@ var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 var scene, currentMesh;
 
-factory.setDebug(true);
 factory.addLibrary(three);
 factory.addLibrary(ammo);
 
@@ -36,7 +35,7 @@ function bodyBasic(type) {
         dy: Math.random() + 1,
         dz: Math.random() + 1,
         r: Math.random() + 1,
-        segments: ~~(Math.random() * 18 + 18)
+        segments: ~~(Math.random() * 4 + 6)
       },
       material: {
         type: 'basic',
@@ -61,7 +60,7 @@ function bodyBasic(type) {
 var test = {
 };
 
-_.each(factory.structure().shape, function (cons, type) {
+_.each(factory.description.shape, function (cons, type) {
   test[type] = bodyBasic(type);
 });
 
@@ -108,8 +107,6 @@ function replaceMesh(currentMesh, newMesh) {
   scene.add(newMesh);
   return newMesh;
 }
-
-//test.all = utils.all(test, 3500, true);
 module.exports.test = test;
 utils.run(test, process.argv, __filename);
 

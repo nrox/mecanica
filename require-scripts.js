@@ -8,8 +8,6 @@
  */
 function require(script, arg) {
 
-  console.log('require ', script);
-
   function scriptName(script) {
     return script.substr(script.lastIndexOf('/') + 1);
   }
@@ -60,6 +58,8 @@ function require(script, arg) {
   if (isAmmoScript(script)) {
     module = process = exports = undefined;
   }
+
+  console.log('require ', script);
 
   jQuery.ajax(url, {
     cache: !isLocalhost(), //during development don't cache

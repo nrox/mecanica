@@ -9,7 +9,6 @@ var three = require('../lib/three.js');
 var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 
-factory.setDebug(true);
 factory.addLibrary(ammo);
 factory.addLibrary(three);
 
@@ -36,7 +35,7 @@ function shape(type) {
 var test = {
 };
 
-_.each(factory.structure().shape, function (cons, type) {
+_.each(factory.description.shape, function (cons, type) {
   test[type] = shape(type);
 });
 

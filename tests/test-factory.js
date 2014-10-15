@@ -9,7 +9,6 @@ var THREE = require('../lib/three.js');
 var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 
-factory.setDebug(true);
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 
@@ -73,14 +72,15 @@ var test = {
     utils.checkValues(obj, pars, titlePrefix + ' property values');
     utils.checkKeys(obj.three, ['color', 'ambient', 'specular', 'metal'], titlePrefix + '.three keys');
     utils.instanceOf(obj.three, THREE.MeshPhongMaterial, titlePrefix + '.three is MeshPhongMaterial');
-  },
+  }
+  /*,
   'structure': function () {
     console.log('\n\n', 'structure');
     var s = factory.structure();
     //console.log(JSON.stringify(s, null, '  '));
     utils.instanceOf(s.shape.box, Object, 's.shape.box == options');
     utils.checkValues(s.shape.box, {dx: 1}, 's.shape.box values');
-  }
+  }*/
 };
 
 test.all = utils.all(test);

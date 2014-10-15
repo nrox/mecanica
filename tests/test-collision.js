@@ -4,7 +4,6 @@ var THREE = require('../lib/three.js', undefined);
 var factory = require('../factory.js', undefined);
 var _ = require('../lib/underscore.js', undefined);
 
-factory.setDebug(true);
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 

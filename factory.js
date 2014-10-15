@@ -148,7 +148,6 @@ var description = {
         a: undefined, b: undefined,
         posA: {}, posB: {}
       });
-      console.log(objects);
       if (Ammo) {
         if (this.b === undefined) {
           notifyUndefined(this, ['a','posA']);
@@ -163,7 +162,6 @@ var description = {
           var posB = make('physics', 'position', this.posB);
           this.ammo = new Ammo.btPoint2PointConstraint(a.ammo, b.ammo, posA.ammo, posB.ammo);
         }
-        console.log(this.ammo);
       }
     }
   },
@@ -421,10 +419,12 @@ function structure() {
   _.each(description, function (group, key) {
     obj[key] = {};
     _.each(group, function (fun, name) {
+      obj[key][name] = {};
+      /*
       var m = make(key, name, {});
       if (m) {
         obj[key][name] = options(m);
-      }
+      }*/
     });
   });
   return obj;
@@ -440,6 +440,7 @@ function setDebug(val) {
 
 module.exports = {
   addLibrary: addLibrary,
+  description: description,
   make: make,
   unpack: unpack,
   structure: structure,

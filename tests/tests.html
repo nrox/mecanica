@@ -36,24 +36,21 @@
 </script>
 
 <script>
-    var useSearchPathForAutoload = false; //true is having strange behaviors
     var library = {};
     function loadTest(event) {
-        if (!useSearchPathForAutoload) {
-            library && library.clearObjects && library.clearObjects();
-            $('#container').empty();
-            setConsole('.console');
-        }
+        library && library.clearObjects && library.clearObjects();
+        $('#container').empty();
+        setConsole('.console');
         var title = $(event.target).text();
         $('.title').text('Test: ' + title);
         var script = $(event.target).attr('script');
         library = require(script, undefined);
         var $verify = $('#verify');
         $verify.empty();
+        //console.log('group: ' + script);
         _.each(library.test, function (fun, name) {
-            var e = useSearchPathForAutoload ? $('<a />') : $('<button />');
-            e.attr({
-                'href': '?group=' + title + '&test=' + name,
+            //console.log('test: ' + name);
+            var e = $('<button />',{
                 'class': 'test',
                 'group': title,
                 'test': name
@@ -65,37 +62,18 @@
     }
 
     function runTest(event) {
-        if (!useSearchPathForAutoload) {
-            library && library.clearObjects && library.clearObjects();
-            setConsole('.console');
-        }
+        library && library.clearObjects && library.clearObjects();
+        setConsole('.console');
         var title = $(event.target).text();
         console.info(title);
         library.test[title]();
-    }
-
-    function triggerAutoload() {
-        var res = {};
-        var search = decodeURIComponent(location.search.replace('?', '')).split('&');
-        _.each(search, function (pair) {
-            var duo = pair.split('=');
-            res[duo[0]] = duo[1] || '';
-        });
-        if (res.group) {
-            loadTest({target: $("#index a[group='" + res.group + "']")});
-            if (res.test) {
-                runTest({target: $("#verify a[test='" + res.test + "']")});
-            }
-        }
     }
 
     window.onload = function () {
         var utils = require('test-utils.js', undefined);
         var $index = $('#index');
         _.each(scripts, function (script, title) {
-            var e = useSearchPathForAutoload ? $('<a />') : $('<button />');
-            e.attr({
-                'href': '?group=' + title,
+            var e = $('<button />', {
                 'class': 'test',
                 'group': title,
                 'script': script
@@ -104,12 +82,8 @@
             $index.append(e);
         });
         setConsole('.console');
-        if (useSearchPathForAutoload) {
-            triggerAutoload();
-        } else {
-            console.info('ready');
-            $index.children('.test').on('click', loadTest);
-        }
+        console.info('ready');
+        $index.children('.test').on('click', loadTest);
     };
 
 
