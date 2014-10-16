@@ -72,15 +72,14 @@ var test = {
     utils.checkValues(obj, pars, titlePrefix + ' property values');
     utils.checkKeys(obj.three, ['color', 'ambient', 'specular', 'metal'], titlePrefix + '.three keys');
     utils.instanceOf(obj.three, THREE.MeshPhongMaterial, titlePrefix + '.three is MeshPhongMaterial');
-  }
-  /*,
+  },
   'structure': function () {
     console.log('\n\n', 'structure');
     var s = factory.structure();
-    //console.log(JSON.stringify(s, null, '  '));
+    console.log(JSON.stringify(s, null, '  '));
     utils.instanceOf(s.shape.box, Object, 's.shape.box == options');
     utils.checkValues(s.shape.box, {dx: 1}, 's.shape.box values');
-  }*/
+  }
 };
 
 test.all = utils.all(test);

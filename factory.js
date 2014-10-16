@@ -8,6 +8,7 @@ var _ = require('./lib/underscore.js');
 var Ammo, THREE;
 var debug = false;
 var saveObjects = true;
+var UNDEFINED = undefined;
 
 var objects = {
   physics: {},
@@ -51,23 +52,6 @@ var constructor = {
       if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
       if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
     },
-    //TODO avoid code duplication
-    position: function (options) {
-      include(this, options, {
-        x: 0, y: 0, z: 0
-      });
-      notifyUndefined(this);
-      if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-      if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
-    },
-    rotation: function (options) {
-      include(this, options, {
-        x: 0, y: 0, z: 0
-      });
-      notifyUndefined(this);
-      if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-      if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
-    },
     quaternion: function (options) {
       include(this, options, {
         x: 1, y: 0, z: 0, w: undefined
@@ -89,12 +73,14 @@ var constructor = {
         this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
       }
     },
+    position: function (options) {
+      constructor.physics.vector.call(this, options);
+    },
+    rotation: function (options) {
+      constructor.physics.vector.call(this, options);
+    },
     velocity: function (options) {
-      include(this, options, {
-        x: 0, y: 0, z: 0
-      });
-      if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-      if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
+      constructor.physics.vector.call(this, options);
     }
   },
   shape: {
@@ -156,7 +142,7 @@ var constructor = {
       var shape = make('shape', this.shape);
       var material = make('material', this.material);
       var position = make('physics', 'position', this.position);
-      var quaternion, rotation;
+      var quaternion;
       if (this.quaternion) {
         quaternion = make('physics', 'quaternion', this.quaternion);
       } else if (this.rotation) { //set from euler
@@ -192,17 +178,19 @@ var constructor = {
       });
       notifyUndefined(this, ['body', 'base', 'up', 'front']);
       var body = getObject(this.body, 'body');
-      if (!body.connectors) body.connectors = {};
-      body.connectors[this.id] = this;
-      this.body = body;
-      this.base = make('physics', 'position', this.base);
-      this.up = make('physics', 'vector', this.up);
-      this.front = make('physics', 'vector', this.front);
+      if (body) {
+        if (!body.connectors) body.connectors = {};
+        body.connectors[this.id] = this;
+        this.body = body;
+        this.base = make('physics', 'position', this.base);
+        this.up = make('physics', 'vector', this.up);
+        this.front = make('physics', 'vector', this.front);
+      }
     }
   },
   constraint: {
-    //for pendulum-like constraints
-    point: function (options) {
+    //super constructor
+    _abstract: function (options) {
       include(this, options, {
         bodyA: undefined, //reference body id
         bodyB: undefined, //satellite body
@@ -215,26 +203,21 @@ var constructor = {
         this.bodyB = getObject(this.bodyB, 'body');
         this.a = this.bodyA.connectors[this.a];
         this.b = this.bodyB.connectors[this.b];
+      }
+    },
+    //for pendulum-like constraints
+    point: function (options) {
+      constructor.constraint._abstract.call(this, options);
+      if (Ammo) {
         this.ammo = new Ammo.btPoint2PointConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
         );
       }
     },
-    //TODO avoid code duplication
     //for free wheels, doors
     hinge: function (options) {
-      include(this, options, {
-        bodyA: undefined, //reference body id
-        bodyB: undefined, //satellite body
-        a: undefined, //connector id, in bodyA
-        b: undefined //connector id, in bodyB
-      });
-      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
+      constructor.constraint._abstract.call(this, options);
       if (Ammo) {
-        this.bodyA = getObject(this.bodyA, 'body');
-        this.bodyB = getObject(this.bodyB, 'body');
-        this.a = this.bodyA.connectors[this.a];
-        this.b = this.bodyB.connectors[this.b];
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
           this.a.up.ammo, this.b.up.ammo
@@ -357,7 +340,7 @@ function destroyAll() {
 function hasUndefined(obj, keys) {
   if (!keys) keys = _.keys(obj._options);
   return _.some(keys, function (key) {
-    return obj._options[key] === undefined;
+    return obj._options[key] === UNDEFINED;
   });
 }
 
@@ -501,19 +484,33 @@ function pack(objs) {
   return JSON.parse(JSON.stringify(pack));
 }
 
+//get the constructor structure and options for each
 function structure() {
   var obj = {};
+  //disable libraries and verifications shortly
+  var ammoBackup = Ammo;
+  var threeBackup = THREE;
+  var undefinedBackup = UNDEFINED;
+  var saveObjectsBackup = saveObjects;
+  Ammo = undefined;
+  THREE = undefined;
+  UNDEFINED = {};
+  saveObjects = false;
   _.each(constructor, function (group, key) {
     obj[key] = {};
     _.each(group, function (fun, name) {
       obj[key][name] = {};
-      /*
-       var m = make(key, name, {});
-       if (m) {
-       obj[key][name] = options(m);
-       }*/
+      var m = make(key, name, {});
+      if (m) {
+        obj[key][name] = options(m);
+      }
     });
   });
+  //repose them
+  Ammo = ammoBackup;
+  THREE = threeBackup;
+  UNDEFINED = undefinedBackup;
+  saveObjects = saveObjectsBackup;
   return obj;
 }
 
