@@ -165,8 +165,8 @@ function addAllTests() {
   var constraintOptions = {
     a: connectorA.id,
     b: connectorB.id,
-    bodyA: bodyA.id,
-    bodyB: bodyB.id
+    //bodyA: bodyA.id,
+    //bodyB: bodyB.id
   };
   var type;
   var ca, cb;

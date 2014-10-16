@@ -17,7 +17,7 @@ module.exports = {
   },
   constraint: {
     cons: {
-      bodyA: 'id5', bodyB: 'id6', a: 'c1', b: 'c2'
+      a: 'c1', b: 'c2'
     }
   },
   scene: {

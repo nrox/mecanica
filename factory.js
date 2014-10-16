@@ -236,17 +236,15 @@ var constructor = {
     //super constructor
     _abstract: function (options) {
       include(this, options, {
-        bodyA: undefined, //reference body id
-        bodyB: undefined, //satellite body
-        a: undefined, //connector id, in bodyA
-        b: undefined //connector id, in bodyB
+        a: undefined, //connector id, in body A
+        b: undefined //connector id, in body B
       });
-      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
+      notifyUndefined(this, ['a', 'b']);
       if (Ammo) {
-        this.bodyA = getObject(this.bodyA, 'body');
-        this.bodyB = getObject(this.bodyB, 'body');
-        this.a = this.bodyA.connectors[this.a];
-        this.b = this.bodyB.connectors[this.b];
+        this.a = getObject(this.a, 'connector');
+        this.b = getObject(this.b, 'connector');
+        this.bodyA = this.a.body;
+        this.bodyB = this.b.body;
       }
     }
   },
