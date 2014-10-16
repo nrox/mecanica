@@ -6,10 +6,6 @@ mechanism simulation with ammo.js and three.js
 
 #todo
 
-* avoid code duplication in factory.description
-
-* encapsulate and generalize common steps for simulation, rendering and visualization
-
 * improve ammo.js by forking and changing ammo.idl krippen/ammo.js repository
 
 * add hinge constraint methods in ammo.js
