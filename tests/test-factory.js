@@ -76,7 +76,7 @@ var test = {
   'structure': function () {
     console.log('\n\n', 'structure');
     var s = factory.structure();
-    console.log(JSON.stringify(s, null, '  '));
+    console.log(JSON.stringify(s, function(k, v){return v===undefined ? null : v;}, '  '));
     utils.instanceOf(s.shape.box, Object, 's.shape.box == options');
     utils.checkValues(s.shape.box, {dx: 1}, 's.shape.box values');
   }

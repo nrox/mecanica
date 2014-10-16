@@ -139,8 +139,18 @@ var constructor = {
         material: {type: 'basic', wireframe: false, color: 0x999999},
         mass: 0.1, position: {}, quaternion: undefined, rotation: undefined
       });
-      var shape = make('shape', this.shape);
-      var material = make('material', this.material);
+      var shape;
+      if (typeof this.shape == 'string') { //get from objects with id
+        shape = getObject('shape', this.shape);
+      } else { //make from options
+        shape = make('shape', this.shape);
+      }
+      var material;
+      if (typeof this.material == 'string') { //get from objects with id
+        material = getObject('material', this.material);
+      } else { //make from options
+        material = make('material', this.material);
+      }
       var position = make('physics', 'position', this.position);
       var quaternion;
       if (this.quaternion) {
@@ -228,7 +238,7 @@ var constructor = {
   scene: { //the same as world
     basic: function (options) {
       include(this, options, {
-        gravity: -9.81
+        gravity: {x: 0, y: -9.81, z: 0}
       });
       if (THREE) {
         this.three = new THREE.Scene();
@@ -244,14 +254,14 @@ var constructor = {
           this.btSequentialImpulseConstraintSolver,
           this.btDefaultCollisionConfiguration
         );
-        this.ammo.setGravity(new Ammo.btVector3(0, this.gravity, 0));
+        this.ammo.setGravity(make('physics', 'vector', this.gravity).ammo);
       }
     }
   },
   renderer: {
     webgl: function (options) {
       include(this, options, {
-        width: 500, height: 500
+        width: 300, height: 300
       });
       if (THREE) {
         this.three = new THREE.WebGLRenderer();
@@ -260,7 +270,7 @@ var constructor = {
     },
     canvas: function (options) {
       include(this, options, {
-        width: 500, height: 500
+        width: 300, height: 300
       });
       if (THREE) {
         this.three = new THREE.CanvasRenderer();
@@ -442,7 +452,8 @@ function make() {
 var nextId = (function () {
   var index = 0;
   return function (prefix) {
-    if (prefix === undefined) {
+    //use == here, never === because null values should be handled the same way
+    if (prefix == undefined) {
       prefix = 'id';
     }
     return prefix + index++;
@@ -481,7 +492,9 @@ function pack(objs) {
       pack[objectId] = make(groupName, objectOptions);
     });
   });
-  return JSON.parse(JSON.stringify(pack));
+  return JSON.parse(JSON.stringify(pack, function (k, v) {
+    return v === undefined ? null : v;
+  }));
 }
 
 //get the constructor structure and options for each
