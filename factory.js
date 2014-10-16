@@ -199,22 +199,6 @@ var constructor = {
     }
   },
   constraint: {
-    //super constructor
-    _abstract: function (options) {
-      include(this, options, {
-        bodyA: undefined, //reference body id
-        bodyB: undefined, //satellite body
-        a: undefined, //connector id, in bodyA
-        b: undefined //connector id, in bodyB
-      });
-      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
-      if (Ammo) {
-        this.bodyA = getObject(this.bodyA, 'body');
-        this.bodyB = getObject(this.bodyB, 'body');
-        this.a = this.bodyA.connectors[this.a];
-        this.b = this.bodyB.connectors[this.b];
-      }
-    },
     //for pendulum-like constraints
     point: function (options) {
       constructor.constraint._abstract.call(this, options);
@@ -232,6 +216,22 @@ var constructor = {
           this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
           this.a.up.ammo, this.b.up.ammo
         );
+      }
+    },
+    //super constructor
+    _abstract: function (options) {
+      include(this, options, {
+        bodyA: undefined, //reference body id
+        bodyB: undefined, //satellite body
+        a: undefined, //connector id, in bodyA
+        b: undefined //connector id, in bodyB
+      });
+      notifyUndefined(this, ['bodyA', 'bodyB', 'a', 'b']);
+      if (Ammo) {
+        this.bodyA = getObject(this.bodyA, 'body');
+        this.bodyB = getObject(this.bodyB, 'body');
+        this.a = this.bodyA.connectors[this.a];
+        this.b = this.bodyB.connectors[this.b];
       }
     }
   },
@@ -259,6 +259,13 @@ var constructor = {
     }
   },
   renderer: {
+    'default': function (options) {
+      try {
+        constructor.renderer.webgl.call(this, options);
+      } catch (e) {
+        constructor.renderer.canvas.call(this, options);
+      }
+    },
     webgl: function (options) {
       include(this, options, {
         width: 300, height: 300
@@ -279,6 +286,9 @@ var constructor = {
     }
   },
   camera: {
+    'default': function (options) {
+      constructor.camera.perspective.call(this, options);
+    },
     perspective: function (options) {
       include(this, options, {
         fov: 75, aspect: 1, near: 0.1, far: 1000,
@@ -449,6 +459,16 @@ function make() {
   return obj;
 }
 
+//make an object from the group, the first type found
+function makeSome(group) {
+  return make(group, _.keys(constructor[group])[0], {});
+}
+
+//get first of the kind in objects
+function getSome(group) {
+  return getObject(group, _.keys(objects[group])[0]);
+}
+
 var nextId = (function () {
   var index = 0;
   return function (prefix) {
@@ -539,6 +559,7 @@ module.exports = {
   addLibrary: addLibrary,
   constructor: constructor,
   make: make,
+  makeSome: makeSome,
   unpack: unpack,
   pack: pack,
   structure: structure,
@@ -549,5 +570,7 @@ module.exports = {
   destroy: destroy,
   destroyAll: destroyAll,
   objects: objects,
-  getObject: getObject
+  getObject: getObject,
+  getSome: getSome,
+  saveObjects: saveObjects
 };
