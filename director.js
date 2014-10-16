@@ -1,8 +1,17 @@
+/**
+ * director.js rules the simulation and renders the world/environment
+ * it can build worlds defined in /ware/ folder.
+ * see ware/basic.js example
+ *
+ * @type {exports}
+ */
+
 var factory = require('factory.js');
 var Ammo = require('lib/ammo.js');
 var THREE = require('lib/three.js');
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
+//factory.setDebug(true);
 
 var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
@@ -23,6 +32,10 @@ function show(script) {
     scene.ammo.addRigidBody(body.ammo);
   });
 
+  _.each(factory.objects.constraint, function (cons) {
+    scene.ammo.addConstraint(cons.ammo);
+  });
+
   var render = function () {
     setTimeout(function () {
       requestAnimationFrame(render);
@@ -41,9 +54,9 @@ function show(script) {
 function moveCamera(camera, distance) {
   var phase = 0; //Math.PI * Math.random();
   var time = new Date().getTime();
-  camera.three.position.x = distance * Math.sin(phase + time / 2234);
-  camera.three.position.z = distance * Math.cos(phase + time / 2234);
-  camera.three.position.y = -1 + 2 * Math.cos(phase + time / 3345);
+  camera.three.position.x = distance * Math.sin(phase + time / 12234);
+  camera.three.position.z = distance * Math.cos(phase + time / 12234);
+  camera.three.position.y = -1 + 2 * Math.cos(phase + time / 13345);
   camera.three.lookAt(origin);
 }
 

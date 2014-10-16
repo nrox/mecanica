@@ -84,6 +84,9 @@ var constructor = {
     }
   },
   shape: {
+    'default': function (options) {
+      constructor.shape.sphere.call(this, options);
+    },
     sphere: function (options) {
       include(this, options, {
         r: 1, segments: 12
@@ -119,6 +122,9 @@ var constructor = {
     }
   },
   material: {
+    'default': function (options) {
+      constructor.material.basic.call(this, options);
+    },
     basic: function (options) {
       include(this, options, {
         friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, wireframe: false
@@ -133,6 +139,9 @@ var constructor = {
     }
   },
   body: {
+    'default': function (options) {
+      constructor.body.basic.call(this, options);
+    },
     basic: function (options) {
       include(this, options, {
         shape: {type: 'box'},
@@ -141,13 +150,13 @@ var constructor = {
       });
       var shape;
       if (typeof this.shape == 'string') { //get from objects with id
-        shape = getObject('shape', this.shape);
+        shape = getObject(this.shape, 'shape');
       } else { //make from options
         shape = make('shape', this.shape);
       }
       var material;
       if (typeof this.material == 'string') { //get from objects with id
-        material = getObject('material', this.material);
+        material = getObject(this.material, 'material');
       } else { //make from options
         material = make('material', this.material);
       }
@@ -178,6 +187,9 @@ var constructor = {
   },
   //reference for constraints, allowing to define axis and base of movements
   connector: {
+    'default': function (options) {
+      constructor.connector.relative.call(this, options);
+    },
     //base and axis are specified in local coordinates
     relative: function (options) {
       include(this, options, {
@@ -199,6 +211,9 @@ var constructor = {
     }
   },
   constraint: {
+    'default': function (options) {
+      constructor.constraint.point.call(this, options);
+    },
     //for pendulum-like constraints
     point: function (options) {
       constructor.constraint._abstract.call(this, options);
@@ -236,6 +251,9 @@ var constructor = {
     }
   },
   scene: { //the same as world
+    'default': function (options) {
+      constructor.scene.basic.call(this, options);
+    },
     basic: function (options) {
       include(this, options, {
         gravity: {x: 0, y: -9.81, z: 0}
@@ -367,7 +385,11 @@ function hasUndefined(obj, keys) {
 function notifyUndefined(obj, keys) {
   if (hasUndefined(obj, keys)) {
     console.error('object has undefined values:');
-    console.warn(JSON.stringify(obj._options));
+    console.warn(keys);
+    console.warn(JSON.stringify(obj._options,
+      function (k, v) {
+        return v === undefined ? null : v;
+      }, ' '));
     return true;
   }
   return false;
@@ -440,6 +462,11 @@ function make() {
       type = options.type;
       break;
   }
+  if (!group) {
+    console.log('make', arguments);
+    console.error('group is not defined');
+  }
+  type = type || 'default';
   var cons = constructor[group] && constructor[group][type];
   var obj;
   if (typeof cons == 'function') {
@@ -466,7 +493,7 @@ function makeSome(group) {
 
 //get first of the kind in objects
 function getSome(group) {
-  return getObject(group, _.keys(objects[group])[0]);
+  return getObject(_.keys(objects[group])[0], group);
 }
 
 var nextId = (function () {
