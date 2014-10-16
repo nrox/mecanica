@@ -71,7 +71,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
 
     var constraintObject = factory.make('constraint', type, constraint);
     scene.ammo.addConstraint(constraintObject.ammo);
-    console.log(constraintObject);
+    //console.log(constraintObject);
     $(renderer.three.domElement).attr('renderer', type);
     $('#container').append(renderer.three.domElement);
     objects.scene[type] = scene;
@@ -177,9 +177,9 @@ function addAllTests() {
   type = 'hinge';
   ca = utils.deepCopy(connectorA);
   cb = utils.deepCopy(connectorB);
-  ca.base = {x: -0.5, y: -0.5, z: -0.5};
+  ca.base = {x: -0.5, y: -0.5, z: 0};
   ca.up = {z: 1};
-  cb.base = {x: 1, y: 1, z: -1};
+  cb.base = {x: 1, y: 1, z: 0};
   cb.up = {z: 1};
   test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 

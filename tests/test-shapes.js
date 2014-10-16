@@ -35,7 +35,7 @@ function shape(type) {
 var test = {
 };
 
-_.each(factory.description.shape, function (cons, type) {
+_.each(factory.constructor.shape, function (cons, type) {
   test[type] = shape(type);
 });
 
