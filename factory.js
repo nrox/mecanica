@@ -311,9 +311,10 @@ var constructor = {
         position: {x: 5, y: 7, z: 10},
         lookAt: {}
       });
+      this.position = make('physics', 'position', this.position);
       if (THREE) {
         this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-        this.three.position.copy(make('physics', 'position', this.position).three);
+        this.three.position.copy(this.position.three);
         this.three.lookAt(make('physics', 'position', this.lookAt).three);
       }
     },
@@ -326,10 +327,11 @@ var constructor = {
         body: null
       });
       notifyUndefined(this, ['body']);
+      this.position = make('physics', 'position', this.position);
       this.body = getObject(this.body, 'body');
       if (THREE) {
         this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-        this.three.position.copy(make('physics', 'position', this.position).three);
+        this.three.position.copy(this.position.three);
         this.three.lookAt(this.body.three.position);
       }
     }

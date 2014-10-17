@@ -54,6 +54,15 @@ function show(script) {
 function moveCamera(camera, distance) {
 
   if (camera.type == 'tracker') {
+    /* equation:
+     *camera.three.position in line with camera.position
+     * next camera.three.position? == camera.position * (a?)
+     *camera.three.position at a distance of distance from body.three.position
+     * |next camera.three.position? - body.three.position| == distance
+     *so close as possible with previous camera.three.position
+     * next camera.three.position so that
+     * |next camera.three.position - camera.three.position| in minimum
+     */
     var bodyPosition = camera.body.three.position;
     var cameraPosition = camera.three.position;
     var requiredDistance = camera.distance;
