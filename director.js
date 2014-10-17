@@ -41,7 +41,7 @@ function show(script) {
       requestAnimationFrame(render);
     }, 1000 / frequency);
     scene.ammo.stepSimulation(1 / frequency, 10);
-    _.each(factory.objects.body, function(body){
+    _.each(factory.objects.body, function (body) {
       transferPhysics(body, trans);
     });
     moveCamera(camera, distance);
@@ -52,12 +52,24 @@ function show(script) {
 }
 
 function moveCamera(camera, distance) {
-  var phase = 0; //Math.PI * Math.random();
-  var time = new Date().getTime();
-  camera.three.position.x = distance * Math.sin(phase + time / 12234);
-  camera.three.position.z = distance * Math.cos(phase + time / 12234);
-  camera.three.position.y = -1 + 2 * Math.cos(phase + time / 13345);
-  camera.three.lookAt(origin);
+
+  if (camera.type == 'tracker') {
+    var bodyPosition = camera.body.three.position;
+    var cameraPosition = camera.three.position;
+    var requiredDistance = camera.distance;
+    cameraPosition.sub(bodyPosition);
+    cameraPosition.normalize();
+    cameraPosition.multiplyScalar(requiredDistance);
+    camera.three.lookAt(camera.body.three.position);
+  } else {
+    var phase = 0; //Math.PI * Math.random();
+    var time = new Date().getTime();
+    camera.three.position.x = distance * Math.sin(phase + time / 12234);
+    camera.three.position.z = distance * Math.cos(phase + time / 12234);
+    camera.three.position.y = -1 + 2 * Math.cos(phase + time / 13345);
+    camera.three.lookAt(origin);
+
+  }
 }
 
 function transferPhysics(body, trans) {

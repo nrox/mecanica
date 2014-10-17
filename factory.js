@@ -284,7 +284,7 @@ var constructor = {
     },
     webgl: function (options) {
       include(this, options, {
-        width: 300, height: 300
+        width: 500, height: 500
       });
       if (THREE) {
         this.three = new THREE.WebGLRenderer();
@@ -293,7 +293,7 @@ var constructor = {
     },
     canvas: function (options) {
       include(this, options, {
-        width: 300, height: 300
+        width: 500, height: 500
       });
       if (THREE) {
         this.three = new THREE.CanvasRenderer();
@@ -307,12 +307,30 @@ var constructor = {
     },
     perspective: function (options) {
       include(this, options, {
-        fov: 75, aspect: 1, near: 0.1, far: 1000,
-        position: {x: 0, y: 0, z: 10}
+        fov: 45, aspect: 1, near: 0.1, far: 1000,
+        position: {x: 5, y: 7, z: 10},
+        lookAt: {}
       });
       if (THREE) {
         this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         this.three.position.copy(make('physics', 'position', this.position).three);
+        this.three.lookAt(make('physics', 'position', this.lookAt).three);
+      }
+    },
+    //follow a body
+    tracker: function (options) {
+      include(this, options, {
+        fov: 45, aspect: 1, near: 0.1, far: 1000,
+        position: {x: 1, y: 0, z: 0}, //initial position
+        distance: 15, //distance to keep
+        body: null
+      });
+      notifyUndefined(this, ['body']);
+      this.body = getObject(this.body, 'body');
+      if (THREE) {
+        this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+        this.three.position.copy(make('physics', 'position', this.position).three);
+        this.three.lookAt(this.body.three.position);
       }
     }
   }

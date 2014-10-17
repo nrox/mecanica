@@ -19,7 +19,7 @@ var objects = {
 
 var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
-var distance = 10;
+var distance = 20;
 var test = {
 };
 

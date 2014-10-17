@@ -1,7 +1,4 @@
-/**
- * Test ammo.js library
- * @type {exports}
- */
+
 
 var utils = require('./test-utils.js');
 var ammo = require('../lib/ammo.js');

@@ -1,7 +1,4 @@
-/**
- * Test ammo.js library
- * @type {exports}
- */
+
 
 var utils = require('test/test-utils.js');
 var director = require('../director.js');

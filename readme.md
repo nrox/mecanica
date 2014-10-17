@@ -6,6 +6,8 @@ mechanism simulation with ammo.js and three.js
 
 #todo
 
+* properly dispose/destroy objects
+
 * improve ammo.js by forking and changing ammo.idl krippen/ammo.js repository
 
 * add hinge constraint methods in ammo.js
