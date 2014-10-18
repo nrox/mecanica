@@ -24,7 +24,7 @@ module.exports = {
     s1: { type: 'basic' }
   },
   camera: {
-    cam: {type: 'tracker', body: 'id5', position: {x: 7, y: 5, z: 3}, distance: 20}
+    cam: {type: 'tracker', body: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20}
   },
   renderer: {
     render: {type: 'default'}

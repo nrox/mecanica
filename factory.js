@@ -322,17 +322,18 @@ var constructor = {
     tracker: function (options) {
       include(this, options, {
         fov: 45, aspect: 1, near: 0.1, far: 1000,
-        position: {x: 1, y: 0, z: 0}, //initial position
+        axis: {x: 1, y: 0, z: 0}, //preferred axis of movement
         distance: 15, //distance to keep
         body: null
       });
       notifyUndefined(this, ['body']);
-      this.position = make('physics', 'position', this.position);
+      this.axis = make('physics', 'vector', this.axis);
       this.body = getObject(this.body, 'body');
       if (THREE) {
+        this.axis.three.normalize();
         this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-        this.three.position.copy(this.position.three);
-        this.three.lookAt(this.body.three.position);
+        //this.three.position.copy(this.axis.three);
+        //this.three.lookAt(this.body.three.position);
       }
     }
   }
