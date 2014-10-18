@@ -8,6 +8,8 @@
  */
 function require(script, arg) {
 
+  arg || (arg = undefined);
+
   function scriptName(script) {
     return script.substr(script.lastIndexOf('/') + 1);
   }

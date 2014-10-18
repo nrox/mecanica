@@ -129,7 +129,7 @@ function addAllTests() {
     id: 'a',
     group: 'body',
     type: 'basic',
-    shape: { type: 'box', dx: 1, dz: 1, dy: 1, segments: 8 },
+    shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 16 },
     position: {  x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
     mass: 0
@@ -149,7 +149,7 @@ function addAllTests() {
     group: 'connector',
     type: 'relative',
     body: bodyA.id,
-    base: {y: -0.6},
+    base: {y: -1.01},
     up: {y: 1},
     front: {x: 1}
   };
@@ -177,7 +177,7 @@ function addAllTests() {
   type = 'hinge';
   ca = utils.deepCopy(connectorA);
   cb = utils.deepCopy(connectorB);
-  ca.base = {x: -0.5, y: -0.5, z: 0};
+  ca.base = {x: -1, y: -1, z: 0};
   ca.up = {z: 1};
   cb.base = {x: 1, y: 1, z: 0};
   cb.up = {z: 1};

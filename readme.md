@@ -14,6 +14,6 @@ mechanism simulation with ammo.js and three.js
 
 * add heightfield shape for ground shapes
 
-* make require-scripts.js more generic, maybe using a bash scripts to list files in the directory
+* make require.js more generic, maybe using a bash scripts to list files in the directory
 
 * tests for factory.pack, unpack, getObject
