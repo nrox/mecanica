@@ -31,6 +31,7 @@ function show(script) {
     scene.ammo.addRigidBody(body.ammo);
   });
 
+  scene.three.add(new THREE.AxisHelper(5));
   _.each(factory.objects.constraint, function (cons) {
     scene.ammo.addConstraint(cons.ammo);
   });
@@ -50,54 +51,51 @@ function show(script) {
   render();
 }
 
-var l1 = 0;
 function moveCamera(camera) {
 
+  var distance;
   if (camera.type == 'tracker') {
-    /* equation:
-     *camera.three.position in line with camera.position
-     * next camera.three.position? == camera.position * (a?)
-     *camera.three.position at a distance of distance from body.three.position
-     * |next camera.three.position? - body.three.position| == distance
-     *so close as possible with previous camera.three.position
-     * next camera.three.position so that
-     * |next camera.three.position - camera.three.position| in minimum
-     * solution:
-     * the original position line is (tx0, ty0, tz0)
-     * the distance to body from any point is d^2=(tx0-xb)^2 + (ty0-yb)^2 + (tz0-zb)^2
-     * for the shortest distance between the line and body (d^2)/dt = 0
-     * tx0^2-tx0*xb+tx0*xb + ... = 0
-     *
-     */
-    var cameraPosition = camera.three.position.clone();
+    var requiredPosition = camera.three.position.clone();
     var bodyPosition = camera.body.three.position;
     var axis = camera.axis.three;
     var requiredDistance = camera.distance;
     var projection = bodyPosition.clone().projectOnVector(axis);
-    var distance = projection.distanceTo(bodyPosition);
+    distance = projection.distanceTo(bodyPosition);
     var normal = bodyPosition.clone().sub(projection);
     var extension;
     if (distance == 0) {
-      cameraPosition.copy(axis.clone().multiplyScalar(requiredDistance));
+      requiredPosition.copy(axis.clone().multiplyScalar(requiredDistance));
     } else if (distance == requiredDistance) {
-      cameraPosition.copy(projection);
+      requiredPosition.copy(projection);
     } else if (distance > requiredDistance) {
       extension = distance - requiredDistance;
       normal.normalize().multiplyScalar(extension);
-      cameraPosition.copy(normal.add(projection));
+      requiredPosition.copy(normal.add(projection));
     } else {
       extension = Math.sqrt(Math.pow(requiredDistance, 2) - Math.pow(normal.length(), 2));
-      cameraPosition.copy(projection.add(axis.clone().multiplyScalar(extension)));
+      requiredPosition.copy(projection.add(axis.clone().multiplyScalar(extension)));
     }
-    if (l1++ < 3) {
-      console.log(distance, extension);
-      console.log(camera.three.position);
+    //get saved time
+    camera._lastTime = camera._lastTime || (new Date()).getTime();
+    var curTime = (new Date()).getTime();
+    var lapse = curTime - camera._lastTime;
+    camera._lastTime = curTime; //save time
+    var beta;
+    if (lapse == 0) {
+      beta = 10000;
+    } else {
+      beta = lapse / 1000 / (camera.inertia + 0.001);
     }
-    camera.three.lookAt(camera.body.three.position);
+    //TODO use PID controller
+    // pos = (ß * new + pos) / (1 + ß)
+    camera.three.position.add(requiredPosition.multiplyScalar(beta)).divideScalar(1 + beta);
+    camera._lastLookAt = camera._lastLookAt || bodyPosition.clone();
+    camera.three.lookAt(camera._lastLookAt.add(bodyPosition.clone().multiplyScalar(beta)).divideScalar(1 + beta));
+
   } else {
     var phase = 0; //Math.PI * Math.random();
     var time = new Date().getTime();
-    var distance = 10;
+    distance = 10;
     camera.three.position.x = distance * Math.sin(phase + time / 12234);
     camera.three.position.z = distance * Math.cos(phase + time / 12234);
     camera.three.position.y = -1 + 2 * Math.cos(phase + time / 13345);
@@ -121,5 +119,6 @@ function transferPhysics(body, trans) {
 }
 
 module.exports = {
-  show: show
+  show: show,
+  moveCamera: moveCamera
 }

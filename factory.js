@@ -322,8 +322,9 @@ var constructor = {
     tracker: function (options) {
       include(this, options, {
         fov: 45, aspect: 1, near: 0.1, far: 1000,
-        axis: {x: 1, y: 0, z: 0}, //preferred axis of movement
+        axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
         distance: 15, //distance to keep
+        inertia: 1, //for changing position, in seconds
         body: null
       });
       notifyUndefined(this, ['body']);

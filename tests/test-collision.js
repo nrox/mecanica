@@ -2,6 +2,7 @@ var utils = require('./test-utils.js', undefined);
 var Ammo = require('../lib/ammo.js', undefined);
 var THREE = require('../lib/three.js', undefined);
 var factory = require('../factory.js', undefined);
+var director = require('../director.js', undefined);
 var _ = require('../lib/underscore.js', undefined);
 
 factory.addLibrary(Ammo);
@@ -54,7 +55,9 @@ function makeTest(bodyOptions, floorOptions, title) {
     var body = factory.make('body', 'basic', bodyOptions);
     var floor = factory.make('body', 'basic', floorOptions);
 
-    var camera = factory.make('camera', 'perspective', {});
+    var camera = factory.make('camera', 'tracker', {
+      inertia: 0.5, body: body.id
+    });
     var renderer = factory.make('renderer', 'webgl', {});
     scene.ammo.addRigidBody(body.ammo);
     scene.three.add(body.three);
@@ -83,7 +86,7 @@ function makeTest(bodyOptions, floorOptions, title) {
       // 1/30 < 10 * 1/60
       scene.ammo.stepSimulation(1 / frequency, 10);
       transferPhysics(body, trans);
-      moveCamera(camera, distance);
+      director.moveCamera(camera);
       renderer.three.render(scene.three, camera.three);
 
     };
@@ -91,7 +94,8 @@ function makeTest(bodyOptions, floorOptions, title) {
   };
 }
 
-function moveCamera(camera, distance){
+
+function moveCamera(camera, distance) {
   var phase = 0; //Math.PI * Math.random();
   var time = new Date().getTime();
   camera.three.position.x = distance * Math.sin(phase + time / 2234);
@@ -173,6 +177,6 @@ function addAllTests() {
 }
 
 addAllTests();
-test.all = utils.all(test,1);
+test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;
