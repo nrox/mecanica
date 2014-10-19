@@ -43,97 +43,37 @@ var test = {
     worker.postMessage(msg.data);
   },
   'worker.js basic': function () {
-    console.log('create a worker with worker.js');
+    console.log('create a worker with webworker.js and echo a messages');
     clean();
-    worker = new Worker("../worker.js");
-    var msg = {data: 'random:' + Math.random()};
+    worker = new Worker("../webworker.js");
+    var msg = 'random:' + Math.random();
     worker.onmessage = function (e) {
-      console.log(e);
-      testUtils.checkValues(e, msg, 'check echoed message');
+      console.log(e.data);
+      testUtils.logStatus(e.data == msg, 'echo ' + msg);
     };
-    worker.postMessage(msg.data);
+    worker.postMessage(msg);
   },
-  'worker.js environment': function () {
+  'webworker.js require': function () {
+    console.log('check if require / importScripts works properly');
     clean();
-
-    console.log('check env. recon. browser window');
-    var windowWorker = require('worker.js');
-    var checks = {};
-    _.each(windowWorker.environment, function (f, k) {
-      checks[k] = f();
-    });
-    testUtils.checkValues(checks, {
-      isBrowserWindow: true,
-      isBrowserWorker: false,
-      isNode: false
-    }, 'only isBrowserWindow === true ?');
-
-    console.log('check env. recon. in web worker');
-    worker = new Worker("../worker.js");
+    worker = new Worker("../webworker.js");
     worker.onmessage = function (e) {
       console.log(utils.stringify(e.data));
     };
     worker.postMessage({
-      require: ['underscore.js'],
-      'return': false
+      comment: 'underscore loaded',
+      action: 'eval',
+      arguments: ['_ && !!_.each']
     });
     worker.postMessage({
-      eval: ['_.map(environment, function(f,k){return k +"() => " + f(); });'],
-      'return': true,
-      'comments': "environment check in web worker"
-    });
-  },
-  'worker.js require underscore.js': function () {
-    console.log('require underscore in the web worker env and do simple check _.each property');
-    clean();
-    worker = new Worker("../worker.js");
-    worker.onmessage = function (e) {
-      console.log(utils.stringify(e.data));
-    };
-    worker.postMessage({
-      require: ['underscore.js'],
-      'return': true,
-      'comments': '_ = require(underscore.js)'
+      comment: 'Ammo loaded',
+      action: 'eval',
+      arguments: ['Ammo && !!Ammo.btVector3']
     });
     worker.postMessage({
-      eval: ['_ && !!_.each'],
-      'return': true,
-      'comments': 'check _.each'
-    });
-  },
-  'worker.js require ammo.js': function () {
-    console.log('require ammo.js and check some properties');
-    clean();
-    worker = new Worker("../worker.js");
-    worker.onmessage = function (e) {
-      console.log(utils.stringify(e.data));
-    };
-    worker.postMessage({
-      require: ['ammo.js'],
-      'return': true,
-      'comments': 'Ammo = require(ammo.js)'
-    });
-    worker.postMessage({
-      eval: ['Ammo && !!Ammo.btVector3'],
-      'return': true,
-      'comments': 'check Ammo.btVector3'
-    });
-  },
-  'worker.js loadFactory': function () {
-    clean();
-    worker = new Worker("../worker.js");
-    worker.onmessage = function (e) {
-      console.log(utils.stringify(e.data));
-    };
-    worker.postMessage({
-      loadFactory: [],
-      'return': true,
-      'comments': 'loadFactory()'
-    });
-    worker.postMessage({
-      eval: ['factory && factory.objects'],
-      'return': true,
-      'comments': 'check factory.objects'
+      comment: 'factory loaded',
+      action: 'eval',
+      arguments: ['factory && !!factory.make']
     });
   }
 };
