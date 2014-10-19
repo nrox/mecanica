@@ -61,7 +61,7 @@ function require(script, arg) {
     module = process = exports = undefined;
   }
 
-  console.log('require ', script);
+  //console.log('require ', script);
 
   jQuery.ajax(url, {
     cache: !isLocalhost(), //during development don't cache

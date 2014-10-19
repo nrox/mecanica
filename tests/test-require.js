@@ -18,6 +18,7 @@ var verify = {
   'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
   'test-utils.js': ['run', 'all'],
   'factory.js': ['addLibrary', 'make', 'structure', 'options'],
+  'utils.js': ['stringify', 'deepCopy'],
   '/ware/basic.js': ['shape', 'scene']
 };
 
