@@ -22,6 +22,9 @@
         color = ( color << 8) | ~~(0xff * Math.random());
       }
       return color;
+    },
+    randomItem: function (list) {
+      return list[~~(Math.random() * list.length)];
     }
   };
   return module.exports;

@@ -8,7 +8,7 @@
  */
 function require(script, arg) {
 
-  arg || (arg = undefined);
+  if (!arg) arg = undefined;
 
   function scriptName(script) {
     return script.substr(script.lastIndexOf('/') + 1);
@@ -18,7 +18,8 @@ function require(script, arg) {
     var name = scriptName(script);
     var folder = (['ammo.js', 'three.js', 'underscore.js', 'jquery.js'].indexOf(name) > -1) ? '/lib/' : undefined;
     if (script.indexOf('/ware/' + name) > -1) folder = '/ware/';
-    folder = folder || ((name.indexOf('test') == 0) ? '/tests/' : '/');
+    folder = folder || ((name.indexOf('example-') == 0) ? '/examples/' : null);
+    folder = folder || ((name.indexOf('test-') == 0) ? '/tests/' : '/');
     return folder;
   }
 

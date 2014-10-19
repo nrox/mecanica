@@ -7,7 +7,7 @@ var test = {
 
 _.each(['basic.js'], function (script) {
   test[script] = function () {
-    director.show(script);
+    director.show(script, '#container');
   };
 });
 

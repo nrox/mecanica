@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title class='title'>examples/constrain</title>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+    <script src='../lib/jquery.js'></script>
+    <script src='../lib/underscore.js'></script>
+    <script src='../require.js'></script>
+</head>
+
+<body>
+<p>
+    <a href='./'>../</a> <a href=''>reload</a>
+</p>
+
+<h1>examples/constraint</h1>
+<script>
+    var director = require('../director.js');
+    var world = {
+        shape: {
+            s1: { type: 'box', dx: 1, dy: 2, dz: 2, segments: 4 },
+            s2: { type: 'sphere', r: 1, segments: 8 }
+        },
+        material: {
+            m1: { type: 'basic', wireframe: true, color: 0x772244 },
+            m2: { type: 'basic', wireframe: true, color: 0x224477 }
+        },
+        body: {
+            b1: { type: 'basic', mass: 0, shape: 's1', material: 'm2'},
+            b2: { type: 'basic', mass: 1, shape: 's2', material: 'm1', position: {x: 0, y: 0, z: 3}}
+        },
+        connector: {
+            c1: {body: 'b1'},
+            c2: {body: 'b2', base: {z: -3}}
+        },
+        constraint: {
+            cons: {
+                a: 'c1', b: 'c2'
+            }
+        },
+        scene: {
+            s1: { type: 'basic' }
+        },
+        camera: {
+            cam: {type: 'tracker', body: 'b2', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
+        },
+        renderer: {
+            render: {type: 'default'}
+        }
+    };
+    director.show(world);
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title class='title'>Tests</title>
+    <title class='title'>tests</title>
     <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
     <link rel='icon' type='image/png' href='../images/gear2.png'>
     <script src='../lib/jquery.js'></script>
@@ -12,7 +12,7 @@
 <body>
 <a href='../'>../</a>
 
-<h2 class='index'>Test Groups</h2>
+<h2 class='index'>test groups</h2>
 
 <div><p id='index'></p></div>
 <h3 class='title'>&nbsp;</h3>
@@ -44,7 +44,7 @@
         $('#container').empty();
         setConsole('.console');
         var title = $(event.target).text();
-        $('.title').text('Test: ' + title);
+        $('.title').text('test: ' + title);
         var script = $(event.target).attr('script');
         library = require(script, undefined);
         var $verify = $('#verify');

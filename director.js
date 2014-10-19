@@ -17,14 +17,14 @@ var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
 var frequency = 30;
 
-function show(script) {
-  var json = require('/ware/' + script);
+function show(script, containerSelector) {
+  var json = (typeof script == 'object') ? script : require('/ware/' + script);
   factory.saveObjects = true;
   factory.unpack(json);
   var scene = factory.getSome('scene') || factory.makeSome('scene');
   var camera = factory.getSome('camera') || factory.makeSome('camera');
   var renderer = factory.getSome('renderer') || factory.makeSome('renderer');
-  $('#container').append(renderer.three.domElement);
+  $(containerSelector || 'body').append(renderer.three.domElement);
 
   _.each(factory.objects.body, function (body) {
     scene.three.add(body.three);

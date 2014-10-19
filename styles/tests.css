@@ -10,9 +10,9 @@ a{
     font-weight: bolder;
 }
 
-a[href='../']{
+a[href='../'], a[href='./'], a[href='/'], a[href='']{
     text-decoration: none;
-    margin: 5px;
+    margin: 5px 20px 5px 5px;
 }
 h1 {
     color: #eee;
