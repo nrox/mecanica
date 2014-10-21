@@ -1,6 +1,6 @@
 
 
-var utils = require('test/test-utils.js');
+var utils = require('tests/test-utils.js');
 var director = require('../director.js');
 var test = {
 };

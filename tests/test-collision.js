@@ -49,9 +49,6 @@ function makeTest(bodyOptions, floorOptions, title) {
     bodyOptions.rotation.x = 2 * Math.PI * Math.random();
     bodyOptions.rotation.y = 2 * Math.PI * Math.random();
     bodyOptions.rotation.z = 0;
-    _.each(bodyOptions.position, function (value, key, position) {
-      position[key] += 0.5 * Math.random() - 0.8;
-    });
     var body = factory.make('body', 'basic', bodyOptions);
     var floor = factory.make('body', 'basic', floorOptions);
 
@@ -125,7 +122,7 @@ function addAllTests() {
       r: 1, dx: 1, dy: 1.2, dz: 1.4,
       segments: undefined
     },
-    position: { x: 0, y: 5, z: 0 },
+    position: { x: 0.2, y: 5, z: 0.5 },
     rotation: { x: undefined, y: undefined, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
     mass: 0.1
