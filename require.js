@@ -21,6 +21,46 @@
     });
   }
 
+  function httpRoot() {
+    var locationHref = location.href.split('').reverse().join('');
+    if (locationHref.indexOf('/') === 0) locationHref = locationHref.substr(1);
+    var longest = 0;
+    for (var i = 0; i < availablePaths.length; i++) {
+      if (locationHref.indexOf(availablePaths[i].split('').reverse().join('')) == 0) {
+        if (availablePaths[i].length > longest) {
+          longest = availablePaths[i].length;
+        }
+      }
+    }
+    var root;
+    if (longest) {
+      root = locationHref.substr(longest).split('').reverse().join('');
+    }
+    return root;
+  }
+
+  function requiredPath(script) {
+    script = script.replace('/../', '/');
+    while (script.indexOf('/../') > 0) script = script.replace('/../', '/');
+    if (script.indexOf('./') == 0) script = script.substr(2);
+    if (script.indexOf('../') == 0) script = script.substr(3);
+    while (script.indexOf('//') > 0) script = script.replace('//', '/');
+    while (script.indexOf('/') == 0) script = script.substr(1);
+    var fragments = script.split('/');
+    for (var i = 0; i < availablePaths.length; i++) {
+      var pos = -1;
+      for (var j = 0; j < fragments.length; j++) {
+        pos = availablePaths[i].indexOf(fragments[j], pos);
+      }
+      if (pos > -1) {
+        return availablePaths[i];
+      }
+    }
+  }
+
+  window.requireURL = function(script){
+      return httpRoot() + requiredPath(script);
+  };
 
   /**
    * A custom version of require for this library purpose
@@ -37,42 +77,7 @@
       return script.substr(script.lastIndexOf('/') + 1);
     }
 
-    function httpRoot() {
-      var locationHref = location.href.split('').reverse().join('');
-      if (locationHref.indexOf('/') === 0) locationHref = locationHref.substr(1);
-      var longest = 0;
-      for (var i = 0; i < availablePaths.length; i++) {
-        if (locationHref.indexOf(availablePaths[i].split('').reverse().join('')) == 0) {
-          if (availablePaths[i].length > longest) {
-            longest = availablePaths[i].length;
-          }
-        }
-      }
-      var root;
-      if (longest) {
-        root = locationHref.substr(longest).split('').reverse().join('');
-      }
-      return root;
-    }
 
-    function requiredPath(script) {
-      script = script.replace('/../', '/');
-      while (script.indexOf('/../') > 0) script = script.replace('/../', '/');
-      if (script.indexOf('./') == 0) script = script.substr(2);
-      if (script.indexOf('../') == 0) script = script.substr(3);
-      while (script.indexOf('//') > 0) script = script.replace('//', '/');
-      while (script.indexOf('/') == 0) script = script.substr(1);
-      var fragments = script.split('/');
-      for (var i = 0; i < availablePaths.length; i++) {
-        var pos = -1;
-        for (var j = 0; j < fragments.length; j++) {
-          pos = availablePaths[i].indexOf(fragments[j], pos);
-        }
-        if (pos > -1) {
-          return availablePaths[i];
-        }
-      }
-    }
 
     function isAmmo(script) {
       return fileName(script) == 'ammo.js';
@@ -88,7 +93,7 @@
     var url;
     if (!path) {
       url = script;
-      console.warning(script + ' is not registered. Use: bash listdir.sh');
+      console.warn(script + ' is not registered. Use: bash listdir.sh');
     } else {
       url = httpRoot() + path;
     }
@@ -130,7 +135,7 @@
       type: 'GET'
     });
     return module.exports;
-  }
+  };
 })();
 
 /**

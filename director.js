@@ -6,6 +6,7 @@
  * @type {exports}
  */
 
+var utils = require('utils.js');
 var factory = require('factory.js');
 var Ammo = require('lib/ammo.js');
 var THREE = require('lib/three.js');
@@ -118,7 +119,58 @@ function transferPhysics(body, trans) {
   body.three.quaternion.copy(quat);
 }
 
+var workerListener = {
+  console: function () {
+    var args = [];
+    var type = arguments[0];
+    for (var i = 1; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    console[type].apply(console, args);
+  }
+};
+
+/**
+ * usage:
+ * var worker = createWorker('../webworker.js');
+ * @param url
+ * @returns {Worker}
+ */
+function createWorker(url) {
+  //console.log(url);
+  var worker = new Worker(url);
+  worker.onmessage = function (e) {
+    var request = e.data;
+    if ((typeof request == 'object') && workerListener[request.action]) {
+      if (request.action != 'result') {
+        var result = workerListener[request.action].apply(self, request.arguments);
+        var response = {};
+        if (request.id) response.id = request.id;
+        if (request.comment) response.comment = request.comment;
+        response.result = result;
+        worker.postMessage(response);
+      }
+    } else {
+      console.log(utils.stringify(request));
+    }
+  };
+  return worker;
+}
+
+/**
+ * usage:
+ * worker = dismissWorker(worker);
+ * @param worker
+ * @returns {undefined}
+ */
+function dismissWorker(worker) {
+  worker && worker.terminate();
+  return undefined;
+}
+
 module.exports = {
   show: show,
-  moveCamera: moveCamera
-}
+  moveCamera: moveCamera,
+  createWorker: createWorker,
+  dismissWorker: dismissWorker
+};

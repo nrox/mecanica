@@ -1,4 +1,4 @@
-[
+availablePaths = [
 ".//director.js",
 ".//examples",
 ".//factory.js",

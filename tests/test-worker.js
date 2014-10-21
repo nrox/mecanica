@@ -43,7 +43,7 @@ var test = {
     worker.postMessage(msg.data);
   },
   'worker.js basic': function () {
-    console.log('create a worker with webworker.js and echo a messages');
+    console.log('create a worker with webworker.js');
     clean();
     worker = new Worker("../webworker.js");
     var msg = 'random:' + Math.random();
@@ -75,6 +75,21 @@ var test = {
       action: 'eval',
       arguments: ['factory && !!factory.make']
     });
+  },
+  'webworker.js with director.js': function () {
+    clean();
+    var director = require('director.js');
+    worker = director.createWorker(requireURL('webworker.js'));
+    worker.postMessage({
+      comment: 'factory loaded',
+      action: 'eval',
+      arguments: ['factory && !!factory.make']
+    });
+    worker.postMessage({
+      comment: 'run a factory function: make({group: shape, type: box})',
+      action: 'factory',
+      arguments: ['make', {group: 'shape', type: 'box'}]
+    })
   }
 };
 
