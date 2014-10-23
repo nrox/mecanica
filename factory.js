@@ -234,6 +234,48 @@
           );
         }
       },
+      //for linear motors
+      slider: function (options) {
+        constructor.constraint._abstract.call(this, options);
+        if (Ammo) {
+          var transformA = new Ammo.btTransform();
+          transformA.setOrigin(this.a.base.ammo);
+
+          var yAxis = this.a.up.ammo;
+          var zAxis = this.a.front.ammo;
+          var xAxis = yAxis.cross(zAxis).normalize();
+
+          //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+          var basis = transformA.getBasis();
+          //set the new coordinate system and swap x, y
+          basis.setValue(
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
+          );
+          transformA.setBasis(basis);
+
+          var transformB = new Ammo.btTransform();
+          transformB.setOrigin(this.b.base.ammo);
+
+          yAxis = this.b.up.ammo;
+          zAxis = this.b.front.ammo;
+          xAxis = yAxis.cross(zAxis).normalize();
+          //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+          basis = transformB.getBasis();
+          //set the new coordinate system and swap x, y
+          basis.setValue(
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
+          );
+          transformB.setBasis(basis);
+
+          this.ammo = new Ammo.btSliderConstraint(
+            this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+          );
+        }
+      },
       //super constructor
       _abstract: function (options) {
         include(this, options, {

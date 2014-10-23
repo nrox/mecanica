@@ -164,7 +164,7 @@ function addAllTests() {
   };
   var constraintOptions = {
     a: connectorA.id,
-    b: connectorB.id,
+    b: connectorB.id
     //bodyA: bodyA.id,
     //bodyB: bodyB.id
   };
@@ -181,6 +181,18 @@ function addAllTests() {
   ca.up = {z: 1};
   cb.base = {x: 1, y: 1, z: 0};
   cb.up = {z: 1};
+  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
+
+  //slider constraint
+  type = 'slider';
+  ca = utils.deepCopy(connectorA);
+  cb = utils.deepCopy(connectorB);
+  ca.base = {x: -1, y: -1, z: 0};
+  ca.up = {z: 1};
+  ca.front = {y: 1};
+  cb.base = {x: 1, y: 1, z: 0};
+  cb.up = {z: 1};
+  cb.front = {y: 1};
   test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 
 }

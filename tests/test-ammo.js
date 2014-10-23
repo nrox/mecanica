@@ -1,15 +1,14 @@
-
 var utils = require('./test-utils.js');
 var Ammo = require('../lib/ammo.js');
 var _ = require('../lib/underscore.js');
 
 var test = {
-  constructors: function(){
+  'important constructors': function () {
     utils.checkKeys(Ammo, [
       'btBoxShape', 'btCompoundShape', 'btCylinderShape', 'btGeneric6DofConstraint',
       'btCollisionDispatcher', 'btDbvtBroadphase', 'btHingeConstraint', 'btPoint2PointConstraint',
       'btQuaternion', 'btRigidBody', 'btSliderConstraint', 'btSphereShape', 'btTransform',
-      'btVector3','btVector4', 'btDiscreteDynamicsWorld', 'btConeShape'
+      'btVector3', 'btVector4', 'btDiscreteDynamicsWorld', 'btConeShape'
     ], 'important constructors');
   },
   btVector3: function () {
@@ -34,7 +33,7 @@ var test = {
     //Y = y × sin (0.5 × α)
     //Z = z × sin (0.5 × α)
     var angle = Math.PI / 4;
-    var x =  Math.sin(0.5 * angle);
+    var x = Math.sin(0.5 * angle);
     var y = Math.sin(0.5 * angle);
     var z = Math.sin(0.5 * angle);
     var w = Math.cos(0.5 * angle);
@@ -49,6 +48,9 @@ var test = {
       z: z,
       w: w
     }, 'checking btQuaternion values');
+  },
+  'properties list': function () {
+    utils.logKeys(Ammo, 'properties list');
   }
 };
 

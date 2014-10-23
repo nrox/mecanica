@@ -80,12 +80,9 @@ function defineRequire() {
    * A custom version of require for this library purpose
    * It was developed, instead of using browserify, because of Ammo.js trying to require fs and path
    * @param script the relative the url
-   * @param arg the argument for test scripts
    * @returns {module.exports || undefined}
    */
-  self.require = function (script, arg) {
-
-    if (!arg) arg = undefined;
+  self.require = function (script) {
 
     function fileName(script) {
       return script.substr(script.lastIndexOf('/') + 1);
