@@ -249,9 +249,9 @@
           var basis = transformA.getBasis();
           //set the new coordinate system and swap x, y
           basis.setValue(
-            yAxis.x(), xAxis.x(), zAxis.x(),
-            yAxis.y(), xAxis.y(), zAxis.y(),
-            yAxis.z(), xAxis.z(), zAxis.z()
+            xAxis.x(), xAxis.y(), xAxis.z(),
+            yAxis.x(), yAxis.y(), yAxis.z(),
+            zAxis.x(), zAxis.y(), zAxis.z()
           );
           transformA.setBasis(basis);
 
@@ -265,9 +265,9 @@
           basis = transformB.getBasis();
           //set the new coordinate system and swap x, y
           basis.setValue(
-            yAxis.x(), xAxis.x(), zAxis.x(),
-            yAxis.y(), xAxis.y(), zAxis.y(),
-            yAxis.z(), xAxis.z(), zAxis.z()
+            xAxis.x(), xAxis.y(), xAxis.z(),
+            yAxis.x(), yAxis.y(), yAxis.z(),
+            zAxis.x(), zAxis.y(), zAxis.z()
           );
           transformB.setBasis(basis);
 

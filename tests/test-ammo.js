@@ -11,6 +11,14 @@ var test = {
       'btVector3', 'btVector4', 'btDiscreteDynamicsWorld', 'btConeShape'
     ], 'important constructors');
   },
+  btTransform: function () {
+    var obj = new Ammo.btTransform();
+    utils.logKeys(obj, 'btTransform properties');
+  },
+  btMatrix3x3: function () {
+    var obj = new Ammo.btTransform().getBasis();
+    utils.logKeys(obj, 'btMatrix3x3 = btTransform().getBasis() properties');
+  },
   btVector3: function () {
     var
       x = 1.2,

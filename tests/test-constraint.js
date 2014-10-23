@@ -131,6 +131,7 @@ function addAllTests() {
     type: 'basic',
     shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 16 },
     position: {  x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
     mass: 0
   };
@@ -193,7 +194,9 @@ function addAllTests() {
   cb.base = {x: 1, y: 1, z: 0};
   cb.up = {z: 1};
   cb.front = {y: 1};
-  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
+  var bodyACopy = utils.deepCopy(bodyA);
+  bodyACopy.rotation.z = 0.04;
+  test[type] = makeTest(bodyACopy, bodyB, ca, cb, type, constraintOptions);
 
 }
 
