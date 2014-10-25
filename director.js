@@ -132,7 +132,7 @@ var workerListener = {
 
 /**
  * usage:
- * var worker = createWorker('../webworker.js');
+ * var worker = createWorker('../worker-web.js');
  * @param url
  * @returns {Worker}
  */

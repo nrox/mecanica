@@ -423,7 +423,7 @@
   };
 
   function destroy(obj) {
-    if (!obj) return;
+    if (!obj) return null;
     if (objects[obj.group] && objects[obj.group][obj.id]) {
       delete objects[obj.group][obj.id];
     }

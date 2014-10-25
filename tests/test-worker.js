@@ -43,9 +43,9 @@ var test = {
     worker.postMessage(msg.data);
   },
   'worker.js basic': function () {
-    console.log('create a worker with webworker.js');
+    console.log('create a worker with worker-web.js');
     clean();
-    worker = new Worker("../webworker.js");
+    worker = new Worker("../worker-web.js");
     var msg = 'random:' + Math.random();
     worker.onmessage = function (e) {
       console.log(e.data);
@@ -53,10 +53,10 @@ var test = {
     };
     worker.postMessage(msg);
   },
-  'webworker.js require': function () {
+  'worker-web.js require': function () {
     console.log('check if require / importScripts works properly');
     clean();
-    worker = new Worker("../webworker.js");
+    worker = new Worker("../worker-web.js");
     worker.onmessage = function (e) {
       console.log(utils.stringify(e.data));
     };
@@ -76,10 +76,10 @@ var test = {
       arguments: ['factory && !!factory.make']
     });
   },
-  'webworker.js with director.js': function () {
+  'worker-web.js with director.js': function () {
     clean();
     var director = require('director.js');
-    worker = director.createWorker(requireURL('webworker.js'));
+    worker = director.createWorker(requireURL('worker-web.js'));
     worker.postMessage({
       comment: 'factory loaded',
       action: 'eval',

@@ -14,7 +14,7 @@ availablePaths = [
 ".//tests",
 ".//utils.js",
 ".//ware",
-".//webworker.js",
+".//worker-web.js",
 "./examples/example-collision.html",
 "./examples/example-constraint.html",
 "./examples/index.html",

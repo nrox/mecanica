@@ -42,7 +42,7 @@
     function loadTest(event) {
         library && library.clearObjects && library.clearObjects();
         $('#container').empty();
-        setConsole('.console');
+        clearConsole();
         var title = $(event.target).text();
         $('.title').text('test: ' + title);
         var script = $(event.target).attr('script');
@@ -52,7 +52,7 @@
         //console.log('group: ' + script);
         _.each(library.test, function (fun, name) {
             //console.log('test: ' + name);
-            var e = $('<button />',{
+            var e = $('<button />', {
                 'class': 'test',
                 'group': title,
                 'test': name
@@ -65,7 +65,7 @@
 
     function runTest(event) {
         library && library.clearObjects && library.clearObjects();
-        setConsole('.console');
+        clearConsole();
         var title = $(event.target).text();
         console.info(title);
         library.test[title]();
@@ -85,7 +85,13 @@
         });
         setConsole('.console');
         console.info('ready');
-        $index.children('.test').on('click', loadTest);
+        $index.children('.test').on('click', function (e) {
+            clearConsole();
+            console.log('loading ' + $(e.target).attr('group') + '...');
+            setTimeout(function () {
+                loadTest(e);
+            }, 0);
+        });
     };
 
 
