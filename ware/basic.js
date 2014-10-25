@@ -4,12 +4,12 @@ module.exports = {
     id2: { type: 'sphere', r: 1, segments: 8 }
   },
   material: {
-    id3: { type: 'basic', wireframe: true, color: 0x772244 },
-    id4: { type: 'basic', wireframe: true, color: 0x224477 }
+    id3: { wireframe: true, color: 0x772244 },
+    id4: { wireframe: true, color: 0x224477 }
   },
   body: {
-    id5: { type: 'basic', mass: 0, shape: 'id1', material: 'id4'},
-    id6: { type: 'basic', mass: 1, shape: 'id2', material: 'id3', position: {x: 0, y: 0, z: 3}}
+    id5: { mass: 0, shape: 'id1', material: 'id4'},
+    id6: { mass: 1, shape: 'id2', material: 'id3', position: {x: 0, y: 0, z: 3}}
   },
   connector: {
     c1: {body: 'id5'},
@@ -21,13 +21,13 @@ module.exports = {
     }
   },
   scene: {
-    s1: { type: 'basic' }
+    s1: {}
   },
   camera: {
     cam: {type: 'tracker', body: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
   },
   renderer: {
-    render: {type: 'default'}
+    render: {}
   }
 };
 

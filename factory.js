@@ -85,7 +85,7 @@
       }
     },
     shape: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.shape.sphere.call(this, options);
       },
       sphere: function (options) {
@@ -123,7 +123,7 @@
       }
     },
     material: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.material.basic.call(this, options);
       },
       basic: function (options) {
@@ -140,7 +140,7 @@
       }
     },
     body: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.body.basic.call(this, options);
       },
       basic: function (options) {
@@ -188,7 +188,7 @@
     },
     //reference for constraints, allowing to define axis and base of movements
     connector: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.connector.relative.call(this, options);
       },
       //base and axis are specified in local coordinates
@@ -212,7 +212,7 @@
       }
     },
     constraint: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.constraint.point.call(this, options);
       },
       //for pendulum-like constraints
@@ -292,7 +292,7 @@
       }
     },
     scene: { //the same as world
-      'default': function (options) {
+      _default: function (options) {
         constructor.scene.basic.call(this, options);
       },
       basic: function (options) {
@@ -318,7 +318,7 @@
       }
     },
     renderer: {
-      'default': function (options) {
+      _default: function (options) {
         try {
           constructor.renderer.webgl.call(this, options);
         } catch (e) {
@@ -345,7 +345,7 @@
       }
     },
     camera: {
-      'default': function (options) {
+      _default: function (options) {
         constructor.camera.perspective.call(this, options);
       },
       perspective: function (options) {
@@ -530,7 +530,7 @@
       console.log('make', arguments);
       console.error('group is not defined');
     }
-    type = type || 'default';
+    type = type || '_default';
     var cons = constructor[group] && constructor[group][type];
     var obj;
     if (typeof cons == 'function') {
@@ -550,14 +550,9 @@
     return obj;
   }
 
-//make an object from the group, the first type found
-  function makeSome(group) {
-    return make(group, _.keys(constructor[group])[0], {});
-  }
-
 //get first of the kind in objects
   function getSome(group) {
-    return getObject(_.keys(objects[group])[0], group);
+    return getObject(_.keys(objects[group])[0], group) || make(group, _.keys(constructor[group])[0], {});
   }
 
   var nextId = (function () {
@@ -650,7 +645,6 @@
     addLibrary: addLibrary,
     constructor: constructor,
     make: make,
-    makeSome: makeSome,
     unpack: unpack,
     pack: pack,
     structure: structure,

@@ -17,13 +17,14 @@ First Define the scene/world in a json object. Save it to the /ware folder. Call
 
 Include require.js
 
+    <script src='lib/jquery.js'></script>
     <script src='require.js'></script>
 
 Load the predefined script.js with the world description
 
     var director = require('director.js')
 
-    director.show('world.js');
+    director.loadScene('world.js');
 
 #todo
 

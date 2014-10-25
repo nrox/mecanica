@@ -56,6 +56,7 @@
         return availablePaths[i];
       }
     }
+    return undefined;
   }
 
   window.requireURL = function(script){

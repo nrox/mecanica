@@ -16,6 +16,11 @@
     deepCopy: function (json) {
       return JSON.parse(JSON.stringify(json));
     },
+    randomLinear: function (min, max) {
+      min = min || 0;
+      max = max || 0;
+      return min + (max - min) * Math.random();
+    },
     randomColor: function () {
       var color = 0;
       for (var i = 0; i < 3; i++) {

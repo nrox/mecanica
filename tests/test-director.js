@@ -1,5 +1,3 @@
-
-
 var utils = require('tests/test-utils.js');
 var director = require('../director.js');
 var test = {
@@ -7,7 +5,11 @@ var test = {
 
 _.each(['basic.js'], function (script) {
   test[script] = function () {
-    director.show(script, '#container');
+    director.loadScene(script, {
+      canvasContainer: '#container',
+      axisHelper: 5
+    });
+    director.startSimulation();
   };
 });
 

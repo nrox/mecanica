@@ -6,10 +6,13 @@
  * @type {exports}
  */
 
-var utils = require('utils.js');
-var factory = require('factory.js');
+var memo = {};
+var _ = require('lib/underscore.js');
 var Ammo = require('lib/ammo.js');
 var THREE = require('lib/three.js');
+var utils = require('utils.js');
+var factory = require('factory.js');
+
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 //factory.setDebug(true);
@@ -18,38 +21,59 @@ var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
 var frequency = 30;
 
-function show(script, containerSelector) {
-  var json = (typeof script == 'object') ? script : require('/ware/' + script);
+function loadScene(script, options) {
+  options = _.extend({
+    axisHelper: 0,
+    canvasContainer: 'body',
+    webWorker: false,
+    autoStart: false
+  }, options || {});
+  var json = (typeof script == 'object') ? script : require(script);
   factory.saveObjects = true;
   factory.unpack(json);
-  var scene = factory.getSome('scene') || factory.makeSome('scene');
-  var camera = factory.getSome('camera') || factory.makeSome('camera');
-  var renderer = factory.getSome('renderer') || factory.makeSome('renderer');
-  $(containerSelector || 'body').append(renderer.three.domElement);
+  var scene = factory.getSome('scene');
+  var camera = factory.getSome('camera');
+  var renderer = factory.getSome('renderer');
+  $(options.canvasContainer).append(renderer.three.domElement);
 
   _.each(factory.objects.body, function (body) {
     scene.three.add(body.three);
     scene.ammo.addRigidBody(body.ammo);
   });
 
-  scene.three.add(new THREE.AxisHelper(5));
   _.each(factory.objects.constraint, function (cons) {
     scene.ammo.addConstraint(cons.ammo);
   });
 
+  if (options.axisHelper) {
+    scene.three.add(new THREE.AxisHelper(options.axisHelper));
+  }
+
+  memo.scene = scene;
+  memo.camera = camera;
+  memo.renderer = renderer;
+
+  if (options.autoStart) startSimulation();
+}
+
+function startSimulation() {
   var render = function () {
-    setTimeout(function () {
-      requestAnimationFrame(render);
+    memo.stid = setTimeout(function () {
+      memo.rafid = requestAnimationFrame(render);
     }, 1000 / frequency);
-    scene.ammo.stepSimulation(1 / frequency, 10);
+    memo.scene.ammo.stepSimulation(1 / frequency, 10);
     _.each(factory.objects.body, function (body) {
       transferPhysics(body, trans);
     });
-    moveCamera(camera);
-    renderer.three.render(scene.three, camera.three);
-
+    moveCamera(memo.camera);
+    memo.renderer.three.render(memo.scene.three, memo.camera.three);
   };
   render();
+}
+
+function stopSimulation() {
+  cancelAnimationFrame(memo.rafid);
+  clearTimeout(memo.stid);
 }
 
 function moveCamera(camera) {
@@ -169,7 +193,9 @@ function dismissWorker(worker) {
 }
 
 module.exports = {
-  show: show,
+  loadScene: loadScene,
+  startSimulation: startSimulation,
+  stopSimulation: stopSimulation,
   moveCamera: moveCamera,
   createWorker: createWorker,
   dismissWorker: dismissWorker
