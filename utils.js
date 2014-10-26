@@ -1,7 +1,5 @@
 (function () {
 
-  var _ = require('underscore.js');
-
   if (typeof(module) !== 'object') {
     module = {};
   }
@@ -30,6 +28,15 @@
     },
     randomItem: function (list) {
       return list[~~(Math.random() * list.length)];
+    },
+    isNode: function () {
+      return typeof(self) === 'undefined';
+    },
+    isBrowserWindow: function () {
+      return typeof(window) === 'object';
+    },
+    isBrowserWorker: function () {
+      return (typeof(self) === 'object') && !self.window;
     }
   };
   return module.exports;

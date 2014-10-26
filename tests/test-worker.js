@@ -76,10 +76,10 @@ var test = {
       arguments: ['factory && !!factory.make']
     });
   },
-  'worker-web.js with director.js': function () {
+  'worker-web.js with factory.js': function () {
     clean();
-    var director = require('director.js');
-    worker = director.createWorker(requireURL('worker-web.js'));
+    var factory = require('factory.js');
+    worker = factory.createWorker();
     worker.postMessage({
       comment: 'factory loaded',
       action: 'eval',

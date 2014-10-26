@@ -72,13 +72,6 @@ function defineRequire() {
     console.warn('availablePaths: ' + availablePaths);
   }
 
-
-  /**
-   * A custom version of require for this library purpose
-   * It was developed, instead of using browserify, because of Ammo.js trying to require fs and path
-   * @param script the relative the url
-   * @returns {module.exports || undefined}
-   */
   self.require = function (script) {
 
     function fileName(script) {

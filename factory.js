@@ -1,11 +1,12 @@
 'use strict';
 
 /**
- Functions to generate objects
+ Functions to manipulate objects and the scene
  */
 
 (function () {
   var _ = require('./lib/underscore.js');
+  var utils = require('./utils.js');
   var memo = {};
   var Ammo, THREE;
   var worker;
@@ -433,11 +434,29 @@
   }
 
   function destroyAll() {
+    if (hasWorker()){
+      post(['destroyAll']);
+      return;
+    }
     _.each(objects, function (group) {
       _.each(group, function (obj) {
         destroy(obj);
       });
     });
+  }
+
+  function transferPhysics(body, trans) {
+    if (!trans) {
+      trans = new Ammo.btTransform();
+    }
+    body.ammo.getMotionState().getWorldTransform(trans);
+    var pos = trans.getOrigin();
+    body.three.position.x = pos.x();
+    body.three.position.y = pos.y();
+    body.three.position.z = pos.z();
+    var q = trans.getRotation();
+    var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
+    body.three.quaternion.copy(quat);
   }
 
   function hasUndefined(obj, keys) {
@@ -605,10 +624,9 @@
     }));
   }
 
-  function loadScene(script, options) {
+  function loadObjects(script, options) {
     options = _.extend({
-      axisHelper: 0,
-      webWorker: false
+      axisHelper: 0
     }, options || {});
     var json = (typeof script == 'object') ? script : require(script);
     destroyAll();
@@ -629,34 +647,96 @@
     if (options.axisHelper) {
       if (THREE)  scene.three.add(new THREE.AxisHelper(options.axisHelper));
     }
+
+    if (hasWorker()){
+      post(['loadObjects', script, options]);
+    }
   }
 
 
   function startSimulation(options) {
+    if (hasWorker()){
+      post(['startSimulation', options]);
+      return;
+    }
     options = _.extend({
       simSpeed: 1,
-      simFrequency: 30,
-      webWorker: false
+      simFrequency: 30
     }, options || {});
+    var trans = new Ammo.btTransform();
     var simulate = function () {
-      memo.stid = setTimeout(function () {
-        memo.rafid = requestAnimationFrame(simulate);
-      }, 1000 / options.simFrequency);
+      //prepare next call
+      memo.stid = setTimeout(simulate, 1000 / options.simFrequency);
+      //compute time since last call
       var curTime = (new Date()).getTime() / 1000;
       var dt = curTime - memo.lastTime;
       memo.lastTime = curTime;
       //maxSubSteps > timeStep / fixedTimeStep
-      //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 1
-      var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 1);
+      //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
+      var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
       memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
+      _.each(objects.body, function (body) {
+        transferPhysics(body, trans);
+      });
     };
     memo.lastTime = (new Date()).getTime() / 1000;
     simulate();
   }
 
   function stopSimulation() {
-    cancelAnimationFrame(memo.rafid);
+    if (hasWorker()){
+      post(['stopSimulation']);
+      return;
+    }
     clearTimeout(memo.stid);
+  }
+
+  var workerListener = {
+    console: function () {
+      var args = [];
+      var type = arguments[0];
+      for (var i = 1; i < arguments.length; i++) {
+        args.push(arguments[i]);
+      }
+      console[type].apply(console, args);
+    }
+  };
+
+  function createWorker(url) {
+    url || (url = requireURL('worker-web.js'));
+    dismissWorker();
+    worker = new Worker(url);
+    worker.onmessage = function (e) {
+      var request = e.data;
+      if ((typeof request == 'object') && workerListener[request.action]) {
+        if (request.action != 'result') {
+          var result = workerListener[request.action].apply(self, request['arguments']);
+          var response = {};
+          if (request.id) response.id = request.id;
+          if (request.comment) response.comment = request.comment;
+          response.result = result;
+          worker.postMessage(response);
+        }
+      } else {
+        console.log(utils.stringify(request));
+      }
+    };
+    return worker;
+  }
+
+  function post(args, comment, id){
+    if (worker) worker.postMessage({
+      action: 'factory',
+      arguments: args,
+      comment: comment,
+      id: id || nextId(0)
+    });
+  }
+
+  function dismissWorker() {
+    worker && worker.terminate();
+    worker = undefined;
+    return undefined;
   }
 
 //get the constructor structure and options for each
@@ -697,13 +777,17 @@
     debug = !!val;
   }
 
+  function hasWorker(){
+    return !!worker;
+  }
+
   module.exports = {
     addLibrary: addLibrary,
     constructor: constructor,
     make: make,
     unpack: unpack,
     pack: pack,
-    loadScene: loadScene,
+    loadObjects: loadObjects,
     structure: structure,
     options: options,
     include: include,
@@ -716,7 +800,9 @@
     getSome: getSome,
     saveObjects: saveObjects,
     startSimulation: startSimulation,
-    stopSimulation: stopSimulation
+    stopSimulation: stopSimulation,
+    createWorker: createWorker,
+    dismissWorker: dismissWorker
   };
   return module.exports;
 })();

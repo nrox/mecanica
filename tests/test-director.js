@@ -7,9 +7,9 @@ _.each(['basic.js'], function (script) {
   test[script] = function () {
     director.loadScene(script, {
       canvasContainer: '#container',
-      axisHelper: 5
+      axisHelper: 5,
+      autoStart: true
     });
-    director.startSimulation();
   };
 });
 

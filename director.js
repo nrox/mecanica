@@ -15,11 +15,6 @@ factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 //factory.setDebug(true);
 
-var trans = new Ammo.btTransform();
-var origin = new THREE.Vector3();
-var simFrequency = 30;
-var simSpeed = 1;
-
 
 function loadScene(json, options) {
   options = _.extend({
@@ -27,9 +22,9 @@ function loadScene(json, options) {
     canvasContainer: 'body',
     webWorker: false,
     autoStart: false,
-    autoRender: false
+    renderFrequency: 30
   }, options || {});
-  factory.loadScene(json, options);
+  factory.loadObjects(json, options);
   var scene = factory.getSome('scene');
   var camera = factory.getSome('camera');
   var renderer = factory.getSome('renderer');
@@ -39,24 +34,27 @@ function loadScene(json, options) {
   memo.camera = camera;
   memo.renderer = renderer;
 
-  if (options.autoStart) factory.startSimulation();
+  if (options.autoStart) {
+    factory.startSimulation(options);
+    startRender(options);
+  }
 }
 
-function startRenderer(){
+function startRender(options) {
+  options = _.extend({
+    renderFrequency: 30
+  }, options || {});
   var render = function () {
     memo.stid = setTimeout(function () {
       memo.rafid = requestAnimationFrame(render);
-    }, 1000 / simFrequency);
-    _.each(factory.objects.body, function (body) {
-      transferPhysics(body, trans);
-    });
+    }, 1000 / options.renderFrequency);
     moveCamera(memo.camera);
     memo.renderer.three.render(memo.scene.three, memo.camera.three);
   };
   render();
 }
 
-function stopRenderer(){
+function stopRender() {
   cancelAnimationFrame(memo.rafid);
   clearTimeout(memo.stid);
 }
@@ -103,6 +101,7 @@ function moveCamera(camera) {
     camera.three.lookAt(camera._lastLookAt.add(bodyPosition.clone().multiplyScalar(beta)).divideScalar(1 + beta));
 
   } else {
+    var origin = new THREE.Vector3();
     var phase = 0; //Math.PI * Math.random();
     var time = new Date().getTime();
     distance = 10;
@@ -114,74 +113,9 @@ function moveCamera(camera) {
   }
 }
 
-function transferPhysics(body, trans) {
-  if (!trans) {
-    trans = new Ammo.btTransform();
-  }
-  body.ammo.getMotionState().getWorldTransform(trans);
-  var pos = trans.getOrigin();
-  body.three.position.x = pos.x();
-  body.three.position.y = pos.y();
-  body.three.position.z = pos.z();
-  var q = trans.getRotation();
-  var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
-  body.three.quaternion.copy(quat);
-}
-
-var workerListener = {
-  console: function () {
-    var args = [];
-    var type = arguments[0];
-    for (var i = 1; i < arguments.length; i++) {
-      args.push(arguments[i]);
-    }
-    console[type].apply(console, args);
-  }
-};
-
-/**
- * usage:
- * var worker = createWorker('../worker-web.js');
- * @param url
- * @returns {Worker}
- */
-function createWorker(url) {
-  //console.log(url);
-  var worker = new Worker(url);
-  worker.onmessage = function (e) {
-    var request = e.data;
-    if ((typeof request == 'object') && workerListener[request.action]) {
-      if (request.action != 'result') {
-        var result = workerListener[request.action].apply(self, request.arguments);
-        var response = {};
-        if (request.id) response.id = request.id;
-        if (request.comment) response.comment = request.comment;
-        response.result = result;
-        worker.postMessage(response);
-      }
-    } else {
-      console.log(utils.stringify(request));
-    }
-  };
-  return worker;
-}
-
-/**
- * usage:
- * worker = dismissWorker(worker);
- * @param worker
- * @returns {undefined}
- */
-function dismissWorker(worker) {
-  worker && worker.terminate();
-  return undefined;
-}
-
 module.exports = {
   loadScene: loadScene,
-  startSimulation: startSimulation,
-  stopSimulation: stopSimulation,
-  moveCamera: moveCamera,
-  createWorker: createWorker,
-  dismissWorker: dismissWorker
+  startRender: startRender,
+  stopRender: stopRender,
+  moveCamera: moveCamera
 };
