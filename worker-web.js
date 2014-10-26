@@ -19,10 +19,7 @@ var actions = {
   factory: function () {
     var args = argList(arguments);
     var fun = args.shift();
-    var res = factory[fun].apply(factory, args);
-    if (typeof res == 'object'){
-      return res; //utils.stringify(res);
-    }
+    return factory[fun].apply(factory, args);
   }
 };
 
@@ -54,9 +51,9 @@ function defineRequire() {
   availablePaths = undefined;
 
   var url = ['../list.js', 'list.js', '../../list.js'];
-  for (var i = 0; !availablePaths && (i < url.length); i++) {
+  for (var p = 0; !availablePaths && (p < url.length); p++) {
     try {
-      importScripts(url[i]);
+      importScripts(url[p]);
     } catch (e) {
     }
     if (availablePaths) {
@@ -123,6 +120,7 @@ function defineRequire() {
           return availablePaths[i];
         }
       }
+      return undefined;
     }
 
     function isAmmoScript(script) {

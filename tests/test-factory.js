@@ -1,5 +1,3 @@
-
-
 var utils = require('./test-utils.js');
 var Ammo = require('../lib/ammo.js');
 var THREE = require('../lib/three.js');
@@ -38,8 +36,9 @@ var test = {
   'warehouse': function () {
     var basic = require('../ware/basic.js');
     utils.checkKeys(basic, ['scene'], 'scene property');
-    var pack = factory.unpack(basic);
-    utils.checkKeys(pack, ['id1', 's1'], 'some basic.js ids');
+    factory.destroyAll();
+    factory.unpack(basic);
+    utils.checkKeys(factory.objects.body, ['id5', 'id6'], 'some basic.js ids');
   },
 
   'shape.box': function () {
@@ -73,7 +72,9 @@ var test = {
   'structure': function () {
     console.log('\n\n', 'structure');
     var s = factory.structure();
-    console.log(JSON.stringify(s, function(k, v){return v===undefined ? null : v;}, '  '));
+    console.log(JSON.stringify(s, function (k, v) {
+      return v === undefined ? null : v;
+    }, '  '));
     utils.instanceOf(s.shape.box, Object, 's.shape.box == options');
     utils.checkValues(s.shape.box, {dx: 1}, 's.shape.box values');
   }

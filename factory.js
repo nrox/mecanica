@@ -6,7 +6,9 @@
 
 (function () {
   var _ = require('./lib/underscore.js');
+  var memo = {};
   var Ammo, THREE;
+  var worker;
   var debug = false;
   var saveObjects = true;
   var UNDEFINED = undefined;
@@ -581,7 +583,7 @@
         }
       });
     });
-    return pack;
+    return saveObjects ? undefined : pack;
   }
 
 //build a json based on objects
@@ -601,6 +603,60 @@
     return JSON.parse(JSON.stringify(pack, function (k, v) {
       return v === undefined ? null : v;
     }));
+  }
+
+  function loadScene(script, options) {
+    options = _.extend({
+      axisHelper: 0,
+      webWorker: false
+    }, options || {});
+    var json = (typeof script == 'object') ? script : require(script);
+    destroyAll();
+    saveObjects = true;
+    unpack(json);
+    var scene = getSome('scene');
+    memo.scene = scene;
+
+    _.each(objects.body, function (body) {
+      if (THREE) scene.three.add(body.three);
+      if (Ammo) scene.ammo.addRigidBody(body.ammo);
+    });
+
+    _.each(objects.constraint, function (cons) {
+      if (Ammo) scene.ammo.addConstraint(cons.ammo);
+    });
+
+    if (options.axisHelper) {
+      if (THREE)  scene.three.add(new THREE.AxisHelper(options.axisHelper));
+    }
+  }
+
+
+  function startSimulation(options) {
+    options = _.extend({
+      simSpeed: 1,
+      simFrequency: 30,
+      webWorker: false
+    }, options || {});
+    var simulate = function () {
+      memo.stid = setTimeout(function () {
+        memo.rafid = requestAnimationFrame(simulate);
+      }, 1000 / options.simFrequency);
+      var curTime = (new Date()).getTime() / 1000;
+      var dt = curTime - memo.lastTime;
+      memo.lastTime = curTime;
+      //maxSubSteps > timeStep / fixedTimeStep
+      //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 1
+      var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 1);
+      memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
+    };
+    memo.lastTime = (new Date()).getTime() / 1000;
+    simulate();
+  }
+
+  function stopSimulation() {
+    cancelAnimationFrame(memo.rafid);
+    clearTimeout(memo.stid);
   }
 
 //get the constructor structure and options for each
@@ -647,6 +703,7 @@
     make: make,
     unpack: unpack,
     pack: pack,
+    loadScene: loadScene,
     structure: structure,
     options: options,
     include: include,
@@ -657,7 +714,9 @@
     objects: objects,
     getObject: getObject,
     getSome: getSome,
-    saveObjects: saveObjects
+    saveObjects: saveObjects,
+    startSimulation: startSimulation,
+    stopSimulation: stopSimulation
   };
   return module.exports;
 })();

@@ -2,8 +2,6 @@
  * director.js rules the simulation and renders the world/environment
  * it can build worlds defined in /ware/ folder.
  * see ware/basic.js example
- *
- * @type {exports}
  */
 
 var memo = {};
@@ -19,49 +17,36 @@ factory.addLibrary(THREE);
 
 var trans = new Ammo.btTransform();
 var origin = new THREE.Vector3();
-var frequency = 30;
+var simFrequency = 30;
+var simSpeed = 1;
 
-function loadScene(script, options) {
+
+function loadScene(json, options) {
   options = _.extend({
     axisHelper: 0,
     canvasContainer: 'body',
     webWorker: false,
-    autoStart: false
+    autoStart: false,
+    autoRender: false
   }, options || {});
-  var json = (typeof script == 'object') ? script : require(script);
-  factory.saveObjects = true;
-  factory.unpack(json);
+  factory.loadScene(json, options);
   var scene = factory.getSome('scene');
   var camera = factory.getSome('camera');
   var renderer = factory.getSome('renderer');
   $(options.canvasContainer).append(renderer.three.domElement);
 
-  _.each(factory.objects.body, function (body) {
-    scene.three.add(body.three);
-    scene.ammo.addRigidBody(body.ammo);
-  });
-
-  _.each(factory.objects.constraint, function (cons) {
-    scene.ammo.addConstraint(cons.ammo);
-  });
-
-  if (options.axisHelper) {
-    scene.three.add(new THREE.AxisHelper(options.axisHelper));
-  }
-
   memo.scene = scene;
   memo.camera = camera;
   memo.renderer = renderer;
 
-  if (options.autoStart) startSimulation();
+  if (options.autoStart) factory.startSimulation();
 }
 
-function startSimulation() {
+function startRenderer(){
   var render = function () {
     memo.stid = setTimeout(function () {
       memo.rafid = requestAnimationFrame(render);
-    }, 1000 / frequency);
-    memo.scene.ammo.stepSimulation(1 / frequency, 10);
+    }, 1000 / simFrequency);
     _.each(factory.objects.body, function (body) {
       transferPhysics(body, trans);
     });
@@ -71,7 +56,7 @@ function startSimulation() {
   render();
 }
 
-function stopSimulation() {
+function stopRenderer(){
   cancelAnimationFrame(memo.rafid);
   clearTimeout(memo.stid);
 }
