@@ -15,34 +15,36 @@
   var UNDEFINED = undefined;
 
   var objects = {
-    physics: {},
-    shape: {},
-    material: {},
-    body: {},
-    connector: {},
-    constraint: {},
-    camera: {},
-    renderer: {},
-    scene: {}
+    physics: {}, //position, rotation ...
+    shape: {}, //sphere, box, cylinder, cone ...
+    material: {}, //basic, phong, lambert ? ...
+    connector: {}, //belongs to each body, defines origin and axis for contraints
+    constraint: {}, //point, slider, hinge ...
+    body: {}, //shape + mesh
+    system: {}, //substructure of objects, identified by keys
+    camera: {}, //should this be here ?
+    renderer: {}, // here ?
+    scene: {} //here ?
   };
 
-  function getObject(id, group) {
-    if (group) {
-      return objects[group] && objects[group][id];
-    } else {
-      var obj = undefined;
-      _.some(objects, function (groupObject) {
-        return _.some(groupObject, function (instance, objId) {
-          if (objId === id) {
-            obj = instance;
-            return true;
-          } else {
-            return false;
-          }
-        });
-      });
-      return obj;
+  /**
+   * arguments for this function are keys leading to the deep nested element in object
+   * we want to retrieve (by reference)
+   * example1: getObject('body')
+   * will retrieve a map with all bodies
+   * example2: getObject('body','bodyId1')
+   * will retrieve body with id bodyId1
+   * example3: getObject('body','bodyId1', 'connector', 'connectorId1')
+   * will retrieve connector with id connectorId1 in body with id bodyId1
+   * @returns {*}
+   */
+  function getObject() {
+    var obj = objects;
+    for (var i = 0; i < arguments.length; i++) {
+      obj = obj[arguments[i]];
+      if (!obj) break;
     }
+    return obj;
   }
 
 //this structure helps swapping worlds to json
@@ -154,13 +156,13 @@
         });
         var shape;
         if (typeof this.shape == 'string') { //get from objects with id
-          shape = getObject(this.shape, 'shape');
+          shape = getObject('shape', this.shape);
         } else { //make from options
           shape = make('shape', this.shape);
         }
         var material;
         if (typeof this.material == 'string') { //get from objects with id
-          material = getObject(this.material, 'material');
+          material = getObject('material', this.material);
         } else { //make from options
           material = make('material', this.material);
         }
@@ -203,7 +205,7 @@
           front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
         });
         notifyUndefined(this, ['body', 'base', 'up', 'front']);
-        var body = getObject(this.body, 'body');
+        var body = getObject('body', this.body);
         if (body) {
           if (!body.connectors) body.connectors = {};
           body.connectors[this.id] = this;
@@ -287,8 +289,8 @@
         });
         notifyUndefined(this, ['a', 'b']);
         if (Ammo) {
-          this.a = getObject(this.a, 'connector');
-          this.b = getObject(this.b, 'connector');
+          this.a = getObject('connector', this.a);
+          this.b = getObject('connector', this.b);
           this.bodyA = this.a.body;
           this.bodyB = this.b.body;
         }
@@ -375,7 +377,7 @@
         });
         notifyUndefined(this, ['body']);
         this.axis = make('physics', 'vector', this.axis);
-        this.body = getObject(this.body, 'body');
+        this.body = getObject('body', this.body);
         if (THREE) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
@@ -422,6 +424,16 @@
         Ammo.destroy(scene.btSequentialImpulseConstraintSolver);
         delete scene.ammo;
       }
+    },
+    system: function (obj) {
+      /*
+       _.each(obj, function(o, k){
+       var bk = objects;
+       objects = obj;
+       destroy(o);
+       objects = bk;
+       });
+       */
     }
   };
 
@@ -434,7 +446,7 @@
   }
 
   function destroyAll() {
-    if (hasWorker()){
+    if (hasWorker()) {
       post(['destroyAll']);
       return;
     }
@@ -573,7 +585,7 @@
 
 //get first of the kind in objects
   function getSome(group) {
-    return getObject(_.keys(objects[group])[0], group) || make(group, _.keys(constructor[group])[0], {});
+    return getObject(group, _.keys(objects[group])[0]) || make(group, _.keys(constructor[group])[0], {});
   }
 
   var nextId = (function () {
@@ -648,14 +660,14 @@
       if (THREE)  scene.three.add(new THREE.AxisHelper(options.axisHelper));
     }
 
-    if (hasWorker()){
+    if (hasWorker()) {
       post(['loadObjects', script, options]);
     }
   }
 
 
   function startSimulation(options) {
-    if (hasWorker()){
+    if (hasWorker()) {
       post(['startSimulation', options]);
       return;
     }
@@ -684,7 +696,7 @@
   }
 
   function stopSimulation() {
-    if (hasWorker()){
+    if (hasWorker()) {
       post(['stopSimulation']);
       return;
     }
@@ -724,7 +736,7 @@
     return worker;
   }
 
-  function post(args, comment, id){
+  function post(args, comment, id) {
     if (worker) worker.postMessage({
       action: 'factory',
       arguments: args,
@@ -777,7 +789,7 @@
     debug = !!val;
   }
 
-  function hasWorker(){
+  function hasWorker() {
     return !!worker;
   }
 
