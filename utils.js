@@ -29,11 +29,19 @@
     randomItem: function (list) {
       return list[~~(Math.random() * list.length)];
     },
+    argList: function (args) {
+      //args is like arguments, transform it into an array
+      var a = [];
+      for (var i = 0; i < args.length; i++) {
+        a.push(args[i]);
+      }
+      return a;
+    },
     isNode: function () {
       return typeof(self) === 'undefined';
     },
     isBrowserWindow: function () {
-      return typeof(window) === 'object';
+      return (typeof(window) === 'object') && (typeof(window.document) === 'object');
     },
     isBrowserWorker: function () {
       return (typeof(self) === 'object') && !self.window;

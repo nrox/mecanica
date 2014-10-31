@@ -17,7 +17,7 @@ var actions = {
     return eval(s);
   },
   factory: function () {
-    var args = argList(arguments);
+    var args = utils.argList(arguments);
     var fun = args.shift();
     return factory[fun].apply(factory, args);
   }
@@ -39,13 +39,6 @@ onmessage = function (e) {
   }
 };
 
-function argList(args) {
-  var a = [];
-  for (var i = 0; i < args.length; i++) {
-    a.push(args[i]);
-  }
-  return a;
-}
 function defineRequire() {
 
   availablePaths = undefined;

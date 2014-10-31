@@ -441,11 +441,14 @@
   };
 
   function destroy(obj) {
-    if (!obj) return null;
+    //TODO consider system and worker behavior
+    if (!obj) return;
     if (objects[obj.group] && objects[obj.group][obj.id]) {
+      destructor[obj.group] && destructor[obj.group](objects[obj.group][obj.id]);
       delete objects[obj.group][obj.id];
+    } else {
+      obj.group && destructor[obj.group] && destructor[obj.group](obj);
     }
-    return obj.group && destructor[obj.group] && destructor[obj.group](obj);
   }
 
   function destroyAll() {
@@ -654,6 +657,41 @@
     loadSystem(objects);
   }
 
+  //get the constructor structure and options for each
+  function structure() {
+    var obj = {};
+    //disable libraries and verifications shortly
+    var ammoBackup = Ammo;
+    var threeBackup = THREE;
+    var undefinedBackup = UNDEFINED;
+    Ammo = undefined;
+    THREE = undefined;
+    UNDEFINED = {};
+    _.each(constructor, function (group, key) {
+      obj[key] = {};
+      _.each(group, function (fun, name) {
+        obj[key][name] = {};
+        var m = make(key, name, {});
+        if (m) {
+          obj[key][name] = options(m);
+        }
+      });
+    });
+    //repose them
+    Ammo = ammoBackup;
+    THREE = threeBackup;
+    UNDEFINED = undefinedBackup;
+    return obj;
+  }
+
+  function options(obj) {
+    return obj._options;
+  }
+
+  function setDebug(val) {
+    debug = !!val;
+  }
+
 
   function startSimulation(options) {
     options = _.extend({
@@ -721,6 +759,7 @@
         console.log(utils.stringify(request));
       }
     };
+    wrapWorkerFunctions();
     return worker;
   }
 
@@ -736,46 +775,41 @@
   function dismissWorker() {
     worker && worker.terminate();
     worker = undefined;
-    return undefined;
-  }
-
-//get the constructor structure and options for each
-  function structure() {
-    var obj = {};
-    //disable libraries and verifications shortly
-    var ammoBackup = Ammo;
-    var threeBackup = THREE;
-    var undefinedBackup = UNDEFINED;
-    Ammo = undefined;
-    THREE = undefined;
-    UNDEFINED = {};
-    _.each(constructor, function (group, key) {
-      obj[key] = {};
-      _.each(group, function (fun, name) {
-        obj[key][name] = {};
-        var m = make(key, name, {});
-        if (m) {
-          obj[key][name] = options(m);
-        }
-      });
-    });
-    //repose them
-    Ammo = ammoBackup;
-    THREE = threeBackup;
-    UNDEFINED = undefinedBackup;
-    return obj;
-  }
-
-  function options(obj) {
-    return obj._options;
-  }
-
-  function setDebug(val) {
-    debug = !!val;
   }
 
   function hasWorker() {
     return !!worker;
+  }
+
+  //these are keys to the functions relevant for the worker in module.exports
+  var workerFunctions = [
+    'make',
+    'unpack',
+    'pack',
+    'loadObjects',
+    'setDebug',
+    'destroy',
+    'destroyAll',
+    'startSimulation',
+    'stopSimulation'
+  ];
+
+  function wrapWorkerFunctions() {
+    while (workerFunctions.length) {
+      var key = workerFunctions.pop();
+      var fun = module.exports[key];
+      module.exports[key] = function () {
+        var args = utils.argList(arguments);
+        args.unshift(key);
+        worker.postMessage({
+          action: 'factory',
+          arguments: args,
+          comment: 'wrapped ' + key,
+          id: nextId('post_')
+        });
+        return fun.apply(null, arguments);
+      };
+    }
   }
 
   module.exports = {
@@ -798,7 +832,9 @@
     startSimulation: startSimulation,
     stopSimulation: stopSimulation,
     createWorker: createWorker,
-    dismissWorker: dismissWorker
+    dismissWorker: dismissWorker,
+    hasWorker: hasWorker
   };
+
   return module.exports;
 })();
