@@ -11,17 +11,18 @@
   var Ammo, THREE;
   var worker;
   var debug = false;
-  var saveObjects = true;
   var UNDEFINED = undefined;
+  var SYSTEM = 'system';
 
+  //maintains a reference to all relevant objects created
   var objects = {
-    physics: {}, //position, rotation ...
+    system: {}, //high level structure of objects, identified by keys
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
-    connector: {}, //belongs to each body, defines origin and axis for contraints
+    connector: {}, //belongs to each body, defines origin and axis for constraints
     constraint: {}, //point, slider, hinge ...
     body: {}, //shape + mesh
-    system: {}, //substructure of objects, identified by keys
+    light: {},
     camera: {}, //should this be here ?
     renderer: {}, // here ?
     scene: {} //here ?
@@ -30,12 +31,14 @@
   /**
    * arguments for this function are keys leading to the deep nested element in object
    * we want to retrieve (by reference)
+   * example0: getObject()
+   * return all objects
    * example1: getObject('body')
-   * will retrieve a map with all bodies
+   * return a map with all bodies
    * example2: getObject('body','bodyId1')
-   * will retrieve body with id bodyId1
+   * return body with id bodyId1
    * example3: getObject('body','bodyId1', 'connector', 'connectorId1')
-   * will retrieve connector with id connectorId1 in body with id bodyId1
+   * return connector with id connectorId1 in body with id bodyId1
    * @returns {*}
    */
   function getObject() {
@@ -446,10 +449,6 @@
   }
 
   function destroyAll() {
-    if (hasWorker()) {
-      post(['destroyAll']);
-      return;
-    }
     _.each(objects, function (group) {
       _.each(group, function (obj) {
         destroy(obj);
@@ -568,13 +567,10 @@
     var obj;
     if (typeof cons == 'function') {
       obj = new cons(options);
-      obj.group = group;
-      obj.type = type;
+      if (group !== SYSTEM) obj.group = group;
+      if (group !== SYSTEM) obj.type = type;
       if (!obj.id) obj.id = nextId(type);
-      if (saveObjects) {
-        if (!objects[group]) objects[group] = {};
-        objects[group][obj.id] = obj;
-      }
+      if (objects[group]) objects[group][obj.id] = obj;
       debug && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(opt(obj)));
     } else {
       console.warn('incapable of making object:');
@@ -584,8 +580,9 @@
   }
 
 //get first of the kind in objects
-  function getSome(group) {
-    return getObject(group, _.keys(objects[group])[0]) || make(group, _.keys(constructor[group])[0], {});
+  function getSome(group, obj) {
+    if (!obj) obj = objects;
+    return getObject(group, _.keys(obj[group])[0]) || make(group, _.keys(constructor[group])[0], {});
   }
 
   var nextId = (function () {
@@ -600,40 +597,33 @@
   })();
 
 //build objects based on the json data, using make.
-//If saveObjects they will be appended to {objects}
   function unpack(json) {
-    var pack = saveObjects ? objects : {};
     _.each(json, function (groupObject, groupName) {
-      if (!pack[groupName]) pack[groupName] = {};
       _.each(groupObject, function (objectOptions, objectId) {
         objectOptions.id = objectId;
-        if (saveObjects) {
-          make(groupName, objectOptions);
-        } else {
-          pack[groupName][objectId] = make(groupName, objectOptions);
-        }
+        make(groupName, objectOptions);
       });
     });
-    return saveObjects ? undefined : pack;
   }
 
 //build a json based on objects
   function pack(objs) {
-    var pack = {};
+    var packed = {};
     if (!objs) objs = objects;
     _.each(objs, function (groupObject, groupName) {
-      pack[groupName] = {};
+      packed[groupName] = {};
       _.each(groupObject, function (instance, objectId) {
-        var objectOptions = _.clone(opt(instance));
-        delete objectOptions.id;
-        objectOptions.type = instance.type;
-        pack[groupName][objectId] = objectOptions;
-        pack[objectId] = make(groupName, objectOptions);
+        if (groupName == SYSTEM) {
+          packed[groupName][objectId] = pack(instance);
+        } else {
+          var objectOptions = _.clone(opt(instance));
+          delete objectOptions.id;
+          objectOptions.type = instance.type;
+          packed[groupName][objectId] = objectOptions;
+        }
       });
     });
-    return JSON.parse(JSON.stringify(pack, function (k, v) {
-      return v === undefined ? null : v;
-    }));
+    return packed;
   }
 
   function loadObjects(script, options) {
@@ -641,41 +631,44 @@
       axisHelper: 0
     }, options || {});
     var json = (typeof script == 'object') ? script : require(script);
-    destroyAll();
-    saveObjects = true;
     unpack(json);
     var scene = getSome('scene');
     memo.scene = scene;
-
-    _.each(objects.body, function (body) {
-      if (THREE) scene.three.add(body.three);
-      if (Ammo) scene.ammo.addRigidBody(body.ammo);
-    });
-
-    _.each(objects.constraint, function (cons) {
-      if (Ammo) scene.ammo.addConstraint(cons.ammo);
-    });
-
     if (options.axisHelper) {
       if (THREE)  scene.three.add(new THREE.AxisHelper(options.axisHelper));
     }
 
-    if (hasWorker()) {
-      post(['loadObjects', script, options]);
+    function loadSystem(objs) {
+      _.each(objs.system, loadSystem);
+
+      _.each(objs.body, function (body) {
+        if (THREE) scene.three.add(body.three);
+        if (Ammo) scene.ammo.addRigidBody(body.ammo);
+      });
+
+      _.each(objs.constraint, function (cons) {
+        if (Ammo) scene.ammo.addConstraint(cons.ammo);
+      });
     }
+
+    loadSystem(objects);
   }
 
 
   function startSimulation(options) {
-    if (hasWorker()) {
-      post(['startSimulation', options]);
-      return;
-    }
     options = _.extend({
       simSpeed: 1,
       simFrequency: 30
     }, options || {});
     var trans = new Ammo.btTransform();
+
+    function transfer(objs) {
+      _.each(objs.system, transfer);
+      _.each(objs.body, function (body) {
+        transferPhysics(body, trans);
+      });
+    }
+
     var simulate = function () {
       //prepare next call
       memo.stid = setTimeout(simulate, 1000 / options.simFrequency);
@@ -687,19 +680,14 @@
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
       memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
-      _.each(objects.body, function (body) {
-        transferPhysics(body, trans);
-      });
+      transfer(objects);
     };
     memo.lastTime = (new Date()).getTime() / 1000;
-    simulate();
+    stopSimulation(); //make sure is stopped
+    simulate(); //then go
   }
 
   function stopSimulation() {
-    if (hasWorker()) {
-      post(['stopSimulation']);
-      return;
-    }
     clearTimeout(memo.stid);
   }
 
@@ -758,11 +746,9 @@
     var ammoBackup = Ammo;
     var threeBackup = THREE;
     var undefinedBackup = UNDEFINED;
-    var saveObjectsBackup = saveObjects;
     Ammo = undefined;
     THREE = undefined;
     UNDEFINED = {};
-    saveObjects = false;
     _.each(constructor, function (group, key) {
       obj[key] = {};
       _.each(group, function (fun, name) {
@@ -777,7 +763,6 @@
     Ammo = ammoBackup;
     THREE = threeBackup;
     UNDEFINED = undefinedBackup;
-    saveObjects = saveObjectsBackup;
     return obj;
   }
 
@@ -810,7 +795,6 @@
     objects: objects,
     getObject: getObject,
     getSome: getSome,
-    saveObjects: saveObjects,
     startSimulation: startSimulation,
     stopSimulation: stopSimulation,
     createWorker: createWorker,
