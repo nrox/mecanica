@@ -59,8 +59,9 @@
             render: {type: 'default'}
         }
     };
-    director.loadScene(world);
-    director.startSimulation();
+    director.loadScene(world, {webWorker: true});
+    director.factory.startSimulation();
+    director.startRender();
 </script>
 </body>
 </html>

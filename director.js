@@ -11,7 +11,7 @@ var THREE = require('lib/three.js');
 var utils = require('utils.js');
 var factory = require('factory.js');
 
-factory.addLibrary(Ammo);
+//factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 //factory.setDebug(true);
 
@@ -24,6 +24,11 @@ function loadScene(json, options) {
     autoStart: false,
     renderFrequency: 30
   }, options || {});
+  if (options.webWorker){
+    factory.createWorker();
+  } else {
+    factory.addLibrary(Ammo);
+  }
   factory.loadObjects(json, options);
   var scene = factory.getSome('scene');
   var camera = factory.getSome('camera');
@@ -117,5 +122,6 @@ module.exports = {
   loadScene: loadScene,
   startRender: startRender,
   stopRender: stopRender,
-  moveCamera: moveCamera
+  moveCamera: moveCamera,
+  factory: factory
 };

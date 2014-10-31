@@ -50,6 +50,22 @@
     return obj;
   }
 
+  /**
+   * returns a copy of defaults extend by options,
+   * removing all properties not present in original defaults
+   * also:
+   * target.options = options;
+   * @param target object
+   * @param options object
+   * @param defaults object
+   */
+  function include(target, options, defaults) {
+    options = _.extend(defaults, _.pick(options, _.keys(defaults), ['id', 'group', 'type']));
+    _.extend(target, options);
+    target._options = options;
+    return options;
+  }
+
 //this structure helps swapping worlds to json
   var constructor = {
     physics: {
@@ -63,7 +79,7 @@
       },
       quaternion: function (options) {
         include(this, options, {
-          x: 1, y: 0, z: 0, w: undefined
+          x: 0, y: 0, z: 0, w: undefined
         });
         notifyUndefined(this, ['x', 'y', 'z']);
         if (this.w === undefined) {
@@ -169,23 +185,24 @@
         } else { //make from options
           material = make('material', this.material);
         }
-        var position = make('physics', 'position', this.position);
-        var quaternion;
+        this.position = make('physics', 'position', this.position);
         if (this.quaternion) {
-          quaternion = make('physics', 'quaternion', this.quaternion);
+          this.quaternion = make('physics', 'quaternion', this.quaternion);
         } else if (this.rotation) { //set from euler
-          quaternion = make('physics', 'quaternion', this.rotation);
+          this.quaternion = make('physics', 'quaternion', this.rotation);
+        } else {
+          this.quaternion = make('physics', 'quaternion', {w: 1});
         }
         if (THREE) {
           this.three = new THREE.Mesh(shape.three, material.three);
-          this.three.position.copy(position.three);
-          if (quaternion) this.three.quaternion.copy(quaternion.three);
+          this.three.position.copy(this.position.three);
+          this.three.quaternion.copy(this.quaternion.three);
         }
         if (Ammo) {
           var transform = new Ammo.btTransform();
           transform.setIdentity();
-          transform.setOrigin(position.ammo);
-          if (quaternion) transform.setRotation(quaternion.ammo);
+          transform.setOrigin(this.position.ammo);
+          transform.setRotation(this.quaternion.ammo);
           var inertia = new Ammo.btVector3(0, 0, 0);
           if (this.mass) shape.ammo.calculateLocalInertia(this.mass, inertia);
           var motionState = new Ammo.btDefaultMotionState(transform);
@@ -459,18 +476,59 @@
     });
   }
 
-  function transferPhysics(body, trans) {
+  function copyPhysicsToThree(body) {
+    body.three.position.x = body.position.x;
+    body.three.position.y = body.position.y;
+    body.three.position.z = body.position.z;
+    body.three.quaternion.x = body.quaternion.x;
+    body.three.quaternion.y = body.quaternion.y;
+    body.three.quaternion.z = body.quaternion.z;
+    body.three.quaternion.w = body.quaternion.w;
+  }
+
+  function copyPhysicsFromAmmo(body, trans) {
     if (!trans) {
       trans = new Ammo.btTransform();
     }
     body.ammo.getMotionState().getWorldTransform(trans);
-    var pos = trans.getOrigin();
-    body.three.position.x = pos.x();
-    body.three.position.y = pos.y();
-    body.three.position.z = pos.z();
-    var q = trans.getRotation();
-    var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
-    body.three.quaternion.copy(quat);
+    var position = trans.getOrigin();
+    body.position.x = position.x();
+    body.position.y = position.y();
+    body.position.z = position.z();
+    var quaternion = trans.getRotation();
+    body.quaternion.x = quaternion.x();
+    body.quaternion.y = quaternion.y();
+    body.quaternion.z = quaternion.z();
+    body.quaternion.w = quaternion.w();
+  }
+
+  function transfer(pkt, objs) {
+    if (!objs) objs = objects;
+    if (pkt.system && objs.system) {
+      _.each(pkt.system, function (sys, id) {
+        if (!objs.system[id]) {
+          console.warn('system not found in transfer: ' + id);
+          return;
+        }
+        transfer(sys, objs.system[id]);
+      });
+    }
+    if (pkt.body && objs.body) {
+      if (!pkt.body) pkt.body = {};
+      _.each(pkt.body, function (body, id) {
+        if (!objs.body[id]) {
+          console.warn('body not found in transfer: ' + id);
+          return;
+        }
+        objs.body[id].position.x = body.position.x;
+        objs.body[id].position.y = body.position.y;
+        objs.body[id].position.z = body.position.z;
+        objs.body[id].quaternion.x = body.quaternion.x;
+        objs.body[id].quaternion.y = body.quaternion.y;
+        objs.body[id].quaternion.z = body.quaternion.z;
+        objs.body[id].quaternion.w = body.quaternion.w;
+      });
+    }
   }
 
   function hasUndefined(obj, keys) {
@@ -491,22 +549,6 @@
       return true;
     }
     return false;
-  }
-
-  /**
-   * returns a copy of defaults extend by options,
-   * removing all properties not present in original defaults
-   * also:
-   * target.options = options;
-   * @param target object
-   * @param options object
-   * @param defaults object
-   */
-  function include(target, options, defaults) {
-    options = _.extend(defaults, _.pick(options, _.keys(defaults), ['id', 'group', 'type']));
-    _.extend(target, options);
-    target._options = options;
-    return options;
   }
 
 //return obj._options without property 'id'
@@ -693,18 +735,46 @@
   }
 
 
+
   function startSimulation(options) {
     options = _.extend({
       simSpeed: 1,
       simFrequency: 30
     }, options || {});
     var trans = new Ammo.btTransform();
+    var packet = {};
 
-    function transfer(objs) {
-      _.each(objs.system, transfer);
+    function copyPhysics(objs) {
+      _.each(objs.system, copyPhysics);
       _.each(objs.body, function (body) {
-        transferPhysics(body, trans);
+        if (Ammo) copyPhysicsFromAmmo(body, trans);
+        if (THREE && !utils.isBrowserWorker()) copyPhysicsToThree(body);
       });
+    }
+
+    function packPhysics(objs, pkt) {
+      if (objs.system) {
+        if (!pkt.system) pkt.system = {};
+        _.each(objs.system, function (sys, id) {
+          if (!pkt.system[id]) pkt.system[id] = {};
+          packPhysics(sys, pkt.system[id]);
+        });
+      }
+      if (objs.body) {
+        if (!pkt.body) pkt.body = {};
+        _.each(objs.body, function (body, id) {
+          if (!pkt.body[id]) pkt.body[id] = {};
+          if (!pkt.body[id].position) pkt.body[id].position = {};
+          if (!pkt.body[id].quaternion) pkt.body[id].quaternion = {};
+          pkt.body[id].position.x = body.position.x;
+          pkt.body[id].position.y = body.position.y;
+          pkt.body[id].position.z = body.position.z;
+          pkt.body[id].quaternion.x = body.quaternion.x;
+          pkt.body[id].quaternion.y = body.quaternion.y;
+          pkt.body[id].quaternion.z = body.quaternion.z;
+          pkt.body[id].quaternion.w = body.quaternion.w;
+        });
+      }
     }
 
     var simulate = function () {
@@ -718,7 +788,11 @@
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
       memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
-      transfer(objects);
+      copyPhysics(objects);
+      if (utils.isBrowserWorker()) {
+        packPhysics(objects, packet);
+        post(['transfer', packet], 'transfer physics', nextId('transfer_'));
+      }
     };
     memo.lastTime = (new Date()).getTime() / 1000;
     stopSimulation(); //make sure is stopped
@@ -741,8 +815,8 @@
   };
 
   function createWorker(url) {
+    if (worker) return worker;
     url || (url = requireURL('worker-web.js'));
-    dismissWorker();
     worker = new Worker(url);
     worker.onmessage = function (e) {
       var request = e.data;
@@ -801,12 +875,7 @@
       module.exports[key] = function () {
         var args = utils.argList(arguments);
         args.unshift(key);
-        worker.postMessage({
-          action: 'factory',
-          arguments: args,
-          comment: 'wrapped ' + key,
-          id: nextId('post_')
-        });
+        post(args, 'wrapped ' + key, nextId('post_'));
         return fun.apply(null, arguments);
       };
     }
@@ -833,7 +902,8 @@
     stopSimulation: stopSimulation,
     createWorker: createWorker,
     dismissWorker: dismissWorker,
-    hasWorker: hasWorker
+    hasWorker: hasWorker,
+    transfer: transfer
   };
 
   return module.exports;

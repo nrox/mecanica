@@ -40,18 +40,13 @@
                 a: 'c1', b: 'c2'
             }
         },
-        scene: {
-            s1: { type: 'basic' }
-        },
         camera: {
             cam: {type: 'tracker', body: 'b2', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
-        },
-        renderer: {
-            render: {type: 'default'}
         }
     };
-    director.loadScene(world);
-    director.startSimulation();
+    director.loadScene(world, {axisHelper: 5, webWorker: true});
+    director.factory.startSimulation();
+    director.startRender();
 </script>
 </body>
 </html>
