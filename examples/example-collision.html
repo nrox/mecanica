@@ -49,17 +49,11 @@
                 mass: 0
             }
         },
-        scene: {
-            s1: { type: 'basic' }
-        },
         camera: {
             cam: {type: 'tracker', body: 'falling', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 1}
-        },
-        renderer: {
-            render: {type: 'default'}
         }
     };
-    director.loadScene(world, {webWorker: true});
+    director.loadScene(world, {webWorker: true, axisHelper: 5});
     director.factory.startSimulation();
     director.startRender();
 </script>

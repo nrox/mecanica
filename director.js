@@ -11,9 +11,7 @@ var THREE = require('lib/three.js');
 var utils = require('utils.js');
 var factory = require('factory.js');
 
-//factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
-//factory.setDebug(true);
 
 
 function loadScene(json, options) {

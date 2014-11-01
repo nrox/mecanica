@@ -27,7 +27,9 @@ onmessage = function (e) {
   var request = e.data;
   if ((typeof request == 'object') && actions[request.action]) {
     if (request.action != 'result') {
-      var result = actions[request.action].apply(self, request.arguments);
+      //console.log('arguments');
+      //console.log(request.arguments);
+      var result = actions[request.action].apply(null, request.arguments);
       var response = {};
       if (request.id) response.id = request.id;
       if (request.comment) response.comment = request.comment;
@@ -153,6 +155,7 @@ function defineConsole() {
         }
         postMessage({
           action: 'console',
+          comment: 'console ' + type,
           arguments: args
         });
       };

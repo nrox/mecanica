@@ -476,61 +476,6 @@
     });
   }
 
-  function copyPhysicsToThree(body) {
-    body.three.position.x = body.position.x;
-    body.three.position.y = body.position.y;
-    body.three.position.z = body.position.z;
-    body.three.quaternion.x = body.quaternion.x;
-    body.three.quaternion.y = body.quaternion.y;
-    body.three.quaternion.z = body.quaternion.z;
-    body.three.quaternion.w = body.quaternion.w;
-  }
-
-  function copyPhysicsFromAmmo(body, trans) {
-    if (!trans) {
-      trans = new Ammo.btTransform();
-    }
-    body.ammo.getMotionState().getWorldTransform(trans);
-    var position = trans.getOrigin();
-    body.position.x = position.x();
-    body.position.y = position.y();
-    body.position.z = position.z();
-    var quaternion = trans.getRotation();
-    body.quaternion.x = quaternion.x();
-    body.quaternion.y = quaternion.y();
-    body.quaternion.z = quaternion.z();
-    body.quaternion.w = quaternion.w();
-  }
-
-  function transfer(pkt, objs) {
-    if (!objs) objs = objects;
-    if (pkt.system && objs.system) {
-      _.each(pkt.system, function (sys, id) {
-        if (!objs.system[id]) {
-          console.warn('system not found in transfer: ' + id);
-          return;
-        }
-        transfer(sys, objs.system[id]);
-      });
-    }
-    if (pkt.body && objs.body) {
-      if (!pkt.body) pkt.body = {};
-      _.each(pkt.body, function (body, id) {
-        if (!objs.body[id]) {
-          console.warn('body not found in transfer: ' + id);
-          return;
-        }
-        objs.body[id].position.x = body.position.x;
-        objs.body[id].position.y = body.position.y;
-        objs.body[id].position.z = body.position.z;
-        objs.body[id].quaternion.x = body.quaternion.x;
-        objs.body[id].quaternion.y = body.quaternion.y;
-        objs.body[id].quaternion.z = body.quaternion.z;
-        objs.body[id].quaternion.w = body.quaternion.w;
-      });
-    }
-  }
-
   function hasUndefined(obj, keys) {
     if (!keys) keys = _.keys(obj._options);
     return _.some(keys, function (key) {
@@ -734,14 +679,67 @@
     debug = !!val;
   }
 
+  function copyPhysicsToThree(body) {
+    body.three.position.x = body.position.x;
+    body.three.position.y = body.position.y;
+    body.three.position.z = body.position.z;
+    body.three.quaternion.x = body.quaternion.x;
+    body.three.quaternion.y = body.quaternion.y;
+    body.three.quaternion.z = body.quaternion.z;
+    body.three.quaternion.w = body.quaternion.w;
+  }
 
+  function copyPhysicsFromAmmo(body, trans) {
+    if (!trans) {
+      trans = new Ammo.btTransform();
+    }
+    body.ammo.getMotionState().getWorldTransform(trans);
+    var position = trans.getOrigin();
+    body.position.x = position.x();
+    body.position.y = position.y();
+    body.position.z = position.z();
+    var quaternion = trans.getRotation();
+    body.quaternion.x = quaternion.x();
+    body.quaternion.y = quaternion.y();
+    body.quaternion.z = quaternion.z();
+    body.quaternion.w = quaternion.w();
+  }
+
+  function transfer(pkt, objs) {
+    if (!objs) objs = objects;
+    if (pkt.system && objs.system) {
+      _.each(pkt.system, function (sys, id) {
+        if (!objs.system[id]) {
+          console.warn('system not found in transfer: ' + id);
+          return;
+        }
+        transfer(sys, objs.system[id]);
+      });
+    }
+    if (pkt.body && objs.body) {
+      if (!pkt.body) pkt.body = {};
+      _.each(pkt.body, function (body, id) {
+        if (!objs.body[id]) {
+          console.warn('body not found in transfer: ' + id);
+          return;
+        }
+        objs.body[id].position.x = body.position.x;
+        objs.body[id].position.y = body.position.y;
+        objs.body[id].position.z = body.position.z;
+        objs.body[id].quaternion.x = body.quaternion.x;
+        objs.body[id].quaternion.y = body.quaternion.y;
+        objs.body[id].quaternion.z = body.quaternion.z;
+        objs.body[id].quaternion.w = body.quaternion.w;
+      });
+    }
+  }
 
   function startSimulation(options) {
     options = _.extend({
       simSpeed: 1,
       simFrequency: 30
     }, options || {});
-    var trans = new Ammo.btTransform();
+    var trans = Ammo ? new Ammo.btTransform() : undefined;
     var packet = {};
 
     function copyPhysics(objs) {
@@ -777,6 +775,7 @@
       }
     }
 
+    var count = -10;
     var simulate = function () {
       //prepare next call
       memo.stid = setTimeout(simulate, 1000 / options.simFrequency);
@@ -787,10 +786,11 @@
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
-      memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
+      if (Ammo) memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
       copyPhysics(objects);
       if (utils.isBrowserWorker()) {
         packPhysics(objects, packet);
+        //if (count++ < 0) console.log(packet);
         post(['transfer', packet], 'transfer physics', nextId('transfer_'));
       }
     };
@@ -810,7 +810,13 @@
       for (var i = 1; i < arguments.length; i++) {
         args.push(arguments[i]);
       }
+      console.log('*** worker says:');
       console[type].apply(console, args);
+    },
+    factory: function () {
+      var args = utils.argList(arguments);
+      var fun = args.shift();
+      return module.exports[fun].apply(null, args);
     }
   };
 
@@ -823,27 +829,35 @@
       if ((typeof request == 'object') && workerListener[request.action]) {
         if (request.action != 'result') {
           var result = workerListener[request.action].apply(self, request['arguments']);
-          var response = {};
-          if (request.id) response.id = request.id;
-          if (request.comment) response.comment = request.comment;
-          response.result = result;
-          worker.postMessage(response);
+          if (request.action != 'console') {
+            var response = {};
+            if (request.id) response.id = request.id;
+            if (request.comment) response.comment = request.comment;
+            response.result = result;
+            worker.postMessage(response);
+          }
         }
       } else {
-        console.log(utils.stringify(request));
+        //if (debug) console.log(utils.stringify(request));
       }
     };
     wrapWorkerFunctions();
+    console.log('using web worker');
     return worker;
   }
 
   function post(args, comment, id) {
-    if (worker) worker.postMessage({
+    var message = {
       action: 'factory',
       arguments: args,
       comment: comment,
       id: id || nextId(0)
-    });
+    };
+    if (worker) {
+      worker.postMessage(message);
+    } else if (utils.isBrowserWorker()) {
+      postMessage(message);
+    }
   }
 
   function dismissWorker() {
@@ -868,16 +882,22 @@
     'stopSimulation'
   ];
 
+  //wrap functions to send commands to worker as well
   function wrapWorkerFunctions() {
-    while (workerFunctions.length) {
-      var key = workerFunctions.pop();
+    _.each(workerFunctions, function (key) {
       var fun = module.exports[key];
       module.exports[key] = function () {
+        //if (debug) console.log('wrap:' + key);
         var args = utils.argList(arguments);
         args.unshift(key);
+        //send command to worker
         post(args, 'wrapped ' + key, nextId('post_'));
+        //now apply also here
         return fun.apply(null, arguments);
       };
+    });
+    //remove all functions, avoiding further wrapping
+    while (workerFunctions.pop()) {
     }
   }
 
