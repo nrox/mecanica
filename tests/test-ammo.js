@@ -60,6 +60,13 @@ var test = {
   btHingeConstraint: function () {
     var obj = new Ammo.btHingeConstraint();
     utils.logKeys(obj, 'btHingeConstraint properties');
+    utils.checkKeys(obj,
+      [ 'setLimit',
+        'enableAngularMotor',
+        'setMotorTarget',
+        'getHingeAngle'],
+      'checking btHingeConstraint keys');
+
   },
   'properties list': function () {
     utils.logKeys(Ammo, 'properties list');
