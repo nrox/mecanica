@@ -57,6 +57,10 @@ var test = {
       w: w
     }, 'checking btQuaternion values');
   },
+  btHingeConstraint: function () {
+    var obj = new Ammo.btHingeConstraint();
+    utils.logKeys(obj, 'btHingeConstraint properties');
+  },
   'properties list': function () {
     utils.logKeys(Ammo, 'properties list');
   }

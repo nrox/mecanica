@@ -237,6 +237,20 @@
       }
     },
     constraint: {
+      //super constructor
+      _abstract: function (options) {
+        include(this, options, {
+          a: undefined, //connector id, in body A
+          b: undefined //connector id, in body B
+        });
+        notifyUndefined(this, ['a', 'b']);
+        if (Ammo) {
+          this.a = getObject('connector', this.a);
+          this.b = getObject('connector', this.b);
+          this.bodyA = this.a.body;
+          this.bodyB = this.b.body;
+        }
+      },
       _default: function (options) {
         constructor.constraint.point.call(this, options);
       },
@@ -299,20 +313,6 @@
           this.ammo = new Ammo.btSliderConstraint(
             this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
           );
-        }
-      },
-      //super constructor
-      _abstract: function (options) {
-        include(this, options, {
-          a: undefined, //connector id, in body A
-          b: undefined //connector id, in body B
-        });
-        notifyUndefined(this, ['a', 'b']);
-        if (Ammo) {
-          this.a = getObject('connector', this.a);
-          this.b = getObject('connector', this.b);
-          this.bodyA = this.a.body;
-          this.bodyB = this.b.body;
         }
       }
     },
@@ -408,6 +408,15 @@
     }
   };
 
+  var methods = {
+    constraint: {
+      removeConstraint: function () {
+        var c = getObject.apply(null, arguments);
+        if (c && Ammo) memo.scene.ammo.removeConstraint(c.ammo);
+      }
+    }
+  };
+
   var destructor = {
     physics: function (obj) {
     },
@@ -420,6 +429,15 @@
     connector: function (obj) {
     },
     constraint: function (obj) {
+      if (Ammo) {
+        memo.scene.ammo.removeConstraint(obj.ammo);
+        Ammo.destroy(obj.ammo);
+        delete obj.ammo;
+      }
+      delete obj.a;
+      delete obj.b;
+      delete obj.bodyA;
+      delete obj.bodyB;
     },
     camera: function (obj) {
     },
