@@ -1,106 +1,36 @@
 var utils = require('../util/test.js');
-var Ammo = require('../lib/ammo.js');
-var THREE = require('../lib/three.js');
 var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
-var cam = require('../util/camera.js');
-factory.addLibrary(Ammo);
-factory.addLibrary(THREE);
-
-var objects = {
-  scene: {},
-  timeout: {},
-  animationFrame: {},
-  renderer: {},
-  camera: {},
-  body: {},
-  floor: {}
-};
-
-var trans = new Ammo.btTransform();
+var $ = require('../lib/jquery.js');
 var test = {
 };
 
 function clearObjects() {
-  if (utils.isRunningOnBrowser())
-    _.each(objects.animationFrame, function (frame) {
-      cancelAnimationFrame(frame);
-    });
-  _.each(objects.timeout, function (timeout) {
-    clearTimeout(timeout);
-  });
-  _.each(objects.scene, function (scene) {
-    factory.destroy(scene);
-  });
-  _.each(['body', 'floor', 'camera', 'renderer', 'scene'], function (objType) {
-    _.each(objects[objType], function (obj, title) {
-      objects[objType][title] = undefined;
-    });
-  });
-  $("[renderer]").remove();
-  //TODO destroy ammo objects in scene.ammo ?
+  factory.stopSimulation();
+  factory.stopRender();
+  factory.destroyAll();
+  $('[monitor]').remove();
 }
+
 function makeTest(bodyOptions, floorOptions, title) {
   return function () {
-    var scene = factory.make('scene', 'basic', {});
+
     bodyOptions.rotation.x = 2 * Math.PI * Math.random();
     bodyOptions.rotation.y = 2 * Math.PI * Math.random();
     bodyOptions.rotation.z = 0;
     var body = factory.make('body', 'basic', bodyOptions);
-    body.three.add(new THREE.AxisHelper(2));
-    var floor = factory.make('body', 'basic', floorOptions);
-    floor.three.add(new THREE.AxisHelper(5));
-
-    var camera = factory.make('camera', 'tracker', {
-      inertia: 0.5, body: body.id
+    factory.make('body', 'basic', floorOptions);
+    factory.make('monitor', {
+      camera: 'tracker', inertia: 0.5, lookAt: body.id
     });
-    var renderer = factory.make('renderer', 'webgl', {});
-    scene.ammo.addRigidBody(body.ammo);
-    scene.three.add(body.three);
-    scene.ammo.addRigidBody(floor.ammo);
-    scene.three.add(floor.three);
-    $(renderer.three.domElement).attr('renderer', title);
-    $('#container').append(renderer.three.domElement);
-    objects.scene[title] = scene;
-    objects.body[title] = body;
-    objects.floor[title] = floor;
-    objects.camera[title] = camera;
-    objects.renderer[title] = renderer;
-    var frequency = 30;
-    var render = function () {
-      var scene = objects.scene[title];
-      var body = objects.body[title];
-      var camera = objects.camera[title];
-      var renderer = objects.renderer[title];
-
-      //limit animation frame
-      objects.timeout[title] = setTimeout(function () {
-        objects.animationFrame[title] = requestAnimationFrame(render);
-      }, 1000 / frequency);
-      //timeStep < maxSubSteps * fixedTimeStep
-      // 1/30 < 10 * 1/60
-      scene.ammo.stepSimulation(1 / frequency, 10);
-      transferPhysics(body, trans);
-      cam.moveCamera(camera);
-      renderer.three.render(scene.three, camera.three);
-
-    };
-    render();
+    var pack = factory.pack();
+    factory.destroyAll();
+    factory.loadScene(pack, {
+      webWorker: false,
+      autoStart: true,
+      canvasContainer: '#container'
+    },$);
   };
-}
-
-function transferPhysics(body, trans) {
-  if (!trans) {
-    trans = new Ammo.btTransform();
-  }
-  body.ammo.getMotionState().getWorldTransform(trans);
-  var pos = trans.getOrigin();
-  body.three.position.x = pos.x();
-  body.three.position.y = pos.y();
-  body.three.position.z = pos.z();
-  var q = trans.getRotation();
-  var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
-  body.three.quaternion.copy(quat);
 }
 
 function addAllTests() {
@@ -162,6 +92,6 @@ function addAllTests() {
 }
 
 addAllTests();
-test.all = utils.all(test, 1);
+//test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

@@ -66,6 +66,9 @@
     return options;
   }
 
+  /**
+   * CONSTRUCTORS ************************************************************
+   */
 //this structure helps swapping worlds to json
   var constructor = {
     physics: {
@@ -698,6 +701,10 @@
     return packed;
   }
 
+  /**
+   * SIMULATION **************************************************************
+   */
+
   function loadScene(json, options, jQuery) {
     options = _.extend({
       axisHelper: 0,
@@ -715,33 +722,11 @@
     module.exports.loadObjects(json, options);
     var monitor = getSome('monitor');
     jQuery(options.canvasContainer).append(monitor.renderer.three.domElement);
-
+    jQuery(monitor.renderer.three.domElement).attr('monitor', 'monitor');
     if (options.autoStart) {
       startSimulation(options);
       startRender(options);
     }
-  }
-
-  function startRender(options) {
-    options = _.extend({
-      renderFrequency: 30
-    }, options || {});
-    if (!camera) camera = require('./util/camera.js');
-    var monitor = getSome('monitor');
-    var scene = getSome('scene');
-    var render = function () {
-      memo.stid = setTimeout(function () {
-        memo.rafid = requestAnimationFrame(render);
-      }, 1000 / options.renderFrequency);
-      camera.moveCamera(monitor.camera);
-      monitor.renderer.three.render(scene.three, monitor.camera.three);
-    };
-    render();
-  }
-
-  function stopRender() {
-    cancelAnimationFrame(memo.rafid);
-    clearTimeout(memo.stid);
   }
 
   function loadObjects(script, options) {
@@ -894,6 +879,28 @@
 
   function stopSimulation() {
     clearTimeout(memo.stid);
+  }
+
+  function startRender(options) {
+    options = _.extend({
+      renderFrequency: 30
+    }, options || {});
+    if (!camera) camera = require('./util/camera.js');
+    var monitor = getSome('monitor');
+    var scene = getSome('scene');
+    var render = function () {
+      memo.rstid = setTimeout(function () {
+        memo.rafid = requestAnimationFrame(render);
+      }, 1000 / options.renderFrequency);
+      camera.moveCamera(monitor.camera);
+      monitor.renderer.three.render(scene.three, monitor.camera.three);
+    };
+    render();
+  }
+
+  function stopRender() {
+    cancelAnimationFrame(memo.rafid);
+    clearTimeout(memo.rstid);
   }
 
   /**

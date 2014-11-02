@@ -7,11 +7,15 @@ var $ = require('../lib/jquery.js');
 var test = {
 };
 
+function clearObjects() {
+  factory.stopSimulation();
+  factory.stopRender();
+  factory.destroyAll();
+  $('[monitor]').remove();
+}
+
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
-    factory.stopSimulation();
-    factory.stopRender();
-    factory.destroyAll();
     factory.make(bodyB);
     factory.make(bodyA);
     factory.make(connectorA);
@@ -21,6 +25,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     var pack = factory.pack();
     factory.destroyAll();
     factory.loadScene(pack,{
+      webWorker: false,
       autoStart: true,
       canvasContainer: '#container'
     }, $);
@@ -104,5 +109,6 @@ function addAllTests() {
 }
 
 addAllTests();
-test.all = utils.all(test, 1);
+//test.all = utils.all(test, 1);
 module.exports.test = test;
+module.exports.clearObjects = clearObjects;

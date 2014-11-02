@@ -1,6 +1,6 @@
 
 
-var utils = require('./test.js');
+var utils = require('../util/test.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var factory = require('../factory.js');
