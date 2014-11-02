@@ -19,7 +19,6 @@
     system: {}, //high level structure of objects, identified by keys
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
-    connector: {}, //belongs to each body, defines origin and axis for constraints
     constraint: {}, //point, slider, hinge ...
     body: {}, //shape + mesh
     light: {},
@@ -171,7 +170,8 @@
         include(this, options, {
           shape: {type: 'box'},
           material: {type: 'basic', wireframe: false, color: 0x999999},
-          mass: 0.1, position: {}, quaternion: undefined, rotation: undefined
+          mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
+          connector: undefined
         });
         var shape;
         if (typeof this.shape == 'string') { //get from objects with id
@@ -227,8 +227,8 @@
         notifyUndefined(this, ['body', 'base', 'up', 'front']);
         var body = getObject('body', this.body);
         if (body) {
-          if (!body.connectors) body.connectors = {};
-          body.connectors[this.id] = this;
+          if (!body.connector) body.connector = {};
+          body.connector[this.id] = this;
           this.body = body;
           this.base = make('physics', 'position', this.base);
           this.up = make('physics', 'vector', this.up);
@@ -240,15 +240,17 @@
       //super constructor
       _abstract: function (options) {
         include(this, options, {
+          bodyA: undefined, //bodyA id
+          bodyB: undefined, //bodyB id
           a: undefined, //connector id, in body A
           b: undefined //connector id, in body B
         });
         notifyUndefined(this, ['a', 'b']);
         if (Ammo) {
-          this.a = getObject('connector', this.a);
-          this.b = getObject('connector', this.b);
-          this.bodyA = this.a.body;
-          this.bodyB = this.b.body;
+          this.bodyA = getObject('body',  this.bodyA);
+          this.bodyB = getObject('body',  this.bodyB);
+          this.a = this.bodyA.connector[this.a];
+          this.b = this.bodyB.connector[this.b];
         }
       },
       _default: function (options) {
@@ -425,8 +427,16 @@
     material: function (obj) {
     },
     body: function (obj) {
+      _.each(obj.connector, function(c, id){
+        destructor.connector(c);
+      });
     },
     connector: function (obj) {
+      delete obj.body.connector[obj.id];
+      delete obj.body;
+      delete obj.base;
+      delete obj.up;
+      delete obj.front;
     },
     constraint: function (obj) {
       if (Ammo) {
@@ -574,10 +584,10 @@
     var cons = constructor[group] && constructor[group][type];
     var obj;
     if (typeof cons == 'function') {
+      if (!options.id) options.id = nextId(type);
       obj = new cons(options);
       if (group !== SYSTEM) obj.group = group;
       if (group !== SYSTEM) obj.type = type;
-      if (!obj.id) obj.id = nextId(type);
       if (objects[group]) objects[group][obj.id] = obj;
       debug && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(opt(obj)));
     } else {

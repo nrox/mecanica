@@ -1,8 +1,8 @@
-var utils = require('./test-utils.js', undefined);
-var Ammo = require('../lib/ammo.js', undefined);
-var THREE = require('../lib/three.js', undefined);
-var factory = require('../factory.js', undefined);
-var _ = require('../lib/underscore.js', undefined);
+var utils = require('./test-utils.js');
+var Ammo = require('../lib/ammo.js');
+var THREE = require('../lib/three.js');
+var factory = require('../factory.js');
+var _ = require('../lib/underscore.js');
 
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
@@ -58,7 +58,10 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
     var scene = factory.make('scene', 'basic', {});
     var body = factory.make(bodyB);
+    body.three.add(new THREE.AxisHelper(3));
     var fixedBody = factory.make(bodyA);
+    fixedBody.three.add(new THREE.AxisHelper(5));
+
     factory.make(connectorA);
     factory.make(connectorB);
     var camera = factory.make('camera', 'perspective', {});
@@ -67,7 +70,6 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     scene.three.add(body.three);
     scene.ammo.addRigidBody(fixedBody.ammo);
     scene.three.add(fixedBody.three);
-    scene.three.add(new THREE.AxisHelper(5));
 
     var constraintObject = factory.make('constraint', type, constraint);
     scene.ammo.addConstraint(constraintObject.ammo);
@@ -165,9 +167,9 @@ function addAllTests() {
   };
   var constraintOptions = {
     a: connectorA.id,
-    b: connectorB.id
-    //bodyA: bodyA.id,
-    //bodyB: bodyB.id
+    b: connectorB.id,
+    bodyA: bodyA.id,
+    bodyB: bodyB.id
   };
   var type;
   var ca, cb;

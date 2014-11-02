@@ -1,9 +1,9 @@
-var utils = require('./test-utils.js', undefined);
-var Ammo = require('../lib/ammo.js', undefined);
-var THREE = require('../lib/three.js', undefined);
-var factory = require('../factory.js', undefined);
-var director = require('../director.js', undefined);
-var _ = require('../lib/underscore.js', undefined);
+var utils = require('./test-utils.js');
+var Ammo = require('../lib/ammo.js');
+var THREE = require('../lib/three.js');
+var factory = require('../factory.js');
+var director = require('../director.js');
+var _ = require('../lib/underscore.js');
 
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
@@ -19,8 +19,6 @@ var objects = {
 };
 
 var trans = new Ammo.btTransform();
-var origin = new THREE.Vector3();
-var distance = 20;
 var test = {
 };
 
@@ -50,7 +48,9 @@ function makeTest(bodyOptions, floorOptions, title) {
     bodyOptions.rotation.y = 2 * Math.PI * Math.random();
     bodyOptions.rotation.z = 0;
     var body = factory.make('body', 'basic', bodyOptions);
+    body.three.add(new THREE.AxisHelper(2));
     var floor = factory.make('body', 'basic', floorOptions);
+    floor.three.add(new THREE.AxisHelper(5));
 
     var camera = factory.make('camera', 'tracker', {
       inertia: 0.5, body: body.id
@@ -60,7 +60,6 @@ function makeTest(bodyOptions, floorOptions, title) {
     scene.three.add(body.three);
     scene.ammo.addRigidBody(floor.ammo);
     scene.three.add(floor.three);
-    scene.three.add(new THREE.AxisHelper(5));
     $(renderer.three.domElement).attr('renderer', title);
     $('#container').append(renderer.three.domElement);
     objects.scene[title] = scene;
@@ -89,16 +88,6 @@ function makeTest(bodyOptions, floorOptions, title) {
     };
     render();
   };
-}
-
-
-function moveCamera(camera, distance) {
-  var phase = 0; //Math.PI * Math.random();
-  var time = new Date().getTime();
-  camera.three.position.x = distance * Math.sin(phase + time / 2234);
-  camera.three.position.z = distance * Math.cos(phase + time / 2234);
-  camera.three.position.y = -1 + 2 * Math.cos(phase + time / 3345);
-  camera.three.lookAt(origin);
 }
 
 function transferPhysics(body, trans) {

@@ -4,7 +4,7 @@ module.exports = {
 
   logStatus: function (status, title) {
     if (!title) return;
-    if (!!status){
+    if (!!status) {
       console.log('true/passed');
     } else {
       console.error('FALSE/FAILED ###########################################');
@@ -18,10 +18,10 @@ module.exports = {
   logKeys: function (obj, title) {
     title && console.log('\n' + title);
     var count = 0;
-    for (var i in obj) {
+    _.each(obj, function (v, i) {
       count++;
-      console.log('  ' + i + ' : ' + typeof obj[i]);
-    }
+      console.log('  ' + i + ' : ' + typeof v);
+    });
     title && console.log('  ' + count + ' properties');
   },
 
@@ -102,6 +102,7 @@ module.exports = {
    *  run all tests in object
    * @param obj the object
    * @param timeout if > 0 tests are called with this interval
+   * @param repeat to continuously repeat all tests
    * @returns {Function}
    */
   all: function (obj, timeout, repeat) {
