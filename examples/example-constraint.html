@@ -17,7 +17,7 @@
 
 <h1>examples/constraint</h1>
 <script>
-    var director = require('../director.js');
+    var factory = require('../factory.js');
     var world = {
         shape: {
             s1: { type: 'box', dx: 1, dy: 2, dz: 2, segments: 4 },
@@ -47,9 +47,9 @@
             }
         }
     };
-    director.loadScene(world, {axisHelper: 5, webWorker: true});
-    director.factory.startSimulation();
-    director.startRender();
+    factory.loadScene(world, {axisHelper: 5, webWorker: true}, $);
+    factory.startSimulation();
+    factory.startRender();
 </script>
 </body>
 </html>

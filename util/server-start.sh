@@ -1,2 +1,2 @@
 #!/bin/bash
-http-server -p 8080 -c4
+http-server ../ -p 8080 -c4

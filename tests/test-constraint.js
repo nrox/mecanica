@@ -1,20 +1,16 @@
 var utils = require('../util/test.js');
 var Ammo = require('../lib/ammo.js');
 var THREE = require('../lib/three.js');
-var director = require('../director.js');
-var factory = director.factory;
+var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
-
-factory.addLibrary(Ammo);
-factory.addLibrary(THREE);
-
+var $ = require('../lib/jquery.js');
 var test = {
 };
 
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
     factory.stopSimulation();
-    director.stopRender();
+    factory.stopRender();
     factory.destroyAll();
     factory.make(bodyB);
     factory.make(bodyA);
@@ -24,10 +20,10 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     factory.make('monitor', {camera: 'tracker', lookAt: bodyA.id});
     var pack = factory.pack();
     factory.destroyAll();
-    director.loadScene(pack,{
+    factory.loadScene(pack,{
       autoStart: true,
       canvasContainer: '#container'
-    });
+    }, $);
   };
 }
 

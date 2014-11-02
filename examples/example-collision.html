@@ -17,7 +17,7 @@
 
 <h1>examples/collision</h1>
 <script>
-    var director = require('../director.js');
+    var factory = require('../factory.js');
     var utils = require('./utils.js');
 
     var world = {
@@ -50,14 +50,19 @@
             }
         },
         monitor: {
-            m1: {camera: 'tracker', width: 600,
-                lookAt: 'falling', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 1
+            m1: {
+                camera: 'tracker',
+                width: 600,
+                lookAt: 'falling',
+                axis: {x: 1, y: 0.5, z: 0.3},
+                distance: 20,
+                inertia: 1
             }
         }
     };
-    director.loadScene(world, {webWorker: true, axisHelper: 5});
-    director.factory.startSimulation();
-    director.startRender();
+    factory.loadScene(world, {webWorker: true, axisHelper: 5}, $);
+    factory.startSimulation();
+    factory.startRender();
 </script>
 </body>
 </html>

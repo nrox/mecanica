@@ -2,9 +2,8 @@ var utils = require('../util/test.js');
 var Ammo = require('../lib/ammo.js');
 var THREE = require('../lib/three.js');
 var factory = require('../factory.js');
-var director = require('../director.js');
 var _ = require('../lib/underscore.js');
-
+var cam = require('../util/camera.js');
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 
@@ -82,7 +81,7 @@ function makeTest(bodyOptions, floorOptions, title) {
       // 1/30 < 10 * 1/60
       scene.ammo.stepSimulation(1 / frequency, 10);
       transferPhysics(body, trans);
-      director.moveCamera(camera);
+      cam.moveCamera(camera);
       renderer.three.render(scene.three, camera.three);
 
     };

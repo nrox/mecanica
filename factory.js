@@ -9,6 +9,7 @@
   var utils = require('./util/utils.js');
   var memo = {};
   var Ammo, THREE;
+  var camera;
   var worker;
   var debug = false;
   var UNDEFINED = undefined;
@@ -451,7 +452,7 @@
     },
     constraint: function (obj) {
       if (Ammo) {
-        if(memo.scene && memo.scene.ammo) memo.scene.ammo.removeConstraint(obj.ammo);
+        if (memo.scene && memo.scene.ammo) memo.scene.ammo.removeConstraint(obj.ammo);
         Ammo.destroy(obj.ammo);
         delete obj.ammo;
       }
@@ -564,6 +565,41 @@
     return true;
   }
 
+  //get the constructor structure and options for each
+  function structure() {
+    var obj = {};
+    //disable libraries and verifications shortly
+    var ammoBackup = Ammo;
+    var threeBackup = THREE;
+    var undefinedBackup = UNDEFINED;
+    Ammo = undefined;
+    THREE = undefined;
+    UNDEFINED = {};
+    _.each(constructor, function (group, key) {
+      obj[key] = {};
+      _.each(group, function (fun, name) {
+        obj[key][name] = {};
+        var m = make(key, name, {});
+        if (m) {
+          obj[key][name] = options(m);
+        }
+      });
+    });
+    //repose them
+    Ammo = ammoBackup;
+    THREE = threeBackup;
+    UNDEFINED = undefinedBackup;
+    return obj;
+  }
+
+  function options(obj) {
+    return obj._options;
+  }
+
+  function setDebug(val) {
+    debug = !!val;
+  }
+
   /**
    * create objects using templates in constructor
    * usage:
@@ -662,6 +698,52 @@
     return packed;
   }
 
+  function loadScene(json, options, jQuery) {
+    options = _.extend({
+      axisHelper: 0,
+      canvasContainer: 'body',
+      webWorker: false,
+      autoStart: false,
+      renderFrequency: 30
+    }, options || {});
+    if (!THREE) addLibrary(require('./lib/three.js'));
+    if (options.webWorker) {
+      createWorker();
+    } else {
+      if (!Ammo) addLibrary(require('./lib/ammo.js'));
+    }
+    module.exports.loadObjects(json, options);
+    var monitor = getSome('monitor');
+    jQuery(options.canvasContainer).append(monitor.renderer.three.domElement);
+
+    if (options.autoStart) {
+      startSimulation(options);
+      startRender(options);
+    }
+  }
+
+  function startRender(options) {
+    options = _.extend({
+      renderFrequency: 30
+    }, options || {});
+    if (!camera) camera = require('./util/camera.js');
+    var monitor = getSome('monitor');
+    var scene = getSome('scene');
+    var render = function () {
+      memo.stid = setTimeout(function () {
+        memo.rafid = requestAnimationFrame(render);
+      }, 1000 / options.renderFrequency);
+      camera.moveCamera(monitor.camera);
+      monitor.renderer.three.render(scene.three, monitor.camera.three);
+    };
+    render();
+  }
+
+  function stopRender() {
+    cancelAnimationFrame(memo.rafid);
+    clearTimeout(memo.stid);
+  }
+
   function loadObjects(script, options) {
     options = _.extend({
       axisHelper: 0
@@ -671,7 +753,7 @@
     var scene = getSome('scene');
     memo.scene = scene;
     if (options.axisHelper) {
-      if (THREE)  scene.three.add(new THREE.AxisHelper(options.axisHelper));
+      if (THREE) scene.three.add(new THREE.AxisHelper(options.axisHelper));
     }
 
     function loadSystem(objs) {
@@ -688,41 +770,6 @@
     }
 
     loadSystem(objects);
-  }
-
-  //get the constructor structure and options for each
-  function structure() {
-    var obj = {};
-    //disable libraries and verifications shortly
-    var ammoBackup = Ammo;
-    var threeBackup = THREE;
-    var undefinedBackup = UNDEFINED;
-    Ammo = undefined;
-    THREE = undefined;
-    UNDEFINED = {};
-    _.each(constructor, function (group, key) {
-      obj[key] = {};
-      _.each(group, function (fun, name) {
-        obj[key][name] = {};
-        var m = make(key, name, {});
-        if (m) {
-          obj[key][name] = options(m);
-        }
-      });
-    });
-    //repose them
-    Ammo = ammoBackup;
-    THREE = threeBackup;
-    UNDEFINED = undefinedBackup;
-    return obj;
-  }
-
-  function options(obj) {
-    return obj._options;
-  }
-
-  function setDebug(val) {
-    debug = !!val;
   }
 
   function copyPhysicsToThree(body) {
@@ -787,6 +834,7 @@
     }, options || {});
     var trans = Ammo ? new Ammo.btTransform() : undefined;
     var packet = {};
+    var scene = getSome('scene');
 
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
@@ -821,8 +869,8 @@
       }
     }
 
-    var count = -10;
     var simulate = function () {
+
       //prepare next call
       memo.stid = setTimeout(simulate, 1000 / options.simFrequency);
       //compute time since last call
@@ -832,11 +880,10 @@
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
-      if (Ammo) memo.scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
+      if (Ammo) scene.ammo.stepSimulation(options.simSpeed / options.simFrequency, maxSubSteps);
       copyPhysics(objects);
       if (utils.isBrowserWorker()) {
         packPhysics(objects, packet);
-        //if (count++ < 0) console.log(packet);
         post(['transfer', packet], 'transfer physics', nextId('transfer_'));
       }
     };
@@ -848,6 +895,10 @@
   function stopSimulation() {
     clearTimeout(memo.stid);
   }
+
+  /**
+   * WORKER **************************************************************
+   */
 
   var workerListener = {
     console: function () {
@@ -947,6 +998,11 @@
     }
   }
 
+
+  /**
+   * EXPORTS ***************************************************************
+   */
+
   module.exports = {
     addLibrary: addLibrary,
     constructor: constructor,
@@ -954,6 +1010,7 @@
     unpack: unpack,
     pack: pack,
     loadObjects: loadObjects,
+    loadScene: loadScene,
     structure: structure,
     options: options,
     include: include,
@@ -966,6 +1023,8 @@
     getSome: getSome,
     startSimulation: startSimulation,
     stopSimulation: stopSimulation,
+    startRender: startRender,
+    stopRender: stopRender,
     createWorker: createWorker,
     dismissWorker: dismissWorker,
     hasWorker: hasWorker,
