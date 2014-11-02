@@ -1,5 +1,5 @@
-var testUtils = require('./test-utils.js');
-var utils = require('utils.js');
+var testUtils = require('./test.js');
+var utils = require('./utils.js');
 var _ = require('../lib/underscore.js');
 var worker;
 
@@ -27,17 +27,6 @@ var test = {
 
     worker = new Worker(blobURL);
     worker.onmessage = function (e) {
-      testUtils.checkValues(e, msg, 'check echoed message');
-    };
-    worker.postMessage(msg.data);
-  },
-  'worker with script file': function () {
-    console.log('create a worker, using a predefined javascript file: test-worker-script.js');
-    clean();
-    worker = new Worker("test-worker-script.js");
-    var msg = {data: 'random:' + Math.random()};
-    worker.onmessage = function (e) {
-      console.log(e);
       testUtils.checkValues(e, msg, 'check echoed message');
     };
     worker.postMessage(msg.data);

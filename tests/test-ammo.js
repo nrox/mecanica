@@ -1,4 +1,4 @@
-var utils = require('./test-utils.js');
+var utils = require('./test.js');
 var Ammo = require('../lib/ammo.js');
 var _ = require('../lib/underscore.js');
 

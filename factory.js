@@ -6,7 +6,7 @@
 
 (function () {
   var _ = require('./lib/underscore.js');
-  var utils = require('./utils.js');
+  var utils = require('./util/utils.js');
   var memo = {};
   var Ammo, THREE;
   var worker;
@@ -866,7 +866,7 @@
           }
         }
       } else {
-        //if (debug) console.log(utils.stringify(request));
+        //if (debug) console.log(util.stringify(request));
       }
     };
     wrapWorkerFunctions();

@@ -1,10 +1,10 @@
 var ALLOW_EVAL = true;
 defineConsole();
 defineRequire();
-var _ = require('lib/underscore.js');
-var Ammo = require('lib/ammo.js');
-var factory = require('factory.js');
-var utils = require('utils.js');
+var _ = require('../lib/underscore.js');
+var Ammo = require('../lib/ammo.js');
+var factory = require('../factory.js');
+var utils = require('./utils.js');
 
 factory.addLibrary(Ammo);
 
@@ -45,7 +45,8 @@ function defineRequire() {
 
   availablePaths = undefined;
 
-  var url = ['../list.js', 'list.js', '../../list.js'];
+  var url = ['../util/list.js', 'util/list.js', '../../util/list.js'];
+
   for (var p = 0; !availablePaths && (p < url.length); p++) {
     try {
       importScripts(url[p]);
@@ -58,7 +59,7 @@ function defineRequire() {
 
   if (availablePaths) {
     for (var i = 0; i < availablePaths.length; i++) {
-      availablePaths[i] = availablePaths[i].substr(2);
+      availablePaths[i] = availablePaths[i].substr(3);
       if (availablePaths[i].indexOf('/') === 0) {
         availablePaths[i] = availablePaths[i].substr(1);
       }

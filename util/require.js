@@ -2,7 +2,7 @@
 
   var availablePaths;
 
-  var url = ['../list.js', 'list.js', '../../list.js'];
+  var url = ['../util/list.js', 'util/list.js', '../../util/list.js'];
   var list;
   for (var i = 0; !list && (i < url.length); i++) {
     $.ajax(url[i], {
@@ -12,7 +12,7 @@
       success: function (data) {
         list = eval(data);
         for (var i = 0; i < list.length; i++) {
-          list[i] = list[i].substr(2);
+          list[i] = list[i].substr(3);
           if (list[i].indexOf('/') === 0) list[i] = list[i].substr(1);
         }
         availablePaths = list;
@@ -59,8 +59,8 @@
     return undefined;
   }
 
-  window.requireURL = function(script){
-      return httpRoot() + requiredPath(script);
+  window.requireURL = function (script) {
+    return httpRoot() + requiredPath(script);
   };
 
   /**
@@ -77,7 +77,6 @@
     function fileName(script) {
       return script.substr(script.lastIndexOf('/') + 1);
     }
-
 
 
     function isAmmo(script) {

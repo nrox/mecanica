@@ -1,4 +1,4 @@
-var utils = require('./test-utils.js');
+var utils = require('../util/test.js');
 var _ = require('../lib/underscore.js');
 
 var test = {
@@ -16,15 +16,16 @@ var verify = {
   'ammo.js': ['btVector3'],
   'underscore.js': ['each', 'map', 'pick', 'pluck'],
   'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
-  'test-utils.js': ['run', 'all'],
+  '../util/test.js': ['run', 'all'],
   'factory.js': ['addLibrary', 'make', 'structure', 'options'],
-  'utils.js': ['stringify', 'deepCopy'],
+  '../util/utils.js': ['stringify', 'deepCopy','randomLinear'],
   '/ware/basic.js': ['shape', 'scene']
 };
 
 _.each(verify, function (list, script) {
   test[script] = function () {
     var obj = require(script);
+    utils.logKeys(obj, 'keys of object');
     utils.checkKeys(obj, list, 'check keys in ' + script);
   };
 });

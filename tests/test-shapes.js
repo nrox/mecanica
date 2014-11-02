@@ -1,6 +1,6 @@
 
 
-var utils = require('./test-utils.js');
+var utils = require('./test.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var factory = require('../factory.js');
@@ -18,10 +18,10 @@ function shape(type) {
     };
     var obj = factory.make('shape', type, parameters);
     /*
-     utils.logKeys(obj, type + ' properties');
-     utils.logKeys(obj.prototype, type + '.prototype properties');
-     utils.logKeys(obj.ammo, type + '.ammo properties');
-     utils.logKeys(obj.three, type + '.three properties');
+     util.logKeys(obj, type + ' properties');
+     util.logKeys(obj.prototype, type + '.prototype properties');
+     util.logKeys(obj.ammo, type + '.ammo properties');
+     util.logKeys(obj.three, type + '.three properties');
      */
     utils.checkValues(obj,
       _.pick(parameters, _.keys(factory.options(obj))),
