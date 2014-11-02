@@ -1,129 +1,34 @@
-var utils = require('./test.js');
+var utils = require('../util/test.js');
 var Ammo = require('../lib/ammo.js');
 var THREE = require('../lib/three.js');
-var factory = require('../factory.js');
+var director = require('../director.js');
+var factory = director.factory;
 var _ = require('../lib/underscore.js');
 
 factory.addLibrary(Ammo);
 factory.addLibrary(THREE);
 
-var objects = {
-  scene: {},
-  timeout: {},
-  animationFrame: {},
-  renderer: {},
-  camera: {},
-  body: {},
-  fixedBody: {}
-};
-
-var trans = new Ammo.btTransform();
-var origin = new THREE.Vector3();
-var distance = 15;
 var test = {
 };
 
-function clearObjects() {
-  if (utils.isRunningOnBrowser())
-    _.each(objects.animationFrame, function (frame) {
-      cancelAnimationFrame(frame);
-    });
-  _.each(objects.timeout, function (timeout) {
-    clearTimeout(timeout);
-  });
-  _.each(objects.scene, function (scene, title) {
-    if (!scene) return;
-    while (scene.three.children.length) {
-      var child = scene.three.children[0];
-      child.geometry.dispose();
-      child.material.dispose();
-      scene.three.remove(child);
-    }
-    delete scene.three;
-    Ammo.destroy(scene.btDefaultCollisionConfiguration);
-    Ammo.destroy(scene.btCollisionDispatcher);
-    Ammo.destroy(scene.btDbvtBroadphase);
-    Ammo.destroy(scene.btSequentialImpulseConstraintSolver);
-    delete scene.ammo;
-  });
-  _.each(['body', 'fixedBody', 'camera', 'renderer', 'scene'], function (objType) {
-    _.each(objects[objType], function (obj, title) {
-      objects[objType][title] = undefined;
-    });
-  });
-  $("[renderer]").remove();
-  //TODO destroy ammo objects in scene.ammo ?
-}
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
-    var scene = factory.make('scene', 'basic', {});
-    var body = factory.make(bodyB);
-    body.three.add(new THREE.AxisHelper(3));
-    var fixedBody = factory.make(bodyA);
-    fixedBody.three.add(new THREE.AxisHelper(5));
-
+    factory.stopSimulation();
+    director.stopRender();
+    factory.destroyAll();
+    factory.make(bodyB);
+    factory.make(bodyA);
     factory.make(connectorA);
     factory.make(connectorB);
-    var camera = factory.make('camera', 'perspective', {});
-    var renderer = factory.make('renderer', 'webgl', {});
-    scene.ammo.addRigidBody(body.ammo);
-    scene.three.add(body.three);
-    scene.ammo.addRigidBody(fixedBody.ammo);
-    scene.three.add(fixedBody.three);
-
-    var constraintObject = factory.make('constraint', type, constraint);
-    scene.ammo.addConstraint(constraintObject.ammo);
-    //console.log(constraintObject);
-    $(renderer.three.domElement).attr('renderer', type);
-    $('#container').append(renderer.three.domElement);
-    objects.scene[type] = scene;
-    objects.body[type] = body;
-    objects.fixedBody[type] = fixedBody;
-    objects.camera[type] = camera;
-    objects.renderer[type] = renderer;
-    var frequency = 30;
-    var render = function () {
-      var scene = objects.scene[type];
-      var body = objects.body[type];
-      var camera = objects.camera[type];
-      var renderer = objects.renderer[type];
-      objects.timeout[type] = setTimeout(function () {
-        objects.animationFrame[type] = requestAnimationFrame(render);
-      }, 1000 / frequency);
-      //timeStep < maxSubSteps * fixedTimeStep
-      // 1/30 < 10 * 1/60
-      scene.ammo.stepSimulation(1 / frequency, 10);
-      transferPhysics(body, trans);
-      transferPhysics(fixedBody, trans);
-      moveCamera(camera, distance);
-      renderer.three.render(scene.three, camera.three);
-    };
-    render();
+    factory.make('constraint', type, constraint);
+    factory.make('monitor', {camera: 'tracker', lookAt: bodyA.id});
+    var pack = factory.pack();
+    factory.destroyAll();
+    director.loadScene(pack,{
+      autoStart: true,
+      canvasContainer: '#container'
+    });
   };
-}
-
-function moveCamera(camera, distance) {
-  var phase = 0; //Math.PI * Math.random();
-  var time = new Date().getTime();
-  camera.three.position.x = distance * Math.sin(phase + time / 2234);
-  camera.three.position.z = distance * Math.cos(phase + time / 2234);
-  camera.three.position.y = -1 + 2 * Math.cos(phase + time / 3345);
-  camera.three.lookAt(origin);
-}
-
-
-function transferPhysics(body, trans) {
-  if (!trans) {
-    trans = new Ammo.btTransform();
-  }
-  body.ammo.getMotionState().getWorldTransform(trans);
-  var pos = trans.getOrigin();
-  body.three.position.x = pos.x();
-  body.three.position.y = pos.y();
-  body.three.position.z = pos.z();
-  var q = trans.getRotation();
-  var quat = new THREE.Quaternion(q.x(), q.y(), q.z(), q.w());
-  body.three.quaternion.copy(quat);
 }
 
 function addAllTests() {
@@ -205,4 +110,3 @@ function addAllTests() {
 addAllTests();
 test.all = utils.all(test, 1);
 module.exports.test = test;
-module.exports.clearObjects = clearObjects;

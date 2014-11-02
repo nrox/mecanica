@@ -25,7 +25,7 @@ var verify = {
 _.each(verify, function (list, script) {
   test[script] = function () {
     var obj = require(script);
-    utils.logKeys(obj, 'keys of object');
+    //utils.logKeys(obj, 'keys of object');
     utils.checkKeys(obj, list, 'check keys in ' + script);
   };
 });

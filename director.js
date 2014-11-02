@@ -29,13 +29,12 @@ function loadScene(json, options) {
   }
   factory.loadObjects(json, options);
   var scene = factory.getSome('scene');
-  var camera = factory.getSome('camera');
-  var renderer = factory.getSome('renderer');
-  $(options.canvasContainer).append(renderer.three.domElement);
+  var monitor = factory.getSome('monitor');
+  $(options.canvasContainer).append(monitor.renderer.three.domElement);
 
   memo.scene = scene;
-  memo.camera = camera;
-  memo.renderer = renderer;
+  memo.camera = monitor.camera;
+  memo.renderer = monitor.renderer;
 
   if (options.autoStart) {
     factory.startSimulation(options);
@@ -67,7 +66,7 @@ function moveCamera(camera) {
   var distance;
   if (camera.type == 'tracker') {
     var requiredPosition = camera.three.position.clone();
-    var bodyPosition = camera.body.three.position;
+    var bodyPosition = camera.lookAt.three.position;
     var axis = camera.axis.three;
     var requiredDistance = camera.distance;
     var projection = bodyPosition.clone().projectOnVector(axis);

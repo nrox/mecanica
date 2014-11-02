@@ -33,6 +33,7 @@ availablePaths = [
 "../tests/test-require.js",
 "../tests/test-shapes.js",
 "../tests/test-worker.js",
+"../util/camera.js",
 "../util/listdir.sh",
 "../util/list.js",
 "../util/require.js",

@@ -37,11 +37,14 @@
         },
         constraint: {
             cons: {
-                a: 'c1', b: 'c2'
+                a: 'c1', b: 'c2', bodyA: 'b1', bodyB: 'b2'
             }
         },
-        camera: {
-            cam: {type: 'tracker', body: 'b2', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
+        monitor: {
+            m1: {
+                camera: 'tracker', lookAt: 'b2', width: 600,
+                axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5
+            }
         }
     };
     director.loadScene(world, {axisHelper: 5, webWorker: true});

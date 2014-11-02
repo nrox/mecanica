@@ -24,7 +24,7 @@
         body: {
             falling: {
                 shape: {
-                    type: utils.randomItem(['sphere','box','cone','cylinder']),
+                    type: utils.randomItem(['sphere', 'box', 'cone', 'cylinder']),
                     r: 1, dx: 1, dy: 1.2, dz: 1.4,
                     segments: 32
                 },
@@ -35,7 +35,7 @@
             },
             floor: {
                 shape: {
-                    type: utils.randomItem(['sphere','box','cone','cylinder']),
+                    type: utils.randomItem(['sphere', 'box', 'cone', 'cylinder']),
                     dx: 10, dz: 5, dy: 2, r: 5,
                     segments: 64
                 },
@@ -49,8 +49,10 @@
                 mass: 0
             }
         },
-        camera: {
-            cam: {type: 'tracker', body: 'falling', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 1}
+        monitor: {
+            m1: {camera: 'tracker', width: 600,
+                lookAt: 'falling', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 1
+            }
         }
     };
     director.loadScene(world, {webWorker: true, axisHelper: 5});

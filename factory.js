@@ -19,11 +19,11 @@
     system: {}, //high level structure of objects, identified by keys
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
-    constraint: {}, //point, slider, hinge ...
     body: {}, //shape + mesh
+    connector: {},
+    constraint: {}, //point, slider, hinge ...
     light: {},
-    camera: {}, //should this be here ?
-    renderer: {}, // here ?
+    monitor: {}, //set of camera + renderer
     scene: {} //here ?
   };
 
@@ -245,10 +245,10 @@
           a: undefined, //connector id, in body A
           b: undefined //connector id, in body B
         });
-        notifyUndefined(this, ['a', 'b']);
+        notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
         if (Ammo) {
-          this.bodyA = getObject('body',  this.bodyA);
-          this.bodyB = getObject('body',  this.bodyB);
+          this.bodyA = getObject('body', this.bodyA);
+          this.bodyB = getObject('body', this.bodyB);
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
         }
@@ -344,6 +344,25 @@
         }
       }
     },
+    monitor: {
+      _default: function (options) {
+        include(this, options, {
+          renderer: '_default',
+          camera: '_default',
+          width: 500, height: 500,
+          fov: 45, near: 0.1, far: 1000,
+          position: {x: 5, y: 7, z: 10},
+          axis: {x: 5, y: 7, z: 10},
+          lookAt: {}, //vector or body id
+          distance: 15, //distance to keep, in case of tracker
+          inertia: 1
+        });
+        var o = opt(this);
+        o.aspect = o.width / o.height;
+        this.renderer = make('renderer', o.renderer, o);
+        this.camera = make('camera', o.camera, o);
+      }
+    },
     renderer: {
       _default: function (options) {
         try {
@@ -395,22 +414,20 @@
           axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
           distance: 15, //distance to keep
           inertia: 1, //for changing position, in seconds
-          body: null
+          lookAt: null
         });
-        notifyUndefined(this, ['body']);
+        notifyUndefined(this, ['lookAt']);
         this.axis = make('physics', 'vector', this.axis);
-        this.body = getObject('body', this.body);
+        this.lookAt = getObject('body', this.lookAt);
         if (THREE) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
-          //this.three.position.copy(this.axis.three);
-          //this.three.lookAt(this.body.three.position);
         }
       }
     }
   };
 
-  var methods = {
+  var method = {
     constraint: {
       removeConstraint: function () {
         var c = getObject.apply(null, arguments);
@@ -426,13 +443,7 @@
     },
     material: function (obj) {
     },
-    body: function (obj) {
-      _.each(obj.connector, function(c, id){
-        destructor.connector(c);
-      });
-    },
     connector: function (obj) {
-      delete obj.body.connector[obj.id];
       delete obj.body;
       delete obj.base;
       delete obj.up;
@@ -440,7 +451,7 @@
     },
     constraint: function (obj) {
       if (Ammo) {
-        memo.scene.ammo.removeConstraint(obj.ammo);
+        if(memo.scene && memo.scene.ammo) memo.scene.ammo.removeConstraint(obj.ammo);
         Ammo.destroy(obj.ammo);
         delete obj.ammo;
       }
@@ -448,6 +459,13 @@
       delete obj.b;
       delete obj.bodyA;
       delete obj.bodyB;
+    },
+    body: function (obj) {
+      _.each(obj.connector, function (c, id) {
+        destructor.connector(c);
+      });
+    },
+    monitor: function (obj) {
     },
     camera: function (obj) {
     },

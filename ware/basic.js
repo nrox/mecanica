@@ -17,17 +17,14 @@ module.exports = {
   },
   constraint: {
     cons: {
-      a: 'c1', b: 'c2'
+      a: 'c1', b: 'c2', bodyA: 'id5', bodyB: 'id6'
     }
   },
   scene: {
     s1: {}
   },
-  camera: {
-    cam: {type: 'tracker', body: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
-  },
-  renderer: {
-    render: {}
+  monitor: {
+    cam: {camera: 'tracker', lookAt: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
   }
 };
 
