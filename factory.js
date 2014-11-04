@@ -175,7 +175,7 @@
           shape: {type: 'box'},
           material: {type: 'basic', wireframe: false, color: 0x999999},
           mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
-          connector: undefined
+          connector: undefined, axisHelper: undefined
         });
         var shape;
         if (typeof this.shape == 'string') { //get from objects with id
@@ -199,6 +199,7 @@
         }
         if (THREE) {
           this.three = new THREE.Mesh(shape.three, material.three);
+          if (this.axisHelper) this.three.add(new THREE.AxisHelper(this.axisHelper));
           this.three.position.copy(this.position.three);
           this.three.quaternion.copy(this.quaternion.three);
         }
@@ -427,6 +428,10 @@
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         }
+      },
+      //follow a body
+      satellite: function (options) {
+        constructor.camera.tracker.call(this, options);
       }
     }
   };
@@ -510,6 +515,7 @@
   function destroy(obj) {
     //TODO consider system and worker behavior
     if (!obj) return;
+    if (debug) console.log('destroy', obj.group, obj.id);
     if (objects[obj.group] && objects[obj.group][obj.id]) {
       destructor[obj.group] && destructor[obj.group](objects[obj.group][obj.id]);
       delete objects[obj.group][obj.id];
@@ -701,62 +707,6 @@
     return packed;
   }
 
-  /**
-   * SIMULATION **************************************************************
-   */
-
-  function loadScene(json, options, jQuery) {
-    options = _.extend({
-      axisHelper: 0,
-      canvasContainer: 'body',
-      webWorker: false,
-      autoStart: false,
-      renderFrequency: 30
-    }, options || {});
-    if (!THREE) addLibrary(require('./lib/three.js'));
-    if (options.webWorker) {
-      createWorker();
-    } else {
-      if (!Ammo) addLibrary(require('./lib/ammo.js'));
-    }
-    module.exports.loadObjects(json, options);
-    var monitor = getSome('monitor');
-    jQuery(options.canvasContainer).append(monitor.renderer.three.domElement);
-    jQuery(monitor.renderer.three.domElement).attr('monitor', 'monitor');
-    if (options.autoStart) {
-      startSimulation(options);
-      startRender(options);
-    }
-  }
-
-  function loadObjects(script, options) {
-    options = _.extend({
-      axisHelper: 0
-    }, options || {});
-    var json = (typeof script == 'object') ? script : require(script);
-    unpack(json);
-    var scene = getSome('scene');
-    memo.scene = scene;
-    if (options.axisHelper) {
-      if (THREE) scene.three.add(new THREE.AxisHelper(options.axisHelper));
-    }
-
-    function loadSystem(objs) {
-      _.each(objs.system, loadSystem);
-
-      _.each(objs.body, function (body) {
-        if (THREE) scene.three.add(body.three);
-        if (Ammo) scene.ammo.addRigidBody(body.ammo);
-      });
-
-      _.each(objs.constraint, function (cons) {
-        if (Ammo) scene.ammo.addConstraint(cons.ammo);
-      });
-    }
-
-    loadSystem(objects);
-  }
-
   function copyPhysicsToThree(body) {
     body.three.position.x = body.position.x;
     body.three.position.y = body.position.y;
@@ -810,6 +760,64 @@
         objs.body[id].quaternion.w = body.quaternion.w;
       });
     }
+  }
+
+  /**
+   * SIMULATION **************************************************************
+   */
+
+  function loadScene(json, options, jQuery) {
+    options = _.extend({
+      axisHelper: 0,
+      canvasContainer: 'body',
+      webWorker: false,
+      autoStart: false,
+      renderFrequency: 30
+    }, options || {});
+    if (!THREE) addLibrary(require('./lib/three.js'));
+    if (options.webWorker) {
+      createWorker();
+    } else {
+      if (!Ammo) addLibrary(require('./lib/ammo.js'));
+    }
+    module.exports.loadObjects(json, options); //works for worker as well
+    getSome('monitor');
+    _.each(objects.monitor, function(monitor){
+      jQuery(options.canvasContainer).append(monitor.renderer.three.domElement);
+      jQuery(monitor.renderer.three.domElement).attr('monitor', 'monitor');
+    });
+    if (options.autoStart) {
+      module.exports.startSimulation(options); //works for worker as well
+      startRender(options);
+    }
+  }
+
+  function loadObjects(script, options) {
+    options = _.extend({
+      axisHelper: 0
+    }, options || {});
+    var json = (typeof script == 'object') ? script : require(script);
+    unpack(json);
+    var scene = getSome('scene');
+    memo.scene = scene;
+    if (options.axisHelper) {
+      if (THREE) scene.three.add(new THREE.AxisHelper(options.axisHelper));
+    }
+
+    function loadSystem(objs) {
+      _.each(objs.system, loadSystem);
+
+      _.each(objs.body, function (body) {
+        if (THREE) scene.three.add(body.three);
+        if (Ammo) scene.ammo.addRigidBody(body.ammo);
+      });
+
+      _.each(objs.constraint, function (cons) {
+        if (Ammo) scene.ammo.addConstraint(cons.ammo);
+      });
+    }
+
+    loadSystem(objects);
   }
 
   function startSimulation(options) {
@@ -886,14 +894,16 @@
       renderFrequency: 30
     }, options || {});
     if (!camera) camera = require('./util/camera.js');
-    var monitor = getSome('monitor');
+    getSome('monitor');
     var scene = getSome('scene');
     var render = function () {
       memo.rstid = setTimeout(function () {
         memo.rafid = requestAnimationFrame(render);
       }, 1000 / options.renderFrequency);
-      camera.moveCamera(monitor.camera);
-      monitor.renderer.three.render(scene.three, monitor.camera.three);
+      _.each(objects.monitor, function(monitor){
+        camera.moveCamera(monitor.camera);
+        monitor.renderer.three.render(scene.three, monitor.camera.three);
+      });
     };
     render();
   }

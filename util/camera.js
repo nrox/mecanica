@@ -1,6 +1,9 @@
+
 module.exports = {
   moveCamera: function (camera) {
     var distance;
+    var phase = 0;
+    var time = new Date().getTime();
     if (camera.type == 'tracker') {
       var requiredPosition = camera.three.position.clone();
       var bodyPosition = camera.lookAt.three.position;
@@ -39,16 +42,13 @@ module.exports = {
       camera._lastLookAt = camera._lastLookAt || bodyPosition.clone();
       camera.three.lookAt(camera._lastLookAt.add(bodyPosition.clone().multiplyScalar(beta)).divideScalar(1 + beta));
 
+    } else if (camera.type == 'satellite'){
+      camera.three.position.x = camera.distance * Math.sin(phase + time / 2234);
+      camera.three.position.z = camera.distance * Math.cos(phase + time / 2234);
+      camera.three.position.y = 0.5 * camera.distance * Math.cos(phase + time / 3345);
+      camera.three.lookAt(camera.lookAt.three.position);
     } else {
-      var origin = new THREE.Vector3();
-      var phase = 0; //Math.PI * Math.random();
-      var time = new Date().getTime();
-      distance = 10;
-      camera.three.position.x = distance * Math.sin(phase + time / 12234);
-      camera.three.position.z = distance * Math.cos(phase + time / 12234);
-      camera.three.position.y = -1 + 2 * Math.cos(phase + time / 13345);
-      camera.three.lookAt(origin);
-
+      camera.three.lookAt(camera.lookAt);
     }
   }
 };

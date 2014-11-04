@@ -21,12 +21,12 @@ function makeTest(bodyOptions, floorOptions, title) {
     var body = factory.make('body', 'basic', bodyOptions);
     factory.make('body', 'basic', floorOptions);
     factory.make('monitor', {
-      camera: 'tracker', inertia: 0.5, lookAt: body.id
+      camera: 'tracker', inertia: 0.2, lookAt: body.id
     });
     var pack = factory.pack();
     factory.destroyAll();
     factory.loadScene(pack, {
-      webWorker: false,
+      webWorker: true,
       autoStart: true,
       canvasContainer: '#container'
     },$);

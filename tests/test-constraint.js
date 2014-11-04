@@ -21,11 +21,11 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     factory.make(connectorA);
     factory.make(connectorB);
     factory.make('constraint', type, constraint);
-    factory.make('monitor', {camera: 'tracker', lookAt: bodyA.id});
+    factory.make('monitor', {camera: 'satellite', lookAt: bodyA.id, distance: 15});
     var pack = factory.pack();
     factory.destroyAll();
     factory.loadScene(pack,{
-      webWorker: false,
+      webWorker: true,
       autoStart: true,
       canvasContainer: '#container'
     }, $);
@@ -41,7 +41,8 @@ function addAllTests() {
     position: {  x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
-    mass: 0
+    mass: 0,
+    axisHelper: 4
   };
   var bodyB = {
     id: 'b',
@@ -51,7 +52,8 @@ function addAllTests() {
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
-    mass: 1
+    mass: 1,
+    axisHelper: 3
   };
   var connectorA = {
     id: 'cA',
