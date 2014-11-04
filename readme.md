@@ -45,3 +45,5 @@ Load the predefined script.js with the world description
 * experiment with soft bodies
 
 * add convex shapes
+
+* proper test for gear constraint

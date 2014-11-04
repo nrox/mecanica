@@ -7,7 +7,7 @@ var test = {
     utils.checkKeys(Ammo, [
       'btBoxShape', 'btCompoundShape', 'btCylinderShape', 'btGeneric6DofConstraint',
       'btCollisionDispatcher', 'btDbvtBroadphase', 'btHingeConstraint', 'btPoint2PointConstraint',
-      'btQuaternion', 'btRigidBody', 'btSliderConstraint', 'btSphereShape', 'btTransform',
+      'btQuaternion', 'btRigidBody', 'btSliderConstraint', 'btGearConstraint', 'btSphereShape', 'btTransform',
       'btVector3', 'btVector4', 'btDiscreteDynamicsWorld', 'btConeShape'
     ], 'important constructors');
   },

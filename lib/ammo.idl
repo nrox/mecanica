@@ -447,6 +447,11 @@ interface btSliderConstraint {
 };
 btSliderConstraint implements btTypedConstraint;
 
+interface btGearConstraint {
+  void btGearConstraint ([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const, Ref] btVector3 axisInA, [Const, Ref] btVector3 axisInB, float ratio);
+};
+btGearConstraint implements btTypedConstraint;
+
 interface btConstraintSolver {
 };
 

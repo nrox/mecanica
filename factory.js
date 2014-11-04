@@ -248,7 +248,8 @@
           bodyA: undefined, //bodyA id
           bodyB: undefined, //bodyB id
           a: undefined, //connector id, in body A
-          b: undefined //connector id, in body B
+          b: undefined, //connector id, in body B
+          ratio: undefined
         });
         notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
         if (Ammo) {
@@ -277,6 +278,15 @@
           this.ammo = new Ammo.btHingeConstraint(
             this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
             this.a.up.ammo, this.b.up.ammo
+          );
+        }
+      },
+      gear: function (options) {
+        constructor.constraint._abstract.call(this, options);
+        notifyUndefined(this, ['ratio']);
+        if (Ammo) {
+          this.ammo = new Ammo.btGearConstraint(
+            this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
           );
         }
       },
