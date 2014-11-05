@@ -16,6 +16,7 @@ function clearObjects() {
 
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
+    factory.setScope(type);
     factory.make(bodyB);
     factory.make(bodyA);
     factory.make(connectorA);
@@ -98,15 +99,15 @@ function addAllTests() {
   type = 'slider';
   ca = utils.deepCopy(connectorA);
   cb = utils.deepCopy(connectorB);
-  ca.base = {x: -1, y: -1, z: 0};
+  ca.base = {x: 0, y: 0, z: 0};
   ca.up = {z: 1};
   ca.front = {y: 1};
-  cb.base = {x: 1, y: 1, z: 0};
+  cb.base = {x: 0, y: 0, z: -5};
   cb.up = {z: 1};
   cb.front = {y: 1};
-  var bodyACopy = utils.deepCopy(bodyA);
-  bodyACopy.rotation.z = 0.04;
-  test[type] = makeTest(bodyACopy, bodyB, ca, cb, type, constraintOptions);
+  var bodyBCopy = utils.deepCopy(bodyB);
+  bodyBCopy.position = {z: -5, x:4, y: 5};
+  test[type] = makeTest(bodyA, bodyBCopy, ca, cb, type, constraintOptions);
 
   type = 'gear';
   ca = utils.deepCopy(connectorA);

@@ -7,11 +7,10 @@
 (function () {
   var _ = require('./lib/underscore.js');
   var utils = require('./util/utils.js');
-  var memo = {};
   var Ammo, THREE;
   var camera;
   var worker;
-  var debug = false;
+  var debug = true;
   var UNDEFINED = undefined;
   var SYSTEM = 'system';
 
@@ -27,6 +26,28 @@
     monitor: {}, //set of camera + renderer
     scene: {} //here ?
   };
+
+  //collection of isolated objects, allows to have parallel worlds
+  var scope = {
+    undefined: objects
+  };
+
+  function newScope(name, obj) {
+    if (!obj) {
+      obj = {};
+      _.each(objects, function (v, k) {
+        obj[k] = {};
+      });
+    }
+    scope[name] = obj;
+  }
+
+  function setScope(name) {
+    if (!scope[name]) {
+      newScope(name);
+    }
+    objects = scope[name];
+  }
 
   /**
    * arguments for this function are keys leading to the deep nested element in object
@@ -305,9 +326,9 @@
           var basis = transformA.getBasis();
           //set the new coordinate system and swap x, y
           basis.setValue(
-            xAxis.x(), xAxis.y(), xAxis.z(),
-            yAxis.x(), yAxis.y(), yAxis.z(),
-            zAxis.x(), zAxis.y(), zAxis.z()
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
           );
           transformA.setBasis(basis);
 
@@ -321,9 +342,9 @@
           basis = transformB.getBasis();
           //set the new coordinate system and swap x, y
           basis.setValue(
-            xAxis.x(), xAxis.y(), xAxis.z(),
-            yAxis.x(), yAxis.y(), yAxis.z(),
-            zAxis.x(), zAxis.y(), zAxis.z()
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
           );
           transformB.setBasis(basis);
 
@@ -450,7 +471,7 @@
     constraint: {
       removeConstraint: function () {
         var c = getObject.apply(null, arguments);
-        if (c && Ammo) memo.scene.ammo.removeConstraint(c.ammo);
+        if (c && Ammo) c.scene.ammo.removeConstraint(c.ammo);
       }
     }
   };
@@ -470,9 +491,10 @@
     },
     constraint: function (obj) {
       if (Ammo) {
-        if (memo.scene && memo.scene.ammo) memo.scene.ammo.removeConstraint(obj.ammo);
+        if (obj.scene) obj.scene.ammo.removeConstraint(obj.ammo);
         Ammo.destroy(obj.ammo);
         delete obj.ammo;
+        //delete obj.scene;
       }
       delete obj.a;
       delete obj.b;
@@ -535,7 +557,14 @@
   }
 
   function destroyAll() {
-    _.each(objects, function (group) {
+    //console.log(utils.stringify(objects));
+    _.each(objects, function (group, groupName) {
+      /*      if (true && debug) {
+       console.log('destroying ' + groupName + ' group');
+       if (groupName=='scene'){
+       console.log(utils.stringify(group));
+       }
+       }*/
       _.each(group, function (obj) {
         destroy(obj);
       });
@@ -792,7 +821,7 @@
     }
     module.exports.loadObjects(json, options); //works for worker as well
     getSome('monitor');
-    _.each(objects.monitor, function(monitor){
+    _.each(objects.monitor, function (monitor) {
       jQuery(options.canvasContainer).append(monitor.renderer.three.domElement);
       jQuery(monitor.renderer.three.domElement).attr('monitor', 'monitor');
     });
@@ -809,7 +838,6 @@
     var json = (typeof script == 'object') ? script : require(script);
     unpack(json);
     var scene = getSome('scene');
-    memo.scene = scene;
     if (options.axisHelper) {
       if (THREE) scene.three.add(new THREE.AxisHelper(options.axisHelper));
     }
@@ -823,7 +851,10 @@
       });
 
       _.each(objs.constraint, function (cons) {
-        if (Ammo) scene.ammo.addConstraint(cons.ammo);
+        if (Ammo) {
+          scene.ammo.addConstraint(cons.ammo);
+          cons.scene = scene;
+        }
       });
     }
 
@@ -875,11 +906,11 @@
     var simulate = function () {
 
       //prepare next call
-      memo.stid = setTimeout(simulate, 1000 / options.simFrequency);
+      scene._stid = setTimeout(simulate, 1000 / options.simFrequency);
       //compute time since last call
       var curTime = (new Date()).getTime() / 1000;
-      var dt = curTime - memo.lastTime;
-      memo.lastTime = curTime;
+      var dt = curTime - scene._lastTime;
+      scene._lastTime = curTime;
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * options.simSpeed * 60 * dt + 2);
@@ -890,13 +921,14 @@
         post(['transfer', packet], 'transfer physics', nextId('transfer_'));
       }
     };
-    memo.lastTime = (new Date()).getTime() / 1000;
+    scene._lastTime = (new Date()).getTime() / 1000;
     stopSimulation(); //make sure is stopped
     simulate(); //then go
   }
 
   function stopSimulation() {
-    clearTimeout(memo.stid);
+    var scene = getSome('scene');
+    clearTimeout(scene._stid);
   }
 
   function startRender(options) {
@@ -907,10 +939,10 @@
     getSome('monitor');
     var scene = getSome('scene');
     var render = function () {
-      memo.rstid = setTimeout(function () {
-        memo.rafid = requestAnimationFrame(render);
+      scene._rstid = setTimeout(function () {
+        scene._rafid = requestAnimationFrame(render);
       }, 1000 / options.renderFrequency);
-      _.each(objects.monitor, function(monitor){
+      _.each(objects.monitor, function (monitor) {
         camera.moveCamera(monitor.camera);
         monitor.renderer.three.render(scene.three, monitor.camera.three);
       });
@@ -919,8 +951,9 @@
   }
 
   function stopRender() {
-    cancelAnimationFrame(memo.rafid);
-    clearTimeout(memo.rstid);
+    var scene = getSome('scene');
+    cancelAnimationFrame(scene._rafid);
+    clearTimeout(scene._rstid);
   }
 
   /**
@@ -1003,7 +1036,8 @@
     'destroy',
     'destroyAll',
     'startSimulation',
-    'stopSimulation'
+    'stopSimulation',
+    'setScope'
   ];
 
   //wrap functions to send commands to worker as well
@@ -1055,7 +1089,8 @@
     createWorker: createWorker,
     dismissWorker: dismissWorker,
     hasWorker: hasWorker,
-    transfer: transfer
+    transfer: transfer,
+    setScope: setScope
   };
 
   return module.exports;
