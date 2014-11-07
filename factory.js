@@ -708,6 +708,7 @@
     var cons = constructor[group] && constructor[group][type];
     var obj;
     if (typeof cons == 'function') {
+      if (typeof(options)!='object') options = {};
       if (!options.id) options.id = nextId(type);
       obj = new cons(options);
       if (group !== SYSTEM) obj.group = group;

@@ -26,7 +26,7 @@ h3 {
     color: #ccc;
 }
 
-button, a.test {
+button, a.test, select {
     display:inline-block;
     margin: 3px;
     padding: 3px 13px;
@@ -45,6 +45,13 @@ canvas {
     border: 1px solid #eee;
     width: 90%;
     height: 95%;
+}
+
+
+
+option {
+    color: white;
+
 }
 
 table.results {

@@ -1,5 +1,4 @@
 availablePaths = [
-"..//director.js",
 "..//examples",
 "..//factory.js",
 "..//images",
@@ -28,7 +27,6 @@ availablePaths = [
 "../tests/test-ammo.js",
 "../tests/test-collision.js",
 "../tests/test-constraint.js",
-"../tests/test-director.js",
 "../tests/test-factory.js",
 "../tests/test-require.js",
 "../tests/test-shapes.js",
@@ -41,6 +39,8 @@ availablePaths = [
 "../util/test.js",
 "../util/utils.js",
 "../util/worker-web.js",
+"../ware/basic2.js",
 "../ware/basic.js",
+"../ware/loader.html",
 "../ware/readme.md",
 ]

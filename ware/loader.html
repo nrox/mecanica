@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title class='title'>ware loader</title>
+    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
+    <link rel='icon' type='image/png' href='../images/gear2.png'>
+    <script src='../lib/jquery.js'></script>
+    <script src='../lib/underscore.js'></script>
+    <script src='../util/require.js'></script>
+</head>
+
+<body>
+<p>
+    <a href='../'>../</a> <a href=''>reload</a>
+</p>
+
+<p>ware/
+    <select id='list'>
+    </select>
+    <button onclick='loadFile();'>load</button>
+</p>
+<script>
+    function reload() {
+        location.href = '';
+    }
+    function loadList() {
+        var url = requireURL('ware');
+        var list = [];
+        $.ajax(url, {
+            async: false,
+            dataType: 'text',
+            success: function (data) {
+                //console.log(data);
+                var nodes = $.parseHTML(data);
+                $.map($(nodes).filter('table').find('a'), function (a) {
+                    var someChars = "asdasd56ghZujdd";
+                    var name = $(a).text();
+                    var check = name + someChars;
+                    if (check.lastIndexOf('.js' + someChars) > -1) {
+                        list.push(name);
+                    }
+                });
+            }
+        });
+        return list.sort();
+    }
+    function makeList(list) {
+        $list = $('#list');
+        _.each(list, function (file) {
+            var o = new Option(file, ('ware/' + file), undefined, undefined);
+            $list.append(o);
+        });
+    }
+    function loadFile(){
+        factory.destroyAll();
+        $('[monitor]').remove();
+        var file = $('#list').val();
+        console.info(file);
+        var json = require(file);
+        factory.setScope(file);
+        factory.loadScene(json, {webWorker: true, axisHelper: 5}, $);
+        factory.startSimulation();
+        factory.startRender();
+    }
+</script>
+<script>
+    var factory = require('../factory.js');
+    var utils = require('./utils.js');
+    makeList(loadList());
+</script>
+</body>
+</html>
