@@ -25,7 +25,7 @@
         location.href = '';
     }
     function loadList() {
-        var url = requireURL('ware');
+        var url = requireURL('ware/');
         var list = [];
         $.ajax(url, {
             async: false,
@@ -43,6 +43,13 @@
                 });
             }
         });
+        if (!list.length) {
+            list = _.filter(availablePaths(), function (p) {
+                if ((p.indexOf('ware/') == 0) && p.indexOf('.js') > 0) {
+                    return p;
+                }
+            });
+        }
         return list.sort();
     }
     function makeList(list) {
@@ -52,7 +59,7 @@
             $list.append(o);
         });
     }
-    function loadFile(){
+    function loadFile() {
         factory.destroyAll();
         $('[monitor]').remove();
         var file = $('#list').val();

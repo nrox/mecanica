@@ -59,6 +59,10 @@
     return undefined;
   }
 
+  window.availablePaths = function () {
+    return availablePaths;
+  };
+
   window.requireURL = function (script) {
     return httpRoot() + requiredPath(script);
   };
