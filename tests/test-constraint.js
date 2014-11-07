@@ -8,8 +8,6 @@ var test = {
 };
 
 function clearObjects() {
-  factory.stopSimulation();
-  factory.stopRender();
   factory.destroyAll();
   $('[monitor]').remove();
 }
@@ -17,15 +15,20 @@ function clearObjects() {
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
     factory.setScope(type);
-    factory.make(bodyB);
-    factory.make(bodyA);
-    factory.make(connectorA);
-    factory.make(connectorB);
-    factory.make('constraint', type, constraint);
-    factory.make('monitor', {camera: 'satellite', lookAt: bodyA.id, distance: 15});
-    var pack = factory.pack();
-    factory.destroyAll();
-    factory.loadScene(pack,{
+    var pack = {}
+    pack.scene = {s1: {}};
+    pack.body = {};
+    pack.body[bodyA.id] = bodyA;
+    pack.body[bodyB.id] = bodyB;
+    pack.connector = {};
+    pack.connector[connectorA.id] = connectorA;
+    pack.connector[connectorB.id] = connectorB;
+    pack.constraint = {};
+    constraint = utils.deepCopy(constraint);
+    constraint.type = type;
+    pack.constraint[constraint.id] = constraint;
+    pack.monitor = {m1:  {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
+    factory.loadScene(pack, {
       webWorker: true,
       autoStart: true,
       canvasContainer: '#container'
@@ -106,7 +109,7 @@ function addAllTests() {
   cb.up = {z: 1};
   cb.front = {y: 1};
   var bodyBCopy = utils.deepCopy(bodyB);
-  bodyBCopy.position = {z: -5, x:4, y: 5};
+  bodyBCopy.position = {z: -5, x: 4, y: 5};
   test[type] = makeTest(bodyA, bodyBCopy, ca, cb, type, constraintOptions);
 
   type = 'gear';
@@ -121,6 +124,6 @@ function addAllTests() {
 }
 
 addAllTests();
-//test.all = utils.all(test, 1);
+test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

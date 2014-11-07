@@ -6,25 +6,23 @@ var test = {
 };
 
 function clearObjects() {
-  factory.stopSimulation();
-  factory.stopRender();
   factory.destroyAll();
   $('[monitor]').remove();
 }
 
 function makeTest(bodyOptions, floorOptions, title) {
   return function () {
-
+    factory.setScope(title);
     bodyOptions.rotation.x = 2 * Math.PI * Math.random();
     bodyOptions.rotation.y = 2 * Math.PI * Math.random();
     bodyOptions.rotation.z = 0;
-    var body = factory.make('body', 'basic', bodyOptions);
-    factory.make('body', 'basic', floorOptions);
-    factory.make('monitor', {
-      camera: 'tracker', inertia: 0.2, lookAt: body.id
+    var pack = {};
+    factory.updatePack(pack, 'scene', {});
+    factory.updatePack(pack, 'body', 'basic', bodyOptions);
+    factory.updatePack(pack, 'body', 'basic', floorOptions);
+    factory.updatePack(pack, 'monitor', {
+      camera: 'tracker', inertia: 0.2, lookAt: bodyOptions.id
     });
-    var pack = factory.pack();
-    factory.destroyAll();
     factory.loadScene(pack, {
       webWorker: true,
       autoStart: true,
@@ -35,6 +33,7 @@ function makeTest(bodyOptions, floorOptions, title) {
 
 function addAllTests() {
   var body = {
+    id: 'body1',
     shape: {
       type: undefined,
       r: 1, dx: 1, dy: 1.2, dz: 1.4,
@@ -92,6 +91,6 @@ function addAllTests() {
 }
 
 addAllTests();
-//test.all = utils.all(test, 1);
+test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;
