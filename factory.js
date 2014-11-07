@@ -482,8 +482,7 @@
   var method = {
     constraint: {
       removeConstraint: function () {
-        var c = getObject.apply(null, arguments);
-        if (c && Ammo) getScene().ammo.removeConstraint(c.ammo);
+        destroy(getObject.apply(null, arguments));
       }
     }
   };
@@ -504,9 +503,19 @@
       }
     },
     body: function (obj) {
-      _.each(obj.connector, function (c, id) {
-        destructor.connector(c);
+      _.each(obj.connector, function (c) {
+        destroy(c);
       });
+      var scene = getScene();
+      if (THREE) {
+        scene.three.remove(obj.three);
+        obj.three.geometry.dispose();
+        obj.three.material.dispose();
+      }
+      if (Ammo) {
+        scene.ammo.removeRigidBody(obj.ammo);
+        Ammo.destroy(obj.ammo);
+      }
     },
     monitor: function (obj) {
     },
@@ -521,9 +530,9 @@
         clearTimeout(scene._rstid);
         while (scene.three.children.length) {
           var child = scene.three.children[0];
+          scene.three.remove(child);
           child.geometry.dispose();
           child.material.dispose();
-          scene.three.remove(child);
         }
       }
       //TODO miss something ?
@@ -765,7 +774,7 @@
     return make(group, '_default');
   }
 
-  function getScene(){
+  function getScene() {
     return getSome('scene');
   }
 
@@ -1031,7 +1040,7 @@
 
   function stopRender() {
     var scene = getScene();
-    scene && (typeof(cancelAnimationFrame)!='undefined') && cancelAnimationFrame(scene._rafid);
+    scene && (typeof(cancelAnimationFrame) != 'undefined') && cancelAnimationFrame(scene._rafid);
     scene && clearTimeout(scene._rstid);
   }
 
