@@ -47,3 +47,5 @@ Load the predefined script.js with the world description
 * add convex shapes
 
 * proper test for gear constraint
+
+* fix worker tests

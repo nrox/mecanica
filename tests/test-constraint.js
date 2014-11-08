@@ -9,13 +9,12 @@ var test = {
 
 function clearObjects() {
   factory.destroyAll();
-  $('[monitor]').remove();
 }
 
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
   return function () {
     factory.setScope(type);
-    var pack = {}
+    var pack = {};
     pack.scene = {s1: {}};
     pack.body = {};
     pack.body[bodyA.id] = bodyA;
@@ -32,7 +31,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
       webWorker: true,
       autoStart: true,
       canvasContainer: '#container'
-    }, $);
+    });
   };
 }
 

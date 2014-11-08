@@ -27,12 +27,13 @@ h3 {
 }
 
 button, a.test, select {
+    min-width: 200px;
     display:inline-block;
     margin: 3px;
     padding: 3px 13px;
     cursor: pointer;
     border: 1px solid #aaa;
-    background: #151515;
+    background: #353535;
     color: #eee;
     border-radius: 3px;
     font-family: monospace;

@@ -7,7 +7,6 @@ var test = {
 
 function clearObjects() {
   factory.destroyAll();
-  $('[monitor]').remove();
 }
 
 function makeTest(bodyOptions, floorOptions, title) {

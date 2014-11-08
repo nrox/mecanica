@@ -15,7 +15,7 @@
     <a href='../'>../</a> <a href=''>reload</a>
 </p>
 
-<p>ware/
+<p>
     <select id='list'>
     </select>
     <button onclick='loadFile();'>load</button>
@@ -38,7 +38,7 @@
                     var name = $(a).text();
                     var check = name + someChars;
                     if (check.lastIndexOf('.js' + someChars) > -1) {
-                        list.push(name);
+                        list.push('ware/' + name);
                     }
                 });
             }
@@ -55,7 +55,7 @@
     function makeList(list) {
         $list = $('#list');
         _.each(list, function (file) {
-            var o = new Option(file, ('ware/' + file), undefined, undefined);
+            var o = new Option(file, file, undefined, undefined);
             $list.append(o);
         });
     }
@@ -64,7 +64,7 @@
         $('[monitor]').remove();
         var file = $('#list').val();
         console.info(file);
-        var json = require(file);
+        var json = require('../' + file);
         factory.setScope(file);
         factory.loadScene(json, {webWorker: true, axisHelper: 5}, $);
         factory.startSimulation();
