@@ -40,7 +40,7 @@ availablePaths = [
 "../util/utils.js",
 "../util/worker-web.js",
 "../ware/basic2.js",
-"../ware/basic.js",
+"../ware/random-shapes.js",
 "../ware/loader.html",
 "../ware/readme.md",
 ]

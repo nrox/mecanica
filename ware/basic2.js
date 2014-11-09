@@ -1,6 +1,6 @@
 module.exports = {
   shape: {
-    id1: { type: 'sphere', dx: 1, dy: 2, dz: 2, segments: 4 },
+    id1: { type: 'sphere', r: 2, segments: 16 },
     id2: { type: 'sphere', r: 1, segments: 8 }
   },
   material: {

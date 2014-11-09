@@ -34,11 +34,12 @@ var test = {
   },
 
   'warehouse': function () {
-    var basic = require('../ware/basic.js');
+    var basic = require('../ware/basic2.js');
     utils.checkKeys(basic, ['scene'], 'scene property');
     factory.destroyAll();
+    factory.makeSome('settings');
     factory.unpack(basic);
-    utils.checkKeys(factory.objects.body, ['id5', 'id6'], 'some basic.js ids');
+    utils.checkKeys(factory.objects.body, ['id5', 'id6'], 'some basic2.js ids');
   },
 
   'shape.box': function () {

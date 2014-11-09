@@ -28,6 +28,8 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     pack.constraint[constraint.id] = constraint;
     pack.monitor = {m1:  {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
     factory.loadScene(pack, {
+      axisHelper: 1.3,
+      wireframe: true,
       webWorker: true,
       autoStart: true,
       canvasContainer: '#container'
@@ -44,8 +46,7 @@ function addAllTests() {
     position: {  x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x338855},
-    mass: 0,
-    axisHelper: 4
+    mass: 0
   };
   var bodyB = {
     id: 'b',
@@ -55,8 +56,7 @@ function addAllTests() {
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'basic', wireframe: true, color: 0x991122},
-    mass: 1,
-    axisHelper: 3
+    mass: 1
   };
   var connectorA = {
     id: 'cA',

@@ -53,7 +53,7 @@
         return list.sort();
     }
     function makeList(list) {
-        $list = $('#list');
+        var $list = $('#list');
         _.each(list, function (file) {
             var o = new Option(file, file, undefined, undefined);
             $list.append(o);
@@ -61,12 +61,11 @@
     }
     function loadFile() {
         factory.destroyAll();
-        $('[monitor]').remove();
         var file = $('#list').val();
         console.info(file);
         var json = require('../' + file);
         factory.setScope(file);
-        factory.loadScene(json, {webWorker: true, axisHelper: 5}, $);
+        factory.loadScene(json, {webWorker: true, axisHelper: 5});
         factory.startSimulation();
         factory.startRender();
     }
