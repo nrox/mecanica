@@ -25,6 +25,7 @@ function makeTest(bodyOptions, floorOptions, title) {
     factory.loadScene(pack, {
       webWorker: true,
       autoStart: true,
+      wireframe: true,
       canvasContainer: '#container'
     },$);
   };
@@ -40,7 +41,7 @@ function addAllTests() {
     },
     position: { x: 0.2, y: 5, z: 0.5 },
     rotation: { x: undefined, y: undefined, z: 0 },
-    material: {type: 'basic', wireframe: true, color: 0x991122},
+    material: {type: 'basic', color: 0x991122},
     mass: 0.1
   };
   var floor = {
@@ -54,7 +55,7 @@ function addAllTests() {
       y: undefined,
       z: 0.1
     },
-    material: {type: 'basic', wireframe: true, color: 0x338855},
+    material: {type: 'basic', color: 0x338855},
     mass: 0
   };
   var bodySegments = {

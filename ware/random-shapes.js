@@ -1,9 +1,14 @@
 var utils = require('../util/utils.js');
 module.exports.getObject = function () {
   return {
+    settings: {
+      over: {
+        wireframe: false
+      }
+    },
     shape: {
       id1: {
-        type: utils.randomItem(['box','cone','sphere','cylinder']),
+        type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
         dx: utils.randomLinear(1, 2),
         dy: utils.randomLinear(1, 2),
         dz: utils.randomLinear(1, 2),
@@ -11,7 +16,7 @@ module.exports.getObject = function () {
         segments: ~~utils.randomLinear(8, 16)
       },
       id2: {
-        type: utils.randomItem(['box','cone','sphere','cylinder']),
+        type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
         dx: utils.randomLinear(1, 2),
         dy: utils.randomLinear(1, 2),
         dz: utils.randomLinear(1, 2),
@@ -20,8 +25,8 @@ module.exports.getObject = function () {
       }
     },
     material: {
-      id3: { wireframe: true, color: utils.randomColor() },
-      id4: { wireframe: true, color: utils.randomColor() }
+      id3: {color: utils.randomColor() },
+      id4: {color: utils.randomColor() }
     },
     body: {
       id5: { mass: 0, shape: 'id1', material: 'id4'},

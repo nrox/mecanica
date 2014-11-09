@@ -207,13 +207,15 @@
       },
       basic: function (options) {
         include(this, options, {
-          friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, wireframe: false
+          friction: 0.3, restitution: 0.2,
+          color: 0x333333, opacity: 1, wireframe: getSettings().wireframe
         });
         if (THREE) this.three = new THREE.MeshBasicMaterial(opt(this));
       },
       phong: function (options) {
         include(this, options, {
-          friction: 0.3, restitution: 0.2, color: 0x333333, opacity: 1, emissive: 0x345678
+          friction: 0.3, restitution: 0.2,
+          color: 0x333333, opacity: 1, emissive: 0x345678
         });
         if (THREE) this.three = new THREE.MeshPhongMaterial(opt(this));
       }
@@ -222,14 +224,33 @@
       _default: function (options) {
         constructor.body.basic.call(this, options);
       },
+      composite: function(options){
+        include(this, options, {
+          shape: {type: 'box'},
+          material: {type: 'basic', wireframe: false, color: 0x999999},
+          mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
+          connector: {}, axisHelper: getSettings().axisHelper,
+          children: {}
+        });
+        //TODO ammo and three have different ways to add children
+        //three: mesh; ammo: shape
+        var ch = {}; //don't override _options.children
+        _.each(this.children, function(c, id){
+          c._donSave = true;
+          c.id = id;
+          //ch[id] = make('body', c);
+        });
+        this.children = ch; //don't override _options.children
+      },
       basic: function (options) {
         include(this, options, {
           shape: {type: 'box'},
           material: {type: 'basic', wireframe: false, color: 0x999999},
           mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
-          connector: undefined, axisHelper: undefined
+          connector: {}, axisHelper: getSettings().axisHelper
         });
         var shape;
+        var _this = this;
         if (typeof this.shape == 'string') { //get from objects with id
           shape = getObject('shape', this.shape);
         } else { //make from options
@@ -251,7 +272,7 @@
         }
         if (THREE) {
           this.three = new THREE.Mesh(shape.three, material.three);
-          if (getSettings().axisHelper) {
+          if (this.axisHelper) {
             shape.three.computeBoundingSphere();
             var r = shape.three.boundingSphere.radius * 1.5;
             this.three.add(new THREE.AxisHelper(r));
@@ -270,6 +291,12 @@
           var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, shape.ammo, inertia);
           this.ammo = new Ammo.btRigidBody(rbInfo);
         }
+        _.each(this.connector, function(c, id){
+          c.bodyObject =  _this;
+          c.body = _this.id;
+          c.id = id;
+          make('connector', c);
+        });
       }
     },
     //reference for constraints, allowing to define axis and base of movements
@@ -286,9 +313,8 @@
           front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
         });
         notifyUndefined(this, ['body', 'base', 'up', 'front']);
-        var body = getObject('body', this.body);
+        var body = options.bodyObject || getObject('body', this.body);
         if (body) {
-          if (!body.connector) body.connector = {};
           body.connector[this.id] = this;
           this.body = body;
           this.base = make('physics', 'position', this.base);
@@ -772,7 +798,7 @@
       obj = new cons(options);
       if (group !== SYSTEM) obj.group = group;
       if (group !== SYSTEM) obj.type = type;
-      if (objects[group]) objects[group][obj.id] = obj;
+      if (!options._donSave && objects[group]) objects[group][obj.id] = obj;
       debug && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(opt(obj)));
     } else {
       console.warn('incapable of making object:');

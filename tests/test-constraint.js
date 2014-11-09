@@ -45,7 +45,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 16 },
     position: {  x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'basic', wireframe: true, color: 0x338855},
+    material: {type: 'basic', color: 0x338855},
     mass: 0
   };
   var bodyB = {
@@ -55,7 +55,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 16 },
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'basic', wireframe: true, color: 0x991122},
+    material: {type: 'basic', color: 0x991122},
     mass: 1
   };
   var connectorA = {
