@@ -21,7 +21,31 @@ function shape(type) {
           },
           children: {
             c1: {
-              type: 'sphere', r: 1
+              type: 'box',
+              segments: 4,
+              r: 1,
+              dx: 2, dy: 2, dz: 2,
+              rotation: {x: 1, y: 1, z: 1},
+              position: {y: 0.3, z: 0.5, x: 1}
+            },
+            c2: {
+              type: 'compound',
+              position: {y: -0.3, z: -0.5, x: -1},
+              rotation: {x: 1, y: 2, z: 1},
+              parent: {
+                type: 'cone',
+                segments: 16,
+                r: 2,
+                dy: 5
+              },
+              children: {
+                c3: {
+                  type: 'sphere',
+                  segments: 8,
+                  r: 1,
+                  position: {y: 3}
+                }
+              }
             }
           }
         }

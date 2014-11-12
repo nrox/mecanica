@@ -47,7 +47,8 @@ function addAllTests() {
       //for compound only
       children: {
         box :{
-          type: 'box', dx: 1, dy: 1.2, dz: 1.4, segments: 4
+          type: 'box', dx: 1, dy: 1.2, dz: 1.4, segments: 4,
+          rotation: {x: 1}, position: {z: 0.5}
         }
       }
     },

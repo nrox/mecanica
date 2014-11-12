@@ -222,18 +222,21 @@
         _.each(this.children, function(childOptions){
           childOptions._dontSave = true;
           var child = make('shape', childOptions);
+          var pos = make('physics','position', childOptions.position || {});
+          var qua = make('physics','quaternion', childOptions.rotation || {});
           if (Ammo){
               var transChild = new Ammo.btTransform;
               transChild.setIdentity();
-              //transChild.setOrigin();
-              //transChild.setRotation();
+              transChild.setRotation(qua.ammo);
+              transChild.setOrigin(pos.ammo);
               compound.addChildShape(transChild, child.ammo);
               Ammo.destroy(transChild);
-
           }
           if (THREE){
-            //TODO rotation, position
-            _this.parent.three.merge(child.three);
+            var tc = new THREE.Matrix4;
+            tc.makeRotationFromQuaternion(qua.three);
+            tc.setPosition(pos.three);
+            _this.parent.three.merge(child.three, tc);
           }
         });
         if (Ammo){
