@@ -123,6 +123,6 @@ function addAllTests() {
 }
 
 addAllTests();
-test.all = utils.all(test, 1);
+//test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

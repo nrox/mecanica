@@ -1,5 +1,3 @@
-
-
 var utils = require('../util/test.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
@@ -11,22 +9,48 @@ factory.addLibrary(three);
 
 function shape(type) {
   return function () {
-    var parameters = {
-      dx: 3,
-      dy: 5,
-      r: 4
+    var obj = {
+      shape: {
+        shape0: {
+          segments: 12,
+          dx: 3,
+          dy: 5,
+          r: 4,
+          parent: {
+            type: 'box', dx: 5, dy: 1, dz: 1, segments: 2
+          },
+          children: {
+            c1: {
+              type: 'sphere', r: 1
+            }
+          }
+        }
+      },
+      body: {
+        body0: {
+          shape: 'shape0'
+        }
+      },
+      monitor: {
+        m1: {
+          camera: 'satellite', inertia: 0.2, lookAt: 'body0'
+        }
+      }
     };
-    var obj = factory.make('shape', type, parameters);
-    /*
-     util.logKeys(obj, type + ' properties');
-     util.logKeys(obj.prototype, type + '.prototype properties');
-     util.logKeys(obj.ammo, type + '.ammo properties');
-     util.logKeys(obj.three, type + '.three properties');
-     */
-    utils.checkValues(obj,
-      _.pick(parameters, _.keys(factory.options(obj))),
-      'checking ' + type + ' values');
+    obj.shape.shape0.type = type;
+    factory.setScope(type);
+    factory.loadScene(obj, {
+      webWorker: false,
+      autoStart: true,
+      wireframe: true,
+      axisHelper: true,
+      canvasContainer: '#container'
+    });
   };
+}
+
+function clearObjects() {
+  factory.destroyAll();
 }
 
 var test = {
@@ -38,4 +62,4 @@ _.each(factory.constructor.shape, function (cons, type) {
 
 test.all = utils.all(test);
 module.exports.test = test;
-utils.run(test, process.argv, __filename);
+module.exports.clearObjects = clearObjects;

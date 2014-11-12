@@ -20,14 +20,15 @@ function makeTest(bodyOptions, floorOptions, title) {
     factory.updatePack(pack, 'body', 'basic', bodyOptions);
     factory.updatePack(pack, 'body', 'basic', floorOptions);
     factory.updatePack(pack, 'monitor', {
-      camera: 'tracker', inertia: 0.2, lookAt: bodyOptions.id
+      camera: 'satellite', inertia: 0.2, lookAt: bodyOptions.id
     });
     factory.loadScene(pack, {
-      webWorker: true,
+      webWorker: false,
       autoStart: true,
       wireframe: true,
+      axisHelper: true,
       canvasContainer: '#container'
-    },$);
+    });
   };
 }
 
@@ -37,7 +38,18 @@ function addAllTests() {
     shape: {
       type: undefined,
       r: 1, dx: 1, dy: 1.2, dz: 1.4,
-      segments: undefined
+      segments: undefined,
+      //for compound only
+      parent: {
+        type: 'cone',
+        r: 1, dx: 1, dy: 3, dz: 1.4, segments: 16
+      },
+      //for compound only
+      children: {
+        box :{
+          type: 'box', dx: 1, dy: 1.2, dz: 1.4, segments: 4
+        }
+      }
     },
     position: { x: 0.2, y: 5, z: 0.5 },
     rotation: { x: undefined, y: undefined, z: 0 },
@@ -48,7 +60,18 @@ function addAllTests() {
     shape: {
       type: undefined,
       dx: 10, dz: 5, dy: 2, r: 9,
-      segments: undefined
+      segments: undefined,
+      //for compound only
+      parent: {
+        type: 'cone',
+        dx: 10, dz: 5, dy: 5, r: 7, segments: 64
+      },
+      //for compound only
+      children: {
+        box :{
+          type: 'box', dx: 10, dz: 10, dy: 1, segments: 8
+        }
+      }
     },
     position: {
       x: 0.3,
@@ -62,21 +85,24 @@ function addAllTests() {
     box: 4,
     sphere: 16,
     cone: 32,
-    cylinder: 32
+    cylinder: 32,
+    compound: 32
   };
   var floorSegments = {
     box: 8,
     sphere: 32,
     cone: 64,
-    cylinder: 32
+    cylinder: 32,
+    compound: 64
   };
   var floorY = {
     box: -5,
     sphere: -10,
     cone: -3,
-    cylinder: -5
+    cylinder: -5,
+    compound: -3
   };
-  var shapes = ['box', 'sphere', 'cone', 'cylinder'];
+  var shapes = ['box', 'sphere', 'cone', 'cylinder', 'compound'];
   _.each(shapes, function (floorType) {
     _.each(shapes, function (bodyType) {
       floor.shape.type = floorType;
@@ -91,6 +117,6 @@ function addAllTests() {
 }
 
 addAllTests();
-test.all = utils.all(test, 1);
+//test.all = utils.all(test, 1);
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

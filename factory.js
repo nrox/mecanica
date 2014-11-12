@@ -199,6 +199,49 @@
         });
         if (Ammo) this.ammo = new Ammo.btConeShape(this.r, this.dy);
         if (THREE) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+      },
+      compound: function (options) {
+        include(this, options, {
+          parent: undefined, children: undefined
+        });
+        notifyUndefined(this, ['parent']);
+        if (typeof this.parent == 'string') {
+          this.parent = getObject('shape', this.parent);
+        } else {
+          this.parent = make('shape', this.parent);
+        }
+        var _this = this;
+        var compound;
+        var transParent;
+        if (Ammo){
+          compound = new Ammo.btCompoundShape;
+          transParent = new Ammo.btTransform;
+          transParent.setIdentity();
+          compound.addChildShape(transParent, this.parent.ammo);
+        }
+        _.each(this.children, function(childOptions){
+          childOptions._dontSave = true;
+          var child = make('shape', childOptions);
+          if (Ammo){
+              var transChild = new Ammo.btTransform;
+              transChild.setIdentity();
+              //transChild.setOrigin();
+              //transChild.setRotation();
+              compound.addChildShape(transChild, child.ammo);
+              Ammo.destroy(transChild);
+
+          }
+          if (THREE){
+            //TODO rotation, position
+            _this.parent.three.merge(child.three);
+          }
+        });
+        if (Ammo){
+          this.ammo = compound;
+        }
+        if (THREE){
+          this.three = this.parent.three;
+        }
       }
     },
     material: {
@@ -224,29 +267,11 @@
       _default: function (options) {
         constructor.body.basic.call(this, options);
       },
-      composite: function(options){
-        include(this, options, {
-          shape: {type: 'box'},
-          material: {type: 'basic', wireframe: false, color: 0x999999},
-          mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
-          connector: {}, axisHelper: getSettings().axisHelper,
-          children: {}
-        });
-        //TODO ammo and three have different ways to add children
-        //three: mesh; ammo: shape
-        var ch = {}; //don't override _options.children
-        _.each(this.children, function(c, id){
-          c._donSave = true;
-          c.id = id;
-          //ch[id] = make('body', c);
-        });
-        this.children = ch; //don't override _options.children
-      },
       basic: function (options) {
         include(this, options, {
           shape: {type: 'box'},
-          material: {type: 'basic', wireframe: false, color: 0x999999},
-          mass: 0.1, position: {}, quaternion: undefined, rotation: undefined,
+          material: {type: 'basic', wireframe: getSettings().wireframe, color: 0x999999},
+          mass: 0, position: {}, quaternion: undefined, rotation: undefined,
           connector: {}, axisHelper: getSettings().axisHelper
         });
         var shape;
@@ -291,8 +316,8 @@
           var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, shape.ammo, inertia);
           this.ammo = new Ammo.btRigidBody(rbInfo);
         }
-        _.each(this.connector, function(c, id){
-          c.bodyObject =  _this;
+        _.each(this.connector, function (c, id) {
+          c.bodyObject = _this;
           c.body = _this.id;
           c.id = id;
           make('connector', c);
@@ -798,7 +823,7 @@
       obj = new cons(options);
       if (group !== SYSTEM) obj.group = group;
       if (group !== SYSTEM) obj.type = type;
-      if (!options._donSave && objects[group]) objects[group][obj.id] = obj;
+      if (!options._dontSave && objects[group]) objects[group][obj.id] = obj;
       debug && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(opt(obj)));
     } else {
       console.warn('incapable of making object:');
@@ -992,7 +1017,7 @@
     }
     //if no settings or scene present, make one
     if (!_.size(obj.settings)) updatePack(obj, 'settings', defaultSettings);
-    if (!_.size(obj.scene)) updatePack(obj, 'scene');
+    if (!_.size(obj.scene)) updatePack(obj, 'scene', {});
     //override settings
     settings = _.extend(_.find(obj.settings, _.identity), settings);
     //add necessary libraries

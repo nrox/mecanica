@@ -76,7 +76,7 @@
    */
   window.require = function (script, arg) {
 
-    if (!arg) arg = undefined;
+    if (arg===undefined) arg = undefined;
 
     function fileName(script) {
       return script.substr(script.lastIndexOf('/') + 1);
