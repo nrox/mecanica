@@ -3,16 +3,17 @@ module.exports.getObject = function () {
   return {
     settings: {
       over: {
-        wireframe: false
+        wireframe: false,
+        webWorker: false
       }
     },
     shape: {
       id1: {
         type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
-        dx: utils.randomLinear(1, 2),
-        dy: utils.randomLinear(1, 2),
-        dz: utils.randomLinear(1, 2),
-        r: utils.randomLinear(0.5, 1),
+        dx: utils.randomLinear(1, 3),
+        dy: utils.randomLinear(1, 3),
+        dz: utils.randomLinear(1, 3),
+        r: utils.randomLinear(0.5, 2),
         segments: ~~utils.randomLinear(8, 16)
       },
       id2: {
@@ -25,8 +26,8 @@ module.exports.getObject = function () {
       }
     },
     material: {
-      id3: {color: utils.randomColor() },
-      id4: {color: utils.randomColor() }
+      id3: {type: 'phong', color: utils.randomColor() },
+      id4: {type: 'phong', color: utils.randomColor() }
     },
     body: {
       id5: { mass: 0, shape: 'id1', material: 'id4'},
@@ -46,6 +47,9 @@ module.exports.getObject = function () {
     },
     monitor: {
       cam: {camera: 'tracker', lookAt: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
+    },
+    light: {
+      l1: {type:'directional', color: 0xaaaaaa, position: {x: 5, y: 5, z: 5}}
     }
   };
 };

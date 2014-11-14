@@ -12,10 +12,11 @@ function shape(type) {
     var obj = {
       shape: {
         shape0: {
-          segments: 12,
+          segments: 24,
           dx: 3,
           dy: 5,
           r: 4,
+          //next objects are for compound
           parent: {
             type: 'box', dx: 5, dy: 1, dz: 1, segments: 2
           },
@@ -52,8 +53,15 @@ function shape(type) {
       },
       body: {
         body0: {
-          shape: 'shape0'
+          shape: 'shape0', material: {
+            type: 'phong', color: 0xf56677, opacity: 0.7, transparent: true
+          }
         }
+      },
+      light: {
+        l1: {position: {x: 5, z: -5}},
+        l2: {position: {x:-7, y:6}, color: 0x8899bb},
+        l3: {position: {y: -5, z:1}, color: 0x445566}
       },
       monitor: {
         m1: {

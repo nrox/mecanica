@@ -20,12 +20,13 @@ function makeTest(bodyOptions, floorOptions, title) {
     factory.updatePack(pack, 'body', 'basic', bodyOptions);
     factory.updatePack(pack, 'body', 'basic', floorOptions);
     factory.updatePack(pack, 'monitor', {
-      camera: 'satellite', inertia: 0.2, lookAt: bodyOptions.id
+      camera: 'tracker', inertia: 0.2, lookAt: bodyOptions.id
     });
+    factory.updatePack(pack, 'light', {});
     factory.loadScene(pack, {
       webWorker: false,
       autoStart: true,
-      wireframe: true,
+      wireframe: false,
       axisHelper: true,
       canvasContainer: '#container'
     });
@@ -46,7 +47,7 @@ function addAllTests() {
       },
       //for compound only
       children: {
-        box :{
+        box: {
           type: 'box', dx: 1, dy: 1.2, dz: 1.4, segments: 4,
           rotation: {x: 1}, position: {z: 0.5}
         }
@@ -54,7 +55,7 @@ function addAllTests() {
     },
     position: { x: 0.2, y: 5, z: 0.5 },
     rotation: { x: undefined, y: undefined, z: 0 },
-    material: {type: 'basic', color: 0x991122},
+    material: {type: 'phong', color: 0x991122, transparent: true, opacity: 0.95},
     mass: 0.1
   };
   var floor = {
@@ -65,11 +66,11 @@ function addAllTests() {
       //for compound only
       parent: {
         type: 'cone',
-        dx: 10, dz: 5, dy: 5, r: 7, segments: 64
+        dx: 10, dz: 5, dy: 6, r: 9, segments: 64
       },
       //for compound only
       children: {
-        box :{
+        box: {
           type: 'box', dx: 10, dz: 10, dy: 1, segments: 8
         }
       }
@@ -79,7 +80,7 @@ function addAllTests() {
       y: undefined,
       z: 0.1
     },
-    material: {type: 'basic', color: 0x338855},
+    material: {type: 'phong', color: 0x338855, transparent: true, opacity: 0.9},
     mass: 0
   };
   var bodySegments = {

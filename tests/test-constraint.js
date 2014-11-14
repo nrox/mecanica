@@ -26,7 +26,12 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     constraint = utils.deepCopy(constraint);
     constraint.type = type;
     pack.constraint[constraint.id] = constraint;
-    pack.monitor = {m1:  {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
+    pack.monitor = {m1: {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
+    pack.light = {
+      l1: {position: {x: 5, z: -5}},
+      l2: {position: {x: -7, y: 6}, color: 0x8899bb},
+      l3: {position: {y: -5, z: 1}, color: 0x445566}
+    };
     factory.loadScene(pack, {
       axisHelper: 1.3,
       wireframe: true,
@@ -45,7 +50,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 16 },
     position: {  x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'basic', color: 0x338855},
+    material: {type: 'phong', color: 0x338855},
     mass: 0
   };
   var bodyB = {
@@ -55,7 +60,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 16 },
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'basic', color: 0x991122},
+    material: {type: 'phong', color: 0x991122},
     mass: 1
   };
   var connectorA = {

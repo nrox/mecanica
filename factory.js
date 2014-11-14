@@ -8,7 +8,7 @@
   var _ = require('./lib/underscore.js');
   var utils = require('./util/utils.js');
   var Ammo, THREE, jQuery;
-  var camera;
+  var controller;
   var worker;
   var debug = false;
   var UNDEFINED = undefined;
@@ -24,7 +24,9 @@
     autoStart: true, //auto start simulation and rendering
     simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
     renderFrequency: 30, //frequency to render canvas
-    simFrequency: 30 //frequency to run a simulation cycle
+    simFrequency: 30, //frequency to run a simulation cycle,
+    castShadow: true, //light cast shadows,
+    shadowMapSize: 1024 //shadow map width and height
   };
 
   //maintains a reference to all relevant objects created
@@ -213,36 +215,36 @@
         var _this = this;
         var compound;
         var transParent;
-        if (Ammo){
+        if (Ammo) {
           compound = new Ammo.btCompoundShape;
           transParent = new Ammo.btTransform;
           transParent.setIdentity();
           compound.addChildShape(transParent, this.parent.ammo);
         }
-        _.each(this.children, function(childOptions){
+        _.each(this.children, function (childOptions) {
           childOptions._dontSave = true;
           var child = make('shape', childOptions);
-          var pos = make('physics','position', childOptions.position || {});
-          var qua = make('physics','quaternion', childOptions.rotation || {});
-          if (Ammo){
-              var transChild = new Ammo.btTransform;
-              transChild.setIdentity();
-              transChild.setRotation(qua.ammo);
-              transChild.setOrigin(pos.ammo);
-              compound.addChildShape(transChild, child.ammo);
-              Ammo.destroy(transChild);
+          var pos = make('physics', 'position', childOptions.position || {});
+          var qua = make('physics', 'quaternion', childOptions.rotation || {});
+          if (Ammo) {
+            var transChild = new Ammo.btTransform;
+            transChild.setIdentity();
+            transChild.setRotation(qua.ammo);
+            transChild.setOrigin(pos.ammo);
+            compound.addChildShape(transChild, child.ammo);
+            Ammo.destroy(transChild);
           }
-          if (THREE){
+          if (THREE) {
             var tc = new THREE.Matrix4;
             tc.makeRotationFromQuaternion(qua.three);
             tc.setPosition(pos.three);
             _this.parent.three.merge(child.three, tc);
           }
         });
-        if (Ammo){
+        if (Ammo) {
           this.ammo = compound;
         }
-        if (THREE){
+        if (THREE) {
           this.three = this.parent.three;
         }
       }
@@ -254,16 +256,50 @@
       basic: function (options) {
         include(this, options, {
           friction: 0.3, restitution: 0.2,
-          color: 0x333333, opacity: 1, wireframe: getSettings().wireframe
+          color: 0x333333, opacity: 1, transparent: false,
+          wireframe: getSettings().wireframe
         });
         if (THREE) this.three = new THREE.MeshBasicMaterial(opt(this));
       },
       phong: function (options) {
         include(this, options, {
           friction: 0.3, restitution: 0.2,
-          color: 0x333333, opacity: 1, emissive: 0x345678
+          color: 0x333333, opacity: 1, transparent: false,
+          emissive: 0x000000, specular: 0x555555,
+          wireframe: getSettings().wireframe
         });
         if (THREE) this.three = new THREE.MeshPhongMaterial(opt(this));
+      }
+    },
+    light: {
+      _default: function (options) {
+        constructor.light.directional.call(this, options);
+      },
+      directional: function (options) {
+        include(this, options, {
+          color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
+          lookAt: {}, castShadow: getSettings().castShadow,
+          shadowDistance: 20
+        });
+        if (THREE) {
+          var light = new THREE.DirectionalLight(this.color);
+          light.position.copy(make('physics', 'position', this.position).three);
+          if (typeof(this.lookAt) == 'object') {
+            light.target.position.copy(make('physics', 'position', this.lookAt).three);
+          }
+          if (this.castShadow) {
+            light.shadowCameraLeft = -this.shadowDistance;
+            light.shadowCameraTop = -this.shadowDistance;
+            light.shadowCameraRight = this.shadowDistance;
+            light.shadowCameraBottom = this.shadowDistance;
+            light.shadowCameraNear = 0.2 * this.shadowDistance;
+            light.shadowCameraFar = 10 * this.shadowDistance;
+            light.shadowBias = -0.0003;
+            light.shadowMapWidth = light.shadowMapHeight = getSettings().shadowMapSize;
+            light.shadowDarkness = 0.35;
+          }
+          this.three = light;
+        }
       }
     },
     body: {
@@ -650,8 +686,8 @@
         while (scene.three.children.length) {
           var child = scene.three.children[0];
           scene.three.remove(child);
-          child.geometry.dispose();
-          child.material.dispose();
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
         }
       }
       //TODO miss something ?
@@ -1063,6 +1099,13 @@
           }
         }
       });
+      if (THREE) {
+        _.each(objs.light, function (light) {
+          if (!light._added && (light._added = true)) {
+            scene.three.add(light.three);
+          }
+        });
+      }
     }
   }
 
@@ -1071,12 +1114,13 @@
     var trans = Ammo ? new Ammo.btTransform() : undefined;
     var packet = {};
     var scene = getScene();
+    var isWorker = utils.isBrowserWorker();
     //copy position and rotation from ammo and then to three
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
       _.each(objs.body, function (body) {
         if (Ammo) copyPhysicsFromAmmo(body, trans);
-        if (THREE && !utils.isBrowserWorker()) copyPhysicsToThree(body);
+        if (THREE && !isWorker) copyPhysicsToThree(body);
       });
     }
 
@@ -1124,7 +1168,7 @@
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
       if (Ammo) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
       copyPhysics(objects);
-      if (utils.isBrowserWorker()) {
+      if (isWorker) {
         packPhysics(objects, packet);
         post(['transfer', packet], 'transfer physics', nextId('transfer_'));
       }
@@ -1144,7 +1188,7 @@
 
   function startRender() {
     var settings = getSettings();
-    if (!camera) camera = require('./util/camera.js');
+    if (!controller) controller = require('./util/controller.js');
     var scene = getScene();
     var monitor = getSome('monitor');
     var render = function () {
@@ -1156,7 +1200,7 @@
       scene._rstid = setTimeout(function () {
         scene._rafid = requestAnimationFrame(render);
       }, 1000 / settings.renderFrequency);
-      camera.moveCamera(monitor.camera);
+      controller.moveCamera(monitor.camera);
       monitor.renderer.three.render(scene.three, monitor.camera.three);
       if (previousScope != scene.scope) {
         setScope(previousScope);

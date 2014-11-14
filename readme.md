@@ -52,3 +52,5 @@ Load the predefined script.js with the world description
 * proper test for gear constraint
 
 * fix worker tests
+
+* make default material and lights look nice
