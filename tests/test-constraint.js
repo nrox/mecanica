@@ -29,7 +29,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     pack.monitor = {m1: {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
     pack.light = {
       l1: {position: {x: 5, z: -5}},
-      l2: {position: {x: -7, y: 6}, color: 0x8899bb},
+      l2: {position: {x: -7, y: 6, z: 5}, color: 0x8899bb},
       l3: {position: {y: -5, z: 1}, color: 0x445566}
     };
     factory.loadScene(pack, {
@@ -37,6 +37,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
       wireframe: true,
       webWorker: true,
       autoStart: true,
+      connectorHelper: 0.7,
       canvasContainer: '#container'
     });
   };
@@ -47,7 +48,7 @@ function addAllTests() {
     id: 'a',
     group: 'body',
     type: 'basic',
-    shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 16 },
+    shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
     position: {  x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'phong', color: 0x338855},
@@ -57,7 +58,7 @@ function addAllTests() {
     id: 'b',
     group: 'body',
     type: 'basic',
-    shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 16 },
+    shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'phong', color: 0x991122},
@@ -86,7 +87,8 @@ function addAllTests() {
     b: connectorB.id,
     bodyA: bodyA.id,
     bodyB: bodyB.id,
-    ratio: 1
+    ratio: 1,
+    approach: true
   };
   var type;
   var ca, cb;

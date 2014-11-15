@@ -26,18 +26,18 @@
                 shape: {
                     type: utils.randomItem(['sphere', 'box', 'cone', 'cylinder']),
                     r: 1, dx: 1, dy: 1.2, dz: 1.4,
-                    segments: 32
+                    segments: 16
                 },
                 position: { x: 0.1 * Math.random(), y: 5, z: 0.1 },
                 rotation: { x: Math.random(), y: Math.random(), z: 0 },
-                material: {type: 'basic', wireframe: true, color: 0x991122},
+                material: {type: 'phong', wireframe: false, color: 0x991122},
                 mass: 0.1
             },
             floor: {
                 shape: {
                     type: utils.randomItem(['sphere', 'box', 'cone', 'cylinder']),
                     dx: 10, dz: 5, dy: 2, r: 5,
-                    segments: 64
+                    segments: 32
                 },
                 position: {
                     x: 0.3,
@@ -45,7 +45,7 @@
                     z: 0.1
                 },
                 rotation: { x: Math.random(), y: Math.random(), z: 0 },
-                material: {type: 'basic', wireframe: true, color: 0x338855},
+                material: {type: 'phong', wireframe: true, color: 0x338855},
                 mass: 0
             }
         },
@@ -58,6 +58,11 @@
                 distance: 20,
                 inertia: 1
             }
+        },
+        light: {
+            l1: {position: {x: 5, z: -5}},
+            l2: {position: {x: -7, y: 6, z: 5}, color: 0x8899bb},
+            l3: {position: {y: -5, z: 1}, color: 0x445566}
         }
     };
     factory.loadScene(world, {webWorker: true, axisHelper: 5});

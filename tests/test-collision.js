@@ -24,7 +24,7 @@ function makeTest(bodyOptions, floorOptions, title) {
     });
     factory.updatePack(pack, 'light', {});
     factory.loadScene(pack, {
-      webWorker: false,
+      webWorker: true,
       autoStart: true,
       wireframe: false,
       axisHelper: true,
@@ -35,7 +35,7 @@ function makeTest(bodyOptions, floorOptions, title) {
 
 function addAllTests() {
   var body = {
-    id: 'body1',
+    id: 'falling',
     shape: {
       type: undefined,
       r: 1, dx: 1, dy: 1.2, dz: 1.4,
@@ -59,6 +59,7 @@ function addAllTests() {
     mass: 0.1
   };
   var floor = {
+    id: 'floor',
     shape: {
       type: undefined,
       dx: 10, dz: 5, dy: 2, r: 9,
@@ -66,12 +67,12 @@ function addAllTests() {
       //for compound only
       parent: {
         type: 'cone',
-        dx: 10, dz: 5, dy: 6, r: 9, segments: 64
+        dx: 10, dz: 5, dy: 7, r: 10, segments: 64
       },
       //for compound only
       children: {
         box: {
-          type: 'box', dx: 10, dz: 10, dy: 1, segments: 8
+          type: 'box', dx: 11, dz: 11, dy: 1, segments: 8
         }
       }
     },

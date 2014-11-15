@@ -18,6 +18,7 @@
   var defaultSettings = {
     wireframe: false, //show wireframes
     axisHelper: 0, //show an axis helper in the scene and all bodies
+    connectorHelper: 0,
     canvasContainer: 'body', //container for renderer,
     reuseCanvas: true,
     webWorker: true, //use webworker if available
@@ -384,6 +385,27 @@
           this.base = make('physics', 'position', this.base);
           this.up = make('physics', 'vector', this.up);
           this.front = make('physics', 'vector', this.front);
+          var helper = getSettings().connectorHelper;
+          if (THREE && helper) {
+            var connectorHelperMaterial = new THREE.MeshBasicMaterial({
+              color: 0x555555,
+              transparent: true,
+              opacity: 0.5
+            });
+            var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 4, 4);
+            var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
+            var axis = new THREE.AxisHelper(helper);
+            //rotate the axis to match required directions
+            axis.up.copy(this.up.three); // (y axis, green)
+            axis.lookAt(this.front.three); // (z axis, blue)
+            axis.updateMatrix();
+
+            //reset up
+            axis.up.set(0, 1, 0);
+            s.add(axis);
+            s.position.copy(this.base.three);
+            body.three.add(s);
+          }
         }
       }
     },
@@ -395,7 +417,8 @@
           bodyB: undefined, //bodyB id
           a: undefined, //connector id, in body A
           b: undefined, //connector id, in body B
-          ratio: undefined
+          ratio: undefined,
+          approach: false //move bodyB towards bodyA to match connectors
         });
         notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
         if (Ammo) {
@@ -403,6 +426,9 @@
           this.bodyB = getObject('body', this.bodyB);
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
+          if (this.approach) {
+
+          }
         }
       },
       _default: function (options) {
@@ -512,14 +538,14 @@
           renderer: '_default',
           camera: '_default',
           width: 500, height: 500,
-          fov: 45, near: 0.1, far: 1000,
+          fov: 35, near: 0.1, far: 1000,
           position: {x: 5, y: 7, z: 10},
           axis: {x: 5, y: 7, z: 10},
           lookAt: {}, //vector or body id
           distance: 15, //distance to keep, in case of tracker
           inertia: 1
         });
-        var o = opt(this);
+        var o = oid(this);
         o.aspect = o.width / o.height;
         this.renderer = make('renderer', o.renderer, o);
         this.camera = make('camera', o.camera, o);
@@ -975,14 +1001,47 @@
     return packed;
   }
 
+  /*
+   function approachConnectors(){
+   //move object to target, to match connectors positions
+   var selfAxisTransform = new THREE.Matrix4();
+   selfAxisTransform.getInverse(_this.axisHelper.matrixWorld);
+   var totalTransform = new THREE.Matrix4();
+   totalTransform.multiplyMatrices(selfAxisTransform, totalTransform);
+   //now consider the offsets and inversion
+   axisb = _this.up.clone();
+   frontb = _this.front.clone();
+   if (options.invert || options.mirror) {
+   axisb.negate();
+   frontb.negate();
+   var matrix = new THREE.Matrix4();
+   matrix.makeRotationZ(Math.PI);
+   totalTransform.multiplyMatrices(matrix, totalTransform);
+   }
+   positionb = _this.base.clone();
+   if (options.offset){
+   var direction = axisb.clone().normalize().multiplyScalar(options.offset);
+   positionb.add(direction);
+   var matrixOffset = new THREE.Matrix4();
+   matrixOffset.setPosition(direction);
+   totalTransform.multiplyMatrices(matrixOffset, totalTransform);
+   }
+   totalTransform.multiplyMatrices(fixed.axisHelper.matrixWorld, totalTransform);
+   if(!simulator.softHandling && netParts && netParts.length) {
+   netParts.map(function(mesh){
+   mesh.__dirtyPosition = true;
+   mesh.__dirtyRotation = true;
+   mesh.setLinearVelocity(Vec3());
+   mesh.setAngularVelocity(Vec3());
+   mesh.applyMatrix(totalTransform);
+   });
+   }
+   }
+   */
+
   function copyPhysicsToThree(body) {
-    body.three.position.x = body.position.x;
-    body.three.position.y = body.position.y;
-    body.three.position.z = body.position.z;
-    body.three.quaternion.x = body.quaternion.x;
-    body.three.quaternion.y = body.quaternion.y;
-    body.three.quaternion.z = body.quaternion.z;
-    body.three.quaternion.w = body.quaternion.w;
+    body.three.position.copy(body.position);
+    body.three.quaternion.copy(body.quaternion);
   }
 
   function copyPhysicsFromAmmo(body, trans) {
@@ -1115,6 +1174,7 @@
     var packet = {};
     var scene = getScene();
     var isWorker = utils.isBrowserWorker();
+
     //copy position and rotation from ammo and then to three
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
@@ -1151,7 +1211,7 @@
     }
 
     //simulation loop function, done with setTimeout
-    var simulate = function () {
+    function simulate() {
       if (scene._destroyed) return;
       var previousScope = getScope();
       if (previousScope != scene.scope) {
@@ -1170,12 +1230,13 @@
       copyPhysics(objects);
       if (isWorker) {
         packPhysics(objects, packet);
-        post(['transfer', packet], 'transfer physics', nextId('transfer_'));
+        post(['transfer', packet], 'transfer physics');
       }
       if (previousScope != scene.scope) {
         setScope(previousScope);
       }
-    };
+    }
+
     scene._lastTime = (new Date()).getTime() / 1000;
     stopSimulation(); //make sure is stopped
     simulate(); //then go
@@ -1191,7 +1252,10 @@
     if (!controller) controller = require('./util/controller.js');
     var scene = getScene();
     var monitor = getSome('monitor');
-    var render = function () {
+
+    var p = 0;
+
+    function render() {
       if (scene._destroyed) return;
       var previousScope = getScope();
       if (previousScope != scene.scope) {
@@ -1205,7 +1269,8 @@
       if (previousScope != scene.scope) {
         setScope(previousScope);
       }
-    };
+    }
+
     render();
   }
 
@@ -1251,7 +1316,7 @@
           var result = workerListener[request.action].apply(self, request['arguments']);
           if (request.action != 'console') {
             var response = {};
-            if (request.id) response.id = request.id;
+            response.id = request.id;
             if (request.comment) response.comment = request.comment;
             response.result = result;
             worker.postMessage(response);
@@ -1269,13 +1334,13 @@
     return worker;
   }
 
-  function post(args, comment, id) {
+  function post(args, comment) {
     var message = {
       action: 'factory',
       arguments: args,
       comment: comment,
       scope: getScope(),
-      id: id || nextId(0)
+      id: nextId(0)
     };
     if (worker) {
       worker.postMessage(message);
@@ -1317,7 +1382,7 @@
         var args = utils.argList(arguments);
         args.unshift(key);
         //send command to worker
-        post(args, 'wrapped ' + key, nextId('post_'));
+        post(args, 'wrapped ' + key);
         //now apply also here
         return fun.apply(null, arguments);
       };
