@@ -10,11 +10,13 @@ interface btVector3 {
   float z();
   [Ref] btVector3 normalize();
   [Value] btVector3 cross([Const,Ref] btVector3 v);
+  [Value] btVector3 dot3([Const,Ref] btVector3 v0, [Const,Ref] btVector3 v1, [Const,Ref] btVector3 v2);
   void setX(float x);
   void setY(float y);
   void setZ(float z);
   void setValue(float x, float y, float z);
   [Operator="*=", Ref] btVector3 op_mul(float x);
+  [Operator="+=", Ref] btVector3 op_add([Const,Ref] btVector3 v);
 };
 
 interface btVector4 {
@@ -39,13 +41,17 @@ interface btQuadWord {
 interface btQuaternion {
   void btQuaternion(float x, float y, float z, float w);
   void setValue(float x, float y, float z, float w);
+  [Operator="*=", Ref] btQuaternion op_mul ([Const,Ref] btQuaternion q);
 };
 btQuaternion implements btQuadWord;
 
 interface btMatrix3x3 {
-  void setValue (float xx, float xy, float xz, float yx, float yy, float yz, float zx, float zy, float zz);
+  void btMatrix3x3();
+  void btMatrix3x3(float xx, float xy, float xz, float yx, float yy, float yz, float zx, float zy, float zz);
+  void setValue(float xx, float xy, float xz, float yx, float yy, float yz, float zx, float zy, float zz);
   void setEulerZYX(float ex, float ey, float ez);
   void getRotation([Ref] btQuaternion q);
+  [Const,Ref] btVector3 getRow(long i);
 };
 
 interface btTransform {
@@ -60,6 +66,10 @@ interface btTransform {
   [Ref] btVector3 getOrigin();
   [Value] btQuaternion getRotation();
   [Ref] btMatrix3x3 getBasis();
+
+  [Value] btTransform inverse();
+  [Operator="*=", Ref] btTransform op_mul([Const,Ref] btTransform t);
+
 };
 
 interface btMotionState {

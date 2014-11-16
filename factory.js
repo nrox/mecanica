@@ -387,12 +387,13 @@
           this.front = make('physics', 'vector', this.front);
           var helper = getSettings().connectorHelper;
           if (THREE && helper) {
+            //TODO reuse material and geometry
             var connectorHelperMaterial = new THREE.MeshBasicMaterial({
               color: 0x555555,
               transparent: true,
               opacity: 0.5
             });
-            var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 4, 4);
+            var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
             var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
             var axis = new THREE.AxisHelper(helper);
             //rotate the axis to match required directions
@@ -636,15 +637,38 @@
       },
       //follow a body
       satellite: function (options) {
-        constructor.camera.tracker.call(this, options);
+        include(this, options, {
+          fov: 45, aspect: 1, near: 0.1, far: 1000,
+          axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
+          distance: 15, //distance to keep
+          inertia: 1, //for changing position, in seconds
+          lookAt: null
+        });
+        notifyUndefined(this, ['lookAt']);
+        this.axis = make('physics', 'vector', this.axis);
+        if (typeof(this.lookAt)=='string'){
+          this.lookAt = getObject('body', this.lookAt);
+        } else {
+          this.lookAt = make('physics', 'position', this.lookAt);
+        }
+        if (THREE) {
+          this.axis.three.normalize();
+          this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+        }
       }
     }
   };
 
   var method = {
     constraint: {
-      removeConstraint: function () {
+      remove: function () {
         destroy(getObject.apply(null, arguments));
+      },
+      disable: function () {
+        if (Ammo) {
+          getScene().ammo.removeConstraint(this.ammo);
+        }
+        this.enabled = false;
       }
     }
   };
@@ -1000,44 +1024,6 @@
     });
     return packed;
   }
-
-  /*
-   function approachConnectors(){
-   //move object to target, to match connectors positions
-   var selfAxisTransform = new THREE.Matrix4();
-   selfAxisTransform.getInverse(_this.axisHelper.matrixWorld);
-   var totalTransform = new THREE.Matrix4();
-   totalTransform.multiplyMatrices(selfAxisTransform, totalTransform);
-   //now consider the offsets and inversion
-   axisb = _this.up.clone();
-   frontb = _this.front.clone();
-   if (options.invert || options.mirror) {
-   axisb.negate();
-   frontb.negate();
-   var matrix = new THREE.Matrix4();
-   matrix.makeRotationZ(Math.PI);
-   totalTransform.multiplyMatrices(matrix, totalTransform);
-   }
-   positionb = _this.base.clone();
-   if (options.offset){
-   var direction = axisb.clone().normalize().multiplyScalar(options.offset);
-   positionb.add(direction);
-   var matrixOffset = new THREE.Matrix4();
-   matrixOffset.setPosition(direction);
-   totalTransform.multiplyMatrices(matrixOffset, totalTransform);
-   }
-   totalTransform.multiplyMatrices(fixed.axisHelper.matrixWorld, totalTransform);
-   if(!simulator.softHandling && netParts && netParts.length) {
-   netParts.map(function(mesh){
-   mesh.__dirtyPosition = true;
-   mesh.__dirtyRotation = true;
-   mesh.setLinearVelocity(Vec3());
-   mesh.setAngularVelocity(Vec3());
-   mesh.applyMatrix(totalTransform);
-   });
-   }
-   }
-   */
 
   function copyPhysicsToThree(body) {
     body.three.position.copy(body.position);

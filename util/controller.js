@@ -1,4 +1,3 @@
-
 module.exports = {
   moveCamera: function (camera) {
     var distance;
@@ -42,11 +41,15 @@ module.exports = {
       camera._lastLookAt = camera._lastLookAt || bodyPosition.clone();
       camera.three.lookAt(camera._lastLookAt.add(bodyPosition.clone().multiplyScalar(beta)).divideScalar(1 + beta));
 
-    } else if (camera.type == 'satellite'){
+    } else if (camera.type == 'satellite') {
       camera.three.position.x = camera.distance * Math.sin(phase + time / 2234);
       camera.three.position.z = camera.distance * Math.cos(phase + time / 2234);
       camera.three.position.y = 0.5 * camera.distance * Math.cos(phase + time / 3345);
-      camera.three.lookAt(camera.lookAt.three.position);
+      if (camera.lookAt.x!==undefined) { //looking to a position
+        camera.three.lookAt(camera.lookAt.three);
+      } else if (camera.lookAt.shape) { //looking to a body
+        camera.three.lookAt(camera.lookAt.three.position);
+      }
     } else {
       camera.three.lookAt(camera.lookAt);
     }

@@ -30,6 +30,7 @@ availablePaths = [
 "../tests/test-factory.js",
 "../tests/test-require.js",
 "../tests/test-shapes.js",
+"../tests/test-transform.js",
 "../tests/test-worker.js",
 "../util/controller.js",
 "../util/listdir.sh",
@@ -40,7 +41,7 @@ availablePaths = [
 "../util/utils.js",
 "../util/worker-web.js",
 "../ware/basic2.js",
-"../ware/random-shapes.js",
 "../ware/loader.html",
+"../ware/random-shapes.js",
 "../ware/readme.md",
 ]
