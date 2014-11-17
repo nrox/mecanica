@@ -41,9 +41,9 @@ function addAllTests() {
         mass: 0,
         connector: {
           c: {
-            base: { x: 1.2, y: 1.2, z: 1.2},
-            up: {x:1} && utils.randomXYZ(-1, 1),
-            front: {z: -1} && utils.randomXYZ(-1, 1)
+            base: utils.randomXYZ(0.7, 1.3),
+            up: utils.randomXYZ(-1, 1),
+            front: utils.randomXYZ(-1, 1)
           }
         }
       }
@@ -107,8 +107,8 @@ function addAllTests() {
   //update body b rotation and position with the inverted values
   //those values should be equivalent to origin and no rotation
   delete b.rotation;
-  b.position = copyVectorFromAmmo({}, p2);
-  b.quaternion = copyVectorFromAmmo({}, q2);
+  b.position = copyFromAmmo(p2);
+  b.quaternion = copyFromAmmo(q2);
   test[type] = makeTest(copy, type);
 
   type = 'connector to origin';
@@ -124,19 +124,17 @@ function addAllTests() {
   //get the transform equivalent to the rotation + position
   t1 = new Ammo.btTransform(q.ammo, p.ammo);
   t2 = new Ammo.btTransform(t1.inverse());
+  //get the connector transform
   t3 = new Ammo.btTransform(normalizeConnector(b.connector.c).inverse());
-
-  p.ammo = new Ammo.btVector3(0.1, 0.1, 0.1);
-  q.ammo = new Ammo.btQuaternion(0, 0, 0, 1);
-
+  t3.op_mul(t2);
   //apply the inverse to the current position and rotation
   p2 = MxV(t3, p.ammo);
   q2 = MxQ(t3, q.ammo);
   //update body b rotation and position with the inverted values
   //those values should be equivalent to origin and no rotation
   delete b.rotation;
-  b.position = copyVectorFromAmmo({}, p2);
-  b.quaternion = copyVectorFromAmmo({}, q2);
+  b.position = copyFromAmmo(p2);
+  b.quaternion = copyFromAmmo(q2);
   test[type] = makeTest(copy, type);
 
 }
@@ -160,14 +158,15 @@ function MxQ(m, q) {
   return r;
 }
 
-function copyVectorFromAmmo(o, ammo) {
-  o.x = ammo.x();
-  o.y = ammo.y();
-  o.z = ammo.z();
-  if (ammo instanceof Ammo.btQuaternion) {
-    o.w = ammo.w();
+function copyFromAmmo(ammoVector, toExtend) {
+  if (!toExtend) toExtend = {};
+  toExtend.x = ammoVector.x();
+  toExtend.y = ammoVector.y();
+  toExtend.z = ammoVector.z();
+  if (ammoVector instanceof Ammo.btQuaternion) {
+    toExtend.w = ammoVector.w();
   }
-  return o;
+  return toExtend;
 }
 
 function normalizeConnector(c) {
@@ -190,8 +189,8 @@ function normalizeConnector(c) {
     v3.x(), v3.y(), v3.z()
   );
   m3 = m3.transpose();
-  copyVectorFromAmmo(c.up, up);
-  copyVectorFromAmmo(c.front, front);
+  copyFromAmmo(up, c.up);
+  copyFromAmmo(front, c.front);
   var t = new Ammo.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
