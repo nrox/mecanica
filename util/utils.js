@@ -23,6 +23,13 @@ module.exports = {
   randomItem: function (list) {
     return list[~~(Math.random() * list.length)];
   },
+  randomXYZ: function (min, max) {
+    return {
+      x: this.randomLinear(min, max),
+      y: this.randomLinear(min, max),
+      z: this.randomLinear(min, max)
+    };
+  },
   argList: function (args) {
     //args is like arguments, transform it into an array
     var a = [];

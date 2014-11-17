@@ -385,6 +385,7 @@
           this.base = make('physics', 'position', this.base);
           this.up = make('physics', 'vector', this.up);
           this.front = make('physics', 'vector', this.front);
+          //check for orthogonality
           var helper = getSettings().connectorHelper;
           if (THREE && helper) {
             //TODO reuse material and geometry
@@ -396,14 +397,15 @@
             var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
             var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
             var axis = new THREE.AxisHelper(helper);
+            s.add(axis);
+
             //rotate the axis to match required directions
-            axis.up.copy(this.up.three); // (y axis, green)
-            axis.lookAt(this.front.three); // (z axis, blue)
-            axis.updateMatrix();
+            s.up.copy(this.up.three); // (y axis, green)
+            s.lookAt(this.front.three); // (z axis, blue)
+            s.updateMatrix();
 
             //reset up
-            axis.up.set(0, 1, 0);
-            s.add(axis);
+            //s.up.set(0, 1, 0);
             s.position.copy(this.base.three);
             body.three.add(s);
           }
