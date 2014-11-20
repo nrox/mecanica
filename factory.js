@@ -974,7 +974,7 @@
 
 //get first of the kind in objects
   function makeSome(group) {
-    return make(group, '_default');
+    return make(group, '_default', {});
   }
 
   function getScene() {

@@ -3,10 +3,11 @@ var utils = require('../util/utils.js');
 var _ = require('../lib/underscore.js');
 var worker;
 
-function clean() {
+function clearObjects() {
   worker && worker.terminate();
   worker = undefined;
 }
+
 var test = {
   'availability': function () {
     if (typeof(Worker) !== "undefined") {
@@ -17,7 +18,6 @@ var test = {
   },
   'inline worker, with blob': function () {
     console.log('create a worker using a blob');
-    clean();
     var msg = {data: 'random:' + Math.random()};
     var blob = new Blob([
       "onmessage = function(e) {postMessage(e.data); }"]);
@@ -33,7 +33,6 @@ var test = {
   },
   'worker.js basic': function () {
     console.log('create a worker with worker-web.js');
-    clean();
     worker = new Worker("../worker-web.js");
     var msg = 'random:' + Math.random();
     worker.onmessage = function (e) {
@@ -44,7 +43,6 @@ var test = {
   },
   'worker-web.js require': function () {
     console.log('check if require / importScripts works properly');
-    clean();
     worker = new Worker("../worker-web.js");
     worker.onmessage = function (e) {
       console.log(utils.stringify(e.data));
@@ -66,7 +64,6 @@ var test = {
     });
   },
   'worker-web.js with factory.js': function () {
-    clean();
     var factory = require('factory.js');
     worker = factory.createWorker();
     worker.postMessage({
@@ -83,5 +80,5 @@ var test = {
 };
 
 module.exports.test = test;
+module.exports.clearObjects = clearObjects;
 testUtils.run(test, process.argv, __filename);
-
