@@ -29,7 +29,7 @@
       e.text(v);
       e.on('click', function (evt) {
         var tgt = $(evt.target);
-        tgt.text(tgt.text() == '' + specs.t ? specs.f : specs.t);
+        tgt.text(tgt.text() == ('' + specs.t) ? specs.f : specs.t);
       });
       e[GET_VALUE] = function () {
         var txt = e.text();

@@ -34,7 +34,7 @@ function addAllTests() {
     body: {
       a: {
         type: 'basic',
-        shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
+        shape: { type: 'box', dx: 2, dz: 2, dy: 2, r: 1, segments: 3 },
         position: { x: 0, y: 0, z: 0 },
         rotation: { x: 0, y: 0, z: 0 },
         material: { type: 'phong', color: 0x883333 },
@@ -74,11 +74,10 @@ function addAllTests() {
       }
     }
   };
-  var copy, type, b, t1, t2, t3, p, q;
+  var copy, type, to, ta, t2, t3, p, q;
 
   normalizeConnector(obj.body.a.connector.c)
 
-  type = 'body to origin';
   copy = utils.deepCopy(obj);
   //define random position and rotation for body a
   copy.body.a.position = {
@@ -87,56 +86,116 @@ function addAllTests() {
   copy.body.a.rotation = {
     x: utils.randomLinear(-1, 1), y: utils.randomLinear(-1, 1), z: utils.randomLinear(-1, 1)
   };
-  //create a copy of body a and name it b
-  b = utils.deepCopy(copy.body.a);
-  copy.body.b = b;
-  //with other color, green
-  b.material.color = 0x338833;
-  //create position and rotation using other factory
-  p = f2.make('physics', 'position', b.position);
-  q = f2.make('physics', 'quaternion', b.rotation);
-  //get the transform equivalent to the rotation + position
-  t1 = new Ammo.btTransform();
-  t1.setRotation(q.ammo);
-  t1.setOrigin(p.ammo);
-  //calculate the inverse
-  t2 = new Ammo.btTransform(t1.inverse());
-  //apply the inverse to the current position and rotation
-  var p2 = MxV(t2, p.ammo);
-  var q2 = MxQ(t2, q.ammo);
-  //update body b rotation and position with the inverted values
-  //those values should be equivalent to origin and no rotation
-  delete b.rotation;
-  b.position = copyFromAmmo(p2);
-  b.quaternion = copyFromAmmo(q2);
+  var connector2 = {
+    c: {
+      base: utils.randomXYZ(0.7, 1.3),
+      up: utils.randomXYZ(-1, 1),
+      front: utils.randomXYZ(-1, 1)
+    }
+  };
+  var position2 = {
+    x: utils.randomLinear(2, 3), y: utils.randomLinear(2, 4), z: utils.randomLinear(-2, 2)
+  };
+  var rotation2 = {
+    x: utils.randomLinear(-2, 2), y: utils.randomLinear(-2, 2), z: utils.randomLinear(-1, 1)
+  };
+
+  type = 'original positions';
+  copy = utils.deepCopy(copy);
+  //calculate transform, copy body.a to body.b, change color
+  to = testIntro(copy, connector2, position2, rotation2);
   test[type] = makeTest(copy, type);
+
+  type = 'body to origin';
+  copy = utils.deepCopy(copy);
+  //calculate transform, copy body.a to body.b, change color
+  to = testIntro(copy, connector2, position2, rotation2);
+  //calculate the inverse
+  t2 = new Ammo.btTransform(to.t.inverse());
+  //apply to b and add test
+  testOutro(to, t2, copy, type);
 
   type = 'connector to origin';
   copy = utils.deepCopy(copy);
+  to = testIntro(copy, connector2, position2, rotation2);
+  t2 = new Ammo.btTransform(to.t.inverse());
+  //get the connector transform
+  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3.op_mul(t2);
+  //apply to b and add test
+  testOutro(to, t3, copy, type);
 
-  b = utils.deepCopy(copy.body.a);
+  type = 'connector to body';
+  copy = utils.deepCopy(copy);
+  to = testIntro(copy, connector2, position2, rotation2);
+  t2 = new Ammo.btTransform(to.t.inverse());
+  //get the connector transform
+  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3.op_mul(t2);
+  //for body a
+  p = f2.make('physics', 'position', copy.body.a.position);
+  q = f2.make('physics', 'quaternion', copy.body.a.rotation);
+  //get the transform equivalent to the rotation + position
+  ta = new Ammo.btTransform(q.ammo, p.ammo);
+  ta.op_mul(t3);
+  //apply to b and add test
+  testOutro(to, ta, copy, type);
+
+  type = 'connector to connector';
+  copy = utils.deepCopy(copy);
+  to = testIntro(copy, connector2, position2, rotation2);
+  t2 = new Ammo.btTransform(to.t.inverse());
+  //get the connector b transform
+  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3.op_mul(t2);
+
+  //for body a
+  t2 = normalizeConnector(copy.body.a.connector.c);
+
+  p = f2.make('physics', 'position', copy.body.a.position);
+  q = f2.make('physics', 'quaternion', copy.body.a.rotation);
+  //get the transform equivalent to the rotation + position
+  ta = new Ammo.btTransform(q.ammo, p.ammo);
+
+  t2.op_mul(t3);
+  ta.op_mul(t2)
+  //t2.op_mul(t3);
+  //apply to b and add test
+  testOutro(to, ta, copy, type);
+
+}
+
+function testIntro(copy, connector2, position2, rotation2) {
+  //create a copy of body a and name it b
+  var b = utils.deepCopy(copy.body.a);
   copy.body.b = b;
+  b.shape.type = 'cone';
+  b.shape.segments = 16;
+  b.rotation = rotation2;
+  b.position = position2;
+  b.connector = utils.deepCopy(connector2);
   //with other color, green
   b.material.color = 0x338833;
   //create position and rotation using other factory
-  p = f2.make('physics', 'position', b.position);
-  q = f2.make('physics', 'quaternion', b.rotation);
+  var p = f2.make('physics', 'position', b.position);
+  var q = f2.make('physics', 'quaternion', b.rotation);
   //get the transform equivalent to the rotation + position
-  t1 = new Ammo.btTransform(q.ammo, p.ammo);
-  t2 = new Ammo.btTransform(t1.inverse());
-  //get the connector transform
-  t3 = new Ammo.btTransform(normalizeConnector(b.connector.c).inverse());
-  t3.op_mul(t2);
+  var t = new Ammo.btTransform(q.ammo, p.ammo);
+  return {
+    b: b, t: t, q: q, p: p
+  }
+}
+
+function testOutro(to, t2, copy, type) {
   //apply the inverse to the current position and rotation
-  p2 = MxV(t3, p.ammo);
-  q2 = MxQ(t3, q.ammo);
+  var p2 = MxV(t2, to.p.ammo);
+  var q2 = MxQ(t2, to.q.ammo);
   //update body b rotation and position with the inverted values
   //those values should be equivalent to origin and no rotation
-  delete b.rotation;
-  b.position = copyFromAmmo(p2);
-  b.quaternion = copyFromAmmo(q2);
+  delete to.b.rotation;
+  to.b.position = copyFromAmmo(p2);
+  to.b.quaternion = copyFromAmmo(q2);
   test[type] = makeTest(copy, type);
-
 }
 
 function logTransform(title, t) {
