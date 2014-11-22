@@ -26,18 +26,42 @@ var test = {
       },
       boolean1: true,
       boolean2: 'off',
+      nested: {
+        boolean1: false,
+        string2: 'maria'
+      },
       boolean3: 'yes'
     };
     editor.useTemplate(template);
     editor.setValues(obj);
     editor.showEditor('#container');
   },
-  'nested': function () {
-    console.warn('TODO')
-  },
   'factory settings': function () {
-    var f = require('factory.js');
-    editor.setValues(f.options(f.makeSome('settings')));
+    var template = {
+      axisHelper: {type: 'range', min: '0', max: '5', step: '0.5'},
+      connectorHelper: {type: 'range', min: '0', max: '5', step: '0.5'},
+      canvasContainer: 'body', //container for renderer,
+      simSpeed:  {type: 'range', min: '0.1', max: '5', step: '0.1'},
+      renderFrequency: {type: 'range', min: '0.1', max: '5', step: '0.1'},
+      simFrequency: {type: 'range', min: '0.1', max: '5', step: '0.1'},
+      shadowMapSize: 1024 //shadow map width and height
+    };
+    var defaultSettings = {
+      wireframe: false, //show wireframes
+      axisHelper: 0, //show an axis helper in the scene and all bodies
+      connectorHelper: 0,
+      canvasContainer: 'body', //container for renderer,
+      reuseCanvas: true,
+      webWorker: true, //use webworker if available
+      autoStart: true, //auto start simulation and rendering
+      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
+      castShadow: true, //light cast shadows,
+      shadowMapSize: 1024 //shadow map width and height
+    };
+    editor.useTemplate(template);
+    editor.setValues(defaultSettings);
     editor.showEditor('#container');
   }
 };

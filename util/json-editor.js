@@ -2,14 +2,11 @@
   var $ = require('../lib/jquery.js');
   var utils = require('./utils.js');
   var _ = require('../lib/underscore.js');
+
   var template = {};
   var json;
+
   var types = {
-    _default: function (k, v, specs) {
-      var e = $('<span />');
-      e.text(v);
-      return e;
-    },
     string: function (k, v, specs) {
       var e = $('<span />', {contenteditable: 'true'});
       e.text(v);
@@ -37,60 +34,57 @@
       v = $('<span>' + v + '</span>');
       var m = $('<span> - </span>');
       var p = $('<span> + </span>');
+      var s = Number(specs.step) || 1;
       m.css(css.pm);
       p.css(css.pm);
       e.append(m);
-      e.append(v);
       e.append(p);
+      e.append(v);
       m.on('click', function (evt) {
         var n = Number(v.text());
-        v.text((--n).toString());
+        v.text((n -= s).toString());
       });
       p.on('click', function (evt) {
         var n = Number(v.text());
-        v.text((++n).toString());
+        v.text((n += s).toString());
       });
       return e;
     }
   };
+
   var css = {
     jec: {
       border: '1px solid transparent',
       'border-radius': '3px',
-      padding: '5px',
-      margin: '5px 2px'
+      margin: '2px 10px'
     },
     jee: {
-      //border: '1px solid #666',
       'border-radius': '3px',
       padding: '2px',
       margin: '1px 1px 1px 10px'
     },
-    _default: {
-      'background-color': '#454'
-    },
     string: {
+      padding: '1px 5px',
       margin: '2px 0',
       cursor: 'auto',
       'border-radius': '2px',
-      color: '#112',
-      'background-color': '#666'
+      color: '#112'
     },
     boolean: {
-      'background-color': '#999'
+      'font-weight': 'bold'
     },
     range: {
-      cursor: 'auto',
-      'background-color': '#445'
+      cursor: 'auto'
     },
     'function': {
-      'background-color': '#544',
+      'background-color': '#b99',
       'min-width': '30px'
     },
     key: {
       'font-size': '0.8em'
     },
     value: {
+      'background-color': '#999',
       color: '#111',
       'font-size': '0.9em',
       padding: '1px 20px',
@@ -102,7 +96,7 @@
     pm: {
       cursor: 'pointer',
       'color': '#eee',
-      'margin': '0 5px'
+      'margin': '0 2px'
     }
   };
 
@@ -112,22 +106,33 @@
       $parent.css(css.jec);
     }
     _.each(obj, function (v, k) {
-      var specs = temp[k] && temp[k].type && types[temp[k].type] ? temp[k] : {type: '_default'};
-      var e = types[specs.type](k, v, specs);
-      e.css(css.value);
-      e.css(css[specs.type]);
-      var c = $('<div />');
-      c.text(k + '');
-      c.css(css.key);
-      var w = $('<div />');
-      w.css(css.jee);
-      w.append(c);
-      w.append(e);
-      $parent.append(w);
+      if (typeof v == 'object') {
+        $parent.append(build(v, temp[k] || {}));
+        return;
+      }
+      var type = (v === true || v === false) ? 'boolean' : 'string';
+      var specs = type == 'boolean' ? {type: type, f: false, t: true} : {type: type};
+      if ((typeof(temp[k]) == 'string') && (types[temp[k]])) {
+        type = temp[k];
+        specs = {type: type};
+      } else if ((typeof(temp[k]) == 'object') && (types[temp[k].type])) {
+        type = temp[k].type;
+        specs = temp[k];
+      }
+      var $value = types[type](k, v, specs);
+      $value.css(css.value);
+      $value.css(css[type]);
+      var $key = $('<div />');
+      $key.text(k + '');
+      $key.css(css.key);
+      var $wrapper = $('<div />');
+      $wrapper.css(css.jee);
+      $wrapper.append($key);
+      $wrapper.append($value);
+      $parent.append($wrapper);
     });
     return $parent;
   }
-
 
   module.exports = {
     useTemplate: function (t) {
