@@ -6,6 +6,16 @@ var editor = require('../util/json-editor.js');
 
 function clearObjects() {
   $('#container').empty();
+  $('#triggers').empty();
+  $('#status').empty();
+}
+
+function makeGetValues(editor) {
+  var b = $('<button>get values</button>');
+  $('#triggers').append(b);
+  b.on('click', function () {
+    $('#status').text(utils.stringify(editor.getValues()));
+  });
 }
 
 var test = {
@@ -14,8 +24,10 @@ var test = {
       root: {
         range1: {type: 'range', min: '-50', max: '100', step: '2'},
         range2: {type: 'range', min: '-0.1', max: '2.3', step: '0.01'},
-        string: {type: 'string', width: '100px', input: 'text'},
-        alert: {type: 'function', caption: 'alert hello!'},
+        string: {type: 'string', tag: 'textarea', val: 'val'},
+        alert: {type: 'function', caption: 'alert string text'},
+        randomColor: {type: 'function', caption: 'set random color'},
+        darkGrayColor: {type: 'function', caption: 'set dark gray'},
         boolean1: {type: 'boolean', t: true, f: false},
         boolean2: {type: 'boolean', t: 'on', f: 'off'},
         boolean3: {type: 'boolean', t: 'yes', f: 'no'},
@@ -26,7 +38,7 @@ var test = {
           'more defs': {folded: true}
         },
         sizes: {type: 'range', values: [8, 16, 32, 64, 128, 256, 512, 1024]},
-        name: {type: 'range', values: ['Maria', 'John', 'Carla', 'Thomas']},
+        name: {type: 'range', values: ['Maria', 'John', 'Carla', 'Thomas'], minus: '<', plus: '>'},
         list: {type: 'list', values: [0, 1, 2, 3, 4, 5, 'a', 'b', 'bananas', true, false]}
       }
     };
@@ -36,7 +48,17 @@ var test = {
         range2: 0.3,
         string: 'hello',
         alert: function () {
-          alert('hello!')
+          alert(editor.getValues().root.string);
+        },
+        randomColor: function () {
+          function r() {
+            return utils.randomItem([0, 1, 2, 3, 4, 5/*, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'*/]);
+          }
+
+          $('#container').css('background-color', '#' + r() + r() + r());
+        },
+        darkGrayColor: function () {
+          $('#container').css('background-color', '#222');
         },
         boolean1: true,
         boolean2: 'off',
@@ -69,6 +91,7 @@ var test = {
     editor.useTemplate(template);
     editor.setValues(obj);
     editor.showEditor('#container');
+    makeGetValues(editor);
   },
   'factory settings': function () {
     var template = {
@@ -97,6 +120,7 @@ var test = {
     editor.useTemplate(template);
     editor.setValues(defaultSettings);
     editor.showEditor('#container');
+    makeGetValues(editor);
   }
 };
 

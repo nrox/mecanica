@@ -3,24 +3,22 @@
   var utils = require('./utils.js');
   var _ = require('../lib/underscore.js');
 
+  var GET_VALUE = '_GET_VALUE_';
   var template = {};
   var json;
+  var FOLDER_SYMBOL = ' {...}';
+  var updaters = [];
 
   var types = {
-    'object': function (k, v, specs) {
-      specs = _.extend({
-        type: 'string', tag: 'span'
-      }, specs);
-      var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
-      e.text(v);
-      return e;
-    },
     string: function (k, v, specs) {
       specs = _.extend({
         type: 'string', tag: 'span'
       }, specs);
       var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
       e.text(v);
+      e[GET_VALUE] = function () {
+        return e[specs.val || 'text']();
+      };
       return e;
     },
     boolean: function (k, v, specs) {
@@ -33,6 +31,10 @@
         var tgt = $(evt.target);
         tgt.text(tgt.text() == '' + specs.t ? specs.f : specs.t);
       });
+      e[GET_VALUE] = function () {
+        var txt = e.text();
+        return (txt === 'true' || txt === 'false') ? eval(txt) : txt;
+      };
       return e;
     },
     'function': function (k, v, specs) {
@@ -57,32 +59,33 @@
         o.css(css.list);
         e.append(o);
       });
+      e[GET_VALUE] = function () {
+        return e.val();
+      };
       return e;
     },
     range: function (k, v, specs) {
       specs = _.extend({
         type: 'range', step: 1,
-        min: undefined, max: undefined, values: undefined
+        min: undefined, max: undefined, values: undefined,
+        plus: '+', minus: '-'
       }, specs);
       var $wrapper = $('<span />');
       var $v = $('<span>' + v + '</span>');
-      var $minus = $('<span>-</span>');
-      var $plus = $('<span>+</span>');
       var values = specs.values;
       var step = Number(specs.step);
       var max = specs.max;
       var min = specs.min;
-      $minus.css(css.pm);
-      $plus.css(css.pm);
-      $wrapper.append($minus);
-      $wrapper.append($plus);
+      _.each(['minus', 'plus'], function (d, i) {
+        var $d = $('<span />');
+        $d.text(specs[d]);
+        $d.css(css.pm);
+        $wrapper.append($d);
+        $d.on('mousedown', update(2 * i - 1));
+        $d.on('mouseup', cancel);
+        $d.on('mouseout', cancel);
+      });
       $wrapper.append($v);
-      $minus.on('mousedown', update(-1));
-      $plus.on('mousedown', update(1));
-      $minus.on('mouseup', cancel);
-      $plus.on('mouseup', cancel);
-      $minus.on('mouseout', cancel);
-      $plus.on('mouseout', cancel);
       var timeoutId;
       var time = 0;
 
@@ -121,63 +124,59 @@
         return u;
       }
 
+      $wrapper[GET_VALUE] = function () {
+        return $v.text();
+      };
       return $wrapper;
     }
   };
 
   var css = {
-    jec: {
-      border: '1px solid transparent',
-      'border-radius': '3px',
-      margin: '2px 10px'
+    level: {
+      'border': '1px dashed transparent',
+      'margin': '0 20px'
     },
-    jee: {
-      'border-radius': '3px',
-      padding: '2px',
-      margin: '1px 1px 1px 10px'
+    property: {
+      'margin': '2px 1px',
+      'font-size': '0.8rem'
     },
     string: {
-      padding: '1px 5px',
-      margin: '2px 0',
-      cursor: 'auto',
-      'border-radius': '2px',
-      color: '#112'
+      'padding': '1px 5px',
+      'cursor': 'auto',
+      'color': '#112'
     },
     boolean: {
       'font-weight': 'bold'
     },
     range: {
-      cursor: 'auto'
+      'cursor': 'auto'
     },
     'function': {
       'background-color': '#b99',
       'min-width': '30px'
     },
     key: {
-      'font-size': '0.8em'
+      'margin': '1px'
     },
     value: {
       'background-color': '#999',
-      color: '#111',
-      'font-size': '0.9em',
-      padding: '1px 20px',
-      cursor: 'pointer',
-      'border-radius': '6px',
-      border: '0px solid transparent'
+      'color': '#111',
+      'padding': '1px 10px',
+      'margin': '1px 3px',
+      'cursor': 'pointer',
+      'border-radius': '3px',
+      'border': '0px solid transparent'
     },
     folder: {
       'color': '#ccc',
       'font-weight': 'bold',
-      'cursor': 'pointer',
-      'font-size': '0.9em',
-      margin: '2px'
+      'cursor': 'pointer'
     },
     list: {
-      color: '#111',
-      'border-radius': '2px'
+      'color': '#111'
     },
     folded: {
-      color: '#555'
+      'color': '#777'
     },
     pm: {
       'cursor': 'pointer',
@@ -194,19 +193,19 @@
 
   function build(obj, temp, $parent) {
     if (!$parent) {
-      $parent = $('<div />', { 'class': 'jec' });
-      $parent.css(css.jec);
+      $parent = $('<div />');
+      $parent.css(css.level);
     }
     _.each(obj, function (v, k) {
       var $wrapper = $('<div />');
-      $wrapper.css(css.jee);
+      $wrapper.css(css.property);
       var $key = $('<div />');
       $key.text(k + '');
       $key.css(css.key);
       var $value;
       if (typeof v == 'object') { //folders
         $value = build(v, temp[k] || {});
-        var $folded = $('<span> {}</span>');
+        var $folded = $('<span>' + FOLDER_SYMBOL + '</span>');
         $folded.css(css.folded);
         $key.append($folded);
         $key.css(css.folder);
@@ -235,6 +234,11 @@
         specs = temp[k];
       }
       $value = types[type](k, v, specs);
+      if ($value[GET_VALUE]) {
+        updaters.push(function () {
+          obj[k] = $value[GET_VALUE]();
+        });
+      }
       $value.css(css.value);
       $value.css(css[type]);
       $wrapper.append($key);
@@ -246,15 +250,21 @@
 
   module.exports = {
     useTemplate: function (t) {
-      template = utils.deepCopy(t);
+      template = t;
     },
     getValues: function () {
-
+      _.each(updaters, function (fn) {
+        fn();
+      });
+      return json;
     },
     setValues: function (v) {
       json = v;
     },
     showEditor: function (selector) {
+      while (updaters.length) {
+        updaters.pop();
+      }
       var dom = build(json, template);
       $(selector).html(dom);
     },
