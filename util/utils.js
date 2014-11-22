@@ -46,5 +46,8 @@ module.exports = {
   },
   isBrowserWorker: function () {
     return (typeof(self) === 'object') && !self.window;
+  },
+  time: function (from) {
+    return new Date().getTime() - (from || 0);
   }
 };

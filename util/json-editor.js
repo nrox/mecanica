@@ -7,12 +7,26 @@
   var json;
 
   var types = {
+    'object': function (k, v, specs) {
+      specs = _.extend({
+        type: 'string', tag: 'span'
+      }, specs);
+      var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
+      e.text(v);
+      return e;
+    },
     string: function (k, v, specs) {
-      var e = $('<span />', {contenteditable: 'true'});
+      specs = _.extend({
+        type: 'string', tag: 'span'
+      }, specs);
+      var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
       e.text(v);
       return e;
     },
     boolean: function (k, v, specs) {
+      specs = _.extend({
+        type: 'boolean', t: true, f: false
+      }, specs);
       var e = $('<span />');
       e.text(v);
       e.on('click', function (evt) {
@@ -22,33 +36,92 @@
       return e;
     },
     'function': function (k, v, specs) {
+      specs = _.extend({
+        type: 'function', caption: '&nbsp;'
+      }, specs);
       var e = $('<span />');
-      e.html(specs.caption || '&nbsp;');
+      e.html(specs.caption);
       e.on('click', function () {
         if (typeof v == 'function') v();
       });
       return e;
     },
-    range: function (k, v, specs) {
-      var e = $('<span />');
-      v = $('<span>' + v + '</span>');
-      var m = $('<span> - </span>');
-      var p = $('<span> + </span>');
-      var s = Number(specs.step) || 1;
-      m.css(css.pm);
-      p.css(css.pm);
-      e.append(m);
-      e.append(p);
-      e.append(v);
-      m.on('click', function (evt) {
-        var n = Number(v.text());
-        v.text((n -= s).toString());
-      });
-      p.on('click', function (evt) {
-        var n = Number(v.text());
-        v.text((n += s).toString());
+    list: function (k, v, specs) {
+      specs = _.extend({
+        type: 'function', values: []
+      }, specs);
+      var e = $('<select />');
+      _.each(specs.values, function (val) {
+        var o = $('<option>' + val + '</option>');
+        if (val == v) o.attr('selected', 'selected');
+        o.css(css.list);
+        e.append(o);
       });
       return e;
+    },
+    range: function (k, v, specs) {
+      specs = _.extend({
+        type: 'range', step: 1,
+        min: undefined, max: undefined, values: undefined
+      }, specs);
+      var $wrapper = $('<span />');
+      var $v = $('<span>' + v + '</span>');
+      var $minus = $('<span>-</span>');
+      var $plus = $('<span>+</span>');
+      var values = specs.values;
+      var step = Number(specs.step);
+      var max = specs.max;
+      var min = specs.min;
+      $minus.css(css.pm);
+      $plus.css(css.pm);
+      $wrapper.append($minus);
+      $wrapper.append($plus);
+      $wrapper.append($v);
+      $minus.on('mousedown', update(-1));
+      $plus.on('mousedown', update(1));
+      $minus.on('mouseup', cancel);
+      $plus.on('mouseup', cancel);
+      $minus.on('mouseout', cancel);
+      $plus.on('mouseout', cancel);
+      var timeoutId;
+      var time = 0;
+
+      function cancel() {
+        clearTimeout(timeoutId);
+        time = 0;
+      }
+
+      function update(sign) {
+        function u() {
+          if (!time) time = utils.time();
+          timeoutId = setTimeout(u, utils.time(time) < 1000 ? 150 : 30);
+          var val = $v.text();
+          var next;
+          if (values instanceof Array) {
+            if (typeof v == 'number') {
+              val = Number(val);
+            }
+            var i = values.indexOf(val) + sign;
+            if (i < 0) i = 0;
+            if (i >= values.length) i = values.length - 1;
+            next = values[i];
+          } else {
+            val = Number(val);
+            next = val + sign * step;
+            if (max !== undefined) {
+              next = next < max ? next : max;
+            }
+            if (min !== undefined) {
+              next = next > min ? next : min;
+            }
+          }
+          $v.text(next.toString());
+        }
+
+        return u;
+      }
+
+      return $wrapper;
     }
   };
 
@@ -90,13 +163,32 @@
       padding: '1px 20px',
       cursor: 'pointer',
       'border-radius': '6px',
-      border: '0px solid transparent',
-      'user-select': 'none'
+      border: '0px solid transparent'
+    },
+    folder: {
+      'color': '#ccc',
+      'font-weight': 'bold',
+      'cursor': 'pointer',
+      'font-size': '0.9em',
+      margin: '2px'
+    },
+    list: {
+      color: '#111',
+      'border-radius': '2px'
+    },
+    folded: {
+      color: '#555'
     },
     pm: {
-      cursor: 'pointer',
-      'color': '#eee',
-      'margin': '0 2px'
+      'cursor': 'pointer',
+      'color': '#311',
+      'margin': '0 2px',
+      'border': '1 px solid transparent',
+      'border-radius': '10px',
+      'padding': '0 5px',
+      'background-color': '#777',
+      'font-weight': 'normal',
+      'user-select': 'none'
     }
   };
 
@@ -106,27 +198,45 @@
       $parent.css(css.jec);
     }
     _.each(obj, function (v, k) {
-      if (typeof v == 'object') {
-        $parent.append(build(v, temp[k] || {}));
+      var $wrapper = $('<div />');
+      $wrapper.css(css.jee);
+      var $key = $('<div />');
+      $key.text(k + '');
+      $key.css(css.key);
+      var $value;
+      if (typeof v == 'object') { //folders
+        $value = build(v, temp[k] || {});
+        var $folded = $('<span> {}</span>');
+        $folded.css(css.folded);
+        $key.append($folded);
+        $key.css(css.folder);
+        $key.on('click', function () {
+          $value.toggle();
+          $folded.toggle();
+        });
+        $wrapper.append($key);
+        $wrapper.append($value);
+        if (temp[k] && temp[k].folded) {
+          $folded.show();
+          $value.hide();
+        } else {
+          $folded.hide();
+          $value.show();
+        }
+        $parent.append($wrapper);
         return;
       }
       var type = (v === true || v === false) ? 'boolean' : 'string';
-      var specs = type == 'boolean' ? {type: type, f: false, t: true} : {type: type};
+      var specs = {type: type};
       if ((typeof(temp[k]) == 'string') && (types[temp[k]])) {
         type = temp[k];
-        specs = {type: type};
       } else if ((typeof(temp[k]) == 'object') && (types[temp[k].type])) {
         type = temp[k].type;
         specs = temp[k];
       }
-      var $value = types[type](k, v, specs);
+      $value = types[type](k, v, specs);
       $value.css(css.value);
       $value.css(css[type]);
-      var $key = $('<div />');
-      $key.text(k + '');
-      $key.css(css.key);
-      var $wrapper = $('<div />');
-      $wrapper.css(css.jee);
       $wrapper.append($key);
       $wrapper.append($value);
       $parent.append($wrapper);
@@ -147,6 +257,8 @@
     showEditor: function (selector) {
       var dom = build(json, template);
       $(selector).html(dom);
-    }
+    },
+    css: css,
+    types: types
   };
 })();
