@@ -7,7 +7,7 @@
 (function () {
   var _ = require('./lib/underscore.js');
   var utils = require('./util/utils.js');
-  var Ammo, THREE, jQuery;
+  var Ammo, THREE, jQuery, ammoHelper;
   var controller;
   var worker;
   var debug = false;
@@ -382,6 +382,7 @@
         if (body) {
           body.connector[this.id] = this;
           this.body = body;
+          this.ammoTransform = utils.normalizeConnector(this, ammoHelper);
           this.base = make('physics', 'position', this.base);
           this.up = make('physics', 'vector', this.up);
           this.front = make('physics', 'vector', this.front);
@@ -430,7 +431,7 @@
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
           if (this.approach) {
-
+            utils.approachConnectors(this.a, this.b, Ammo);
           }
         }
       },
@@ -648,7 +649,7 @@
         });
         notifyUndefined(this, ['lookAt']);
         this.axis = make('physics', 'vector', this.axis);
-        if (typeof(this.lookAt)=='string'){
+        if (typeof(this.lookAt) == 'string') {
           this.lookAt = getObject('body', this.lookAt);
         } else {
           this.lookAt = make('physics', 'position', this.lookAt);
@@ -683,6 +684,9 @@
     material: function (obj) {
     },
     connector: function (obj) {
+      if (ammoHelper) {
+        // ammoHelper.destroy(obj.ammoTransform);
+      }
     },
     constraint: function (obj) {
       if (Ammo) {
@@ -825,6 +829,7 @@
   function addLibrary(lib) {
     if (lib.btVector3) {
       Ammo = lib;
+      ammoHelper = lib;
     } else if (lib.Vector3) {
       THREE = lib;
     } else if (lib.ajax) {
@@ -1109,10 +1114,11 @@
     //add necessary libraries
     if (!THREE) addLibrary(require('./lib/three.js'));
     if (!jQuery) addLibrary(require('./lib/jquery.js'));
+    if (!ammoHelper) ammoHelper = require('./lib/ammo.js');
     if (settings.webWorker) {
       createWorker();
     } else {
-      if (!Ammo) addLibrary(require('./lib/ammo.js'));
+      if (!Ammo) addLibrary(ammoHelper);
     }
     module.exports.loadObjects(obj); //for worker as well
     settings = getSettings();
@@ -1416,7 +1422,10 @@
     transfer: transfer,
     setScope: setScope,
     getScope: getScope,
-    getScopes: getScopes
+    getScopes: getScopes,
+    getAmmo: function () {
+      return ammoHelper;
+    }
   };
 
   return module.exports;

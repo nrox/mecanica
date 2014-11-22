@@ -20,10 +20,12 @@ function makeTest(pack, type) {
   return function () {
     var copy = utils.deepCopy(pack);
     delete copy.body.b.position.id;
-    console.log('red initial position:', utils.stringify(copy.body.a.position));
-    console.log('red initial rotation:', utils.stringify(copy.body.a.rotation));
-    console.log('green final position:', utils.stringify(copy.body.b.position));
-    console.log('green final quaternion:', utils.stringify(copy.body.b.quaternion));
+    /*
+     console.log('red initial position:', utils.stringify(copy.body.a.position));
+     console.log('red initial rotation:', utils.stringify(copy.body.a.rotation));
+     console.log('green final position:', utils.stringify(copy.body.b.position));
+     console.log('green final quaternion:', utils.stringify(copy.body.b.quaternion));
+     */
     factory.setScope(type);
     factory.loadScene(copy);
   };
@@ -76,7 +78,7 @@ function addAllTests() {
   };
   var copy, type, to, ta, t2, t3, p, q;
 
-  normalizeConnector(obj.body.a.connector.c)
+  utils.normalizeConnector(obj.body.a.connector.c, Ammo);
 
   copy = utils.deepCopy(obj);
   //define random position and rotation for body a
@@ -120,17 +122,18 @@ function addAllTests() {
   to = testIntro(copy, connector2, position2, rotation2);
   t2 = new Ammo.btTransform(to.t.inverse());
   //get the connector transform
-  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3 = new Ammo.btTransform(utils.normalizeConnector(to.b.connector.c, Ammo).inverse());
   t3.op_mul(t2);
   //apply to b and add test
   testOutro(to, t3, copy, type);
+
 
   type = 'connector to body';
   copy = utils.deepCopy(copy);
   to = testIntro(copy, connector2, position2, rotation2);
   t2 = new Ammo.btTransform(to.t.inverse());
   //get the connector transform
-  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3 = new Ammo.btTransform(utils.normalizeConnector(to.b.connector.c, Ammo).inverse());
   t3.op_mul(t2);
   //for body a
   p = f2.make('physics', 'position', copy.body.a.position);
@@ -146,11 +149,11 @@ function addAllTests() {
   to = testIntro(copy, connector2, position2, rotation2);
   t2 = new Ammo.btTransform(to.t.inverse());
   //get the connector b transform
-  t3 = new Ammo.btTransform(normalizeConnector(to.b.connector.c).inverse());
+  t3 = new Ammo.btTransform(utils.normalizeConnector(to.b.connector.c, Ammo).inverse());
   t3.op_mul(t2);
 
   //for body a
-  t2 = normalizeConnector(copy.body.a.connector.c);
+  t2 = utils.normalizeConnector(copy.body.a.connector.c, Ammo);
 
   p = f2.make('physics', 'position', copy.body.a.position);
   q = f2.make('physics', 'quaternion', copy.body.a.rotation);
@@ -188,72 +191,15 @@ function testIntro(copy, connector2, position2, rotation2) {
 
 function testOutro(to, t2, copy, type) {
   //apply the inverse to the current position and rotation
-  var p2 = MxV(t2, to.p.ammo);
-  var q2 = MxQ(t2, to.q.ammo);
+  var p2 = utils.MxV(t2, to.p.ammo);
+  var q2 = utils.MxQ(t2, to.q.ammo);
   //update body b rotation and position with the inverted values
   //those values should be equivalent to origin and no rotation
   delete to.b.rotation;
-  to.b.position = copyFromAmmo(p2);
-  to.b.quaternion = copyFromAmmo(q2);
+  to.b.position = utils.copyFromAmmo(p2, {}, Ammo);
+  to.b.quaternion = utils.copyFromAmmo(q2, {}, Ammo);
+
   test[type] = makeTest(copy, type);
-}
-
-function logTransform(title, t) {
-  console.log(title);
-  console.log(t.getRotation().x(), t.getRotation().y(), t.getRotation().z(), t.getRotation().w());
-}
-
-function MxV(m, v) {
-  var b = m.getBasis();
-  var o = m.getOrigin();
-  var r = v.dot3(b.getRow(0), b.getRow(1), b.getRow(2));
-  r.op_add(o);
-  return r;
-}
-
-function MxQ(m, q) {
-  var r = m.getRotation();
-  r.op_mul(q);
-  return r;
-}
-
-function copyFromAmmo(ammoVector, toExtend) {
-  if (!toExtend) toExtend = {};
-  toExtend.x = ammoVector.x();
-  toExtend.y = ammoVector.y();
-  toExtend.z = ammoVector.z();
-  if (ammoVector instanceof Ammo.btQuaternion) {
-    toExtend.w = ammoVector.w();
-  }
-  return toExtend;
-}
-
-function normalizeConnector(c) {
-  var up = new Ammo.btVector3(c.up.x || 0, c.up.y || 0, c.up.z || 0);
-  up.normalize();
-  var front = new Ammo.btVector3(c.front.x || 0, c.front.y || 0, c.front.z || 0);
-  var wing = up.cross(front);
-  wing = new Ammo.btVector3(wing.x(), wing.y(), wing.z());
-  wing.normalize();
-  front = wing.cross(up);
-  front = new Ammo.btVector3(front.x(), front.y(), front.z());
-  front.normalize();
-  var base = new Ammo.btVector3(c.base.x || 0, c.base.y || 0, c.base.z || 0);
-  var v1 = wing;
-  var v2 = up;
-  var v3 = front;
-  var m3 = new Ammo.btMatrix3x3(
-    v1.x(), v1.y(), v1.z(),
-    v2.x(), v2.y(), v2.z(),
-    v3.x(), v3.y(), v3.z()
-  );
-  m3 = m3.transpose();
-  copyFromAmmo(up, c.up);
-  copyFromAmmo(front, c.front);
-  var t = new Ammo.btTransform();
-  t.setBasis(m3);
-  t.setOrigin(base);
-  return t;
 }
 
 addAllTests();
