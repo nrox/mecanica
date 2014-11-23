@@ -33,7 +33,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
       l3: {position: {y: -5, z: 1}, color: 0x445566}
     };
     factory.loadScene(pack, {
-      axisHelper: 1.3,
+      axisHelper: 5,
       wireframe: true,
       webWorker: true,
       autoStart: true,

@@ -321,6 +321,7 @@
         } else { //make from options
           shape = make('shape', this.shape);
         }
+        this.shape = shape;
         var material;
         if (typeof this.material == 'string') { //get from objects with id
           material = getObject('material', this.material);
@@ -342,19 +343,9 @@
             var r = shape.three.boundingSphere.radius * 1.5;
             this.three.add(new THREE.AxisHelper(r));
           }
-          this.three.position.copy(this.position.three);
-          this.three.quaternion.copy(this.quaternion.three);
         }
         if (Ammo) {
-          var transform = new Ammo.btTransform();
-          transform.setIdentity();
-          transform.setOrigin(this.position.ammo);
-          transform.setRotation(this.quaternion.ammo);
-          var inertia = new Ammo.btVector3(0, 0, 0);
-          if (this.mass) shape.ammo.calculateLocalInertia(this.mass, inertia);
-          var motionState = new Ammo.btDefaultMotionState(transform);
-          var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, shape.ammo, inertia);
-          this.ammo = new Ammo.btRigidBody(rbInfo);
+          this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
         }
         _.each(this.connector, function (c, id) {
           c.bodyObject = _this;
@@ -431,7 +422,7 @@
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
           if (this.approach) {
-            utils.approachConnectors(this.a, this.b, Ammo);
+            utils.approachConnectors(this.a, this.b, make, Ammo);
           }
         }
       },
@@ -442,28 +433,34 @@
       point: function (options) {
         constructor.constraint._abstract.call(this, options);
         if (Ammo) {
-          this.ammo = new Ammo.btPoint2PointConstraint(
-            this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
-          );
+          this.create = function () {
+            this.ammo = new Ammo.btPoint2PointConstraint(
+              this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
+            );
+          };
         }
       },
       //for free wheels, doors
       hinge: function (options) {
         constructor.constraint._abstract.call(this, options);
         if (Ammo) {
-          this.ammo = new Ammo.btHingeConstraint(
-            this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
-            this.a.up.ammo, this.b.up.ammo
-          );
+          this.create = function () {
+            this.ammo = new Ammo.btHingeConstraint(
+              this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
+              this.a.up.ammo, this.b.up.ammo
+            );
+          };
         }
       },
       gear: function (options) {
         constructor.constraint._abstract.call(this, options);
         notifyUndefined(this, ['ratio']);
         if (Ammo) {
-          this.ammo = new Ammo.btGearConstraint(
-            this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
-          );
+          this.create = function () {
+            this.ammo = new Ammo.btGearConstraint(
+              this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
+            );
+          };
         }
       },
       //for linear motors
@@ -502,10 +499,11 @@
             yAxis.z(), xAxis.z(), zAxis.z()
           );
           transformB.setBasis(basis);
-
-          this.ammo = new Ammo.btSliderConstraint(
-            this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
-          );
+          this.create = function () {
+            this.ammo = new Ammo.btSliderConstraint(
+              this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+            );
+          };
         }
       }
     },
@@ -663,6 +661,24 @@
   };
 
   var method = {
+    body: {
+      updateMotionState: function () {
+        if (THREE) {
+          this.three.quaternion.copy(this.quaternion.three);
+          this.three.position.copy(this.position.three);
+        }
+        if (Ammo) {
+          this.ammoTransform.setIdentity();
+          this.ammoTransform.setRotation(this.quaternion.ammo);
+          this.ammoTransform.setOrigin(this.position.ammo);
+          var inertia = new Ammo.btVector3(0, 0, 0);
+          if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
+          var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
+          var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
+          this.ammo = new Ammo.btRigidBody(rbInfo);
+        }
+      }
+    },
     constraint: {
       remove: function () {
         destroy(getObject.apply(null, arguments));
@@ -1125,7 +1141,7 @@
     getSome('monitor') || makeSome('monitor');
     if (settings.autoStart) {
       module.exports.startSimulation(); //works for worker as well
-      startRender();
+      setTimeout(startRender, 0);
     }
   }
 
@@ -1141,6 +1157,7 @@
       _.each(objs.system, loadSystem);
       _.each(objs.body, function (body) {
         if (!body._added && (body._added = true)) {
+          method.body.updateMotionState.call(body);
           if (THREE) scene.three.add(body.three);
           if (Ammo) scene.ammo.addRigidBody(body.ammo);
         }
@@ -1148,6 +1165,7 @@
       _.each(objs.constraint, function (cons) {
         if (!cons._added && (cons._added = true)) {
           if (Ammo) {
+            cons.create.call(cons);
             scene.ammo.addConstraint(cons.ammo);
           }
         }
@@ -1247,8 +1265,6 @@
     var scene = getScene();
     var monitor = getSome('monitor');
 
-    var p = 0;
-
     function render() {
       if (scene._destroyed) return;
       var previousScope = getScope();
@@ -1265,7 +1281,7 @@
       }
     }
 
-    render();
+    setTimeout(render, 1000 / settings.renderFrequency);
   }
 
   function stopRender() {

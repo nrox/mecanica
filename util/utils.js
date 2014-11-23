@@ -103,22 +103,24 @@ module.exports = {
     r.op_mul(q);
     return r;
   },
-  approachConnectors: function (fix, move, ammoHelper) {
+  logTransform: function (t, title) {
+    if (title !== undefined) console.log(title);
+    console.log('position:', t.getOrigin().x(), t.getOrigin().y(), t.getOrigin().z());
+    console.log('quaternion:', t.getRotation().x(), t.getRotation().y(), t.getRotation().z(), t.getRotation().w());
+  },
+  approachConnectors: function (fix, move, make, ammoHelper) {
     //move bodies to match connectors, which are already normalized, with computed transforms
-    //FIXME
-    if (true || !ammoHelper) return;
-    function logTransform(title, t) {
-      console.log(title);
-      console.log(t.getRotation().x(), t.getRotation().y(), t.getRotation().z(), t.getRotation().w());
-    }
+    if (!ammoHelper) return;
 
-    var moveConInvTrans = new ammoHelper.btTransform(move.ammoTransform).inverse();
-    var moveBodyInvTrans = new ammoHelper.btTransform;
-    move.body.ammo.getMotionState().getWorldTransform(moveBodyInvTrans);
+    //body to move
+    var moveConInvTrans = new ammoHelper.btTransform(new ammoHelper.btTransform(move.ammoTransform).inverse());
+    var moveBodyInvTrans = new ammoHelper.btTransform(move.body.ammoTransform);
     moveBodyInvTrans = new ammoHelper.btTransform(moveBodyInvTrans.inverse());
+
+    //fixed body
     var fixConTrans = new ammoHelper.btTransform(fix.ammoTransform);
-    var fixBodyTrans = new ammoHelper.btTransform;
-    fix.body.ammo.getMotionState().getWorldTransform(fixBodyTrans);
+    var fixBodyTrans = new ammoHelper.btTransform(fix.body.ammoTransform);
+
     //move body to origin and then its connector to origin
     moveConInvTrans.op_mul(moveBodyInvTrans);
     //the move.body to fix connector relative position
@@ -126,6 +128,8 @@ module.exports = {
     //then apply fix body transform
     fixBodyTrans.op_mul(fixConTrans);
     //reuse it apply to body to move
-    move.body.ammo.setWorldTransform(fixBodyTrans);
+    move.body.ammoTransform.op_mul(fixBodyTrans);
+    move.body.position = make('physics', 'position', this.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
+    move.body.quaternion = make('physics', 'quaternion', this.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
   }
 };
