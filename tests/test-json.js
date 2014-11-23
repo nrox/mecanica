@@ -2,7 +2,7 @@ var testUtils = require('../util/test.js');
 var utils = require('../util/utils.js');
 var $ = require('../lib/jquery.js');
 var _ = require('../lib/underscore.js');
-var editor = require('../util/json-editor.js');
+var editor = require('../util/json-ui.js');
 
 function clearObjects() {
   $('#container').empty();
@@ -25,7 +25,7 @@ var test = {
         range1: {type: 'range', min: '-50', max: '100', step: '2'},
         range2: {type: 'range', min: '-0.1', max: '2.3', step: '0.01'},
         string: {type: 'string', tag: 'textarea', val: 'val'},
-        alert: {type: 'function', caption: 'alert string text'},
+        var1: {type: 'range', min: 0, max: 1, step: 0.1},
         randomColor: {type: 'function', caption: 'set random color'},
         darkGrayColor: {type: 'function', caption: 'set dark gray'},
         boolean1: {type: 'boolean', t: true, f: false},
@@ -47,8 +47,9 @@ var test = {
         range1: 4,
         range2: 0.3,
         string: 'hello',
-        alert: function () {
-          alert(editor.getValues().root.string);
+        var1: 0.3,
+        'var1 = random()': function () {
+          this.getReference().root.var1.setValue(Math.random());
         },
         randomColor: function () {
           function r() {

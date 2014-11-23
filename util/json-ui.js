@@ -2,29 +2,34 @@
   var $ = require('../lib/jquery.js');
   var utils = require('./utils.js');
   var _ = require('../lib/underscore.js');
+  var thisEditor;
+  var GET_VALUE = 'getValue';
+  var SET_VALUE = 'setValue';
 
-  var GET_VALUE = '_GET_VALUE_';
   var template = {};
-  var json;
+  var jsonObject, reference;
   var FOLDER_SYMBOL = ' {...}';
   var updaters = [];
 
   var types = {
     string: function (k, v, specs) {
-      specs = _.extend({
+      _.defaults(specs, {
         type: 'string', tag: 'span'
-      }, specs);
+      });
       var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
       e.text(v);
       e[GET_VALUE] = function () {
         return e[specs.val || 'text']();
       };
+      e[SET_VALUE] = function (a) {
+        e[specs.val || 'text'](a);
+      };
       return e;
     },
     boolean: function (k, v, specs) {
-      specs = _.extend({
+      _.defaults(specs, {
         type: 'boolean', t: true, f: false
-      }, specs);
+      });
       var e = $('<span />');
       e.text(v);
       e.on('click', function (evt) {
@@ -35,23 +40,26 @@
         var txt = e.text();
         return (txt === 'true' || txt === 'false') ? eval(txt) : txt;
       };
+      e[SET_VALUE] = function (a) {
+        e.text('' + a);
+      };
       return e;
     },
     'function': function (k, v, specs) {
-      specs = _.extend({
-        type: 'function', caption: '&nbsp;'
-      }, specs);
+      _.defaults(specs, {
+        type: 'function', caption: k, noKey: true
+      });
       var e = $('<span />');
       e.html(specs.caption);
       e.on('click', function () {
-        if (typeof v == 'function') v();
+        if (typeof v == 'function') v.call(thisEditor);
       });
       return e;
     },
     list: function (k, v, specs) {
-      specs = _.extend({
+      _.defaults(specs, {
         type: 'function', values: []
-      }, specs);
+      });
       var e = $('<select />');
       _.each(specs.values, function (val) {
         var o = $('<option>' + val + '</option>');
@@ -62,16 +70,20 @@
       e[GET_VALUE] = function () {
         return e.val();
       };
+      e[SET_VALUE] = function (a) {
+        e.val(a);
+      };
       return e;
     },
     range: function (k, v, specs) {
-      specs = _.extend({
+      _.defaults(specs, {
         type: 'range', step: 1,
         min: undefined, max: undefined, values: undefined,
         plus: '+', minus: '-'
-      }, specs);
+      });
       var $wrapper = $('<span />');
       var $v = $('<span>' + v + '</span>');
+      $v.css(css.rangeValue);
       var values = specs.values;
       var step = Number(specs.step);
       var max = specs.max;
@@ -127,6 +139,9 @@
       $wrapper[GET_VALUE] = function () {
         return $v.text();
       };
+      $wrapper[SET_VALUE] = function (a) {
+        $v.text(a);
+      };
       return $wrapper;
     }
   };
@@ -134,26 +149,42 @@
   var css = {
     level: {
       'border': '1px dashed transparent',
-      'margin': '0 20px'
+      'margin': '0 1em'
     },
     property: {
       'margin': '2px 1px',
-      'font-size': '0.8rem'
+      'font-size': '0.8rem',
+      'padding': '1px'
     },
     string: {
       'padding': '1px 5px',
       'cursor': 'auto',
-      'color': '#112'
+      'color': '#112',
+      'font-style': 'italic'
     },
     boolean: {
       'font-weight': 'bold'
     },
+    rangeValue: {
+      'margin-left': '1em',
+      'background-color': '#999',
+      'padding': '1px 10px',
+      'margin': '0px 3px',
+      'cursor': 'pointer',
+      'border-radius': '3px',
+      'border': '0px solid transparent'
+    },
     range: {
-      'cursor': 'auto'
+      'cursor': 'auto',
+      'background-color': 'transparent',
+      'padding': '0px 2px'
     },
     'function': {
-      'background-color': '#b99',
-      'min-width': '30px'
+      'border': '0',
+      'margin': '2px 3px',
+      'min-width': '30px',
+      'font-weight': 'normal',
+      'border-radius': '1em'
     },
     key: {
       'margin': '1px'
@@ -191,7 +222,7 @@
     }
   };
 
-  function build(obj, temp, $parent) {
+  function build(obj, temp, ref, $parent) {
     if (!$parent) {
       $parent = $('<div />');
       $parent.css(css.level);
@@ -199,12 +230,12 @@
     _.each(obj, function (v, k) {
       var $wrapper = $('<div />');
       $wrapper.css(css.property);
-      var $key = $('<div />');
+      var $key = $('<span />');
       $key.text(k + '');
       $key.css(css.key);
       var $value;
       if (typeof v == 'object') { //folders
-        $value = build(v, temp[k] || {});
+        $value = build(v, temp[k] || {}, ref[k] = {});
         var $folded = $('<span>' + FOLDER_SYMBOL + '</span>');
         $folded.css(css.folded);
         $key.append($folded);
@@ -225,7 +256,14 @@
         $parent.append($wrapper);
         return;
       }
-      var type = (v === true || v === false) ? 'boolean' : 'string';
+      var type;
+      if (typeof v == 'function') {
+        type = 'function';
+      } else if (v === true || v === false) {
+        type = 'boolean';
+      } else {
+        type = 'string';
+      }
       var specs = {type: type};
       if ((typeof(temp[k]) == 'string') && (types[temp[k]])) {
         type = temp[k];
@@ -239,34 +277,42 @@
           obj[k] = $value[GET_VALUE]();
         });
       }
+      ref[k] = $value;
       $value.css(css.value);
-      $value.css(css[type]);
-      $wrapper.append($key);
+      $value.css(css[type] || {});
+      if (!specs.noKey) $wrapper.append($key);
       $wrapper.append($value);
       $parent.append($wrapper);
     });
     return $parent;
   }
 
-  module.exports = {
+  module.exports = thisEditor = {
     useTemplate: function (t) {
       template = t;
     },
     getValues: function () {
       _.each(updaters, function (fn) {
-        fn();
+        try {
+          fn();
+        } catch (e) {
+        }
       });
-      return json;
+      return jsonObject;
     },
     setValues: function (v) {
-      json = v;
+      jsonObject = v;
     },
     showEditor: function (selector) {
       while (updaters.length) {
         updaters.pop();
       }
-      var dom = build(json, template);
-      $(selector).html(dom);
+      reference = {};
+      var domElements = build(jsonObject, template, reference, undefined);
+      $(selector).html(domElements);
+    },
+    getReference: function () {
+      return reference;
     },
     css: css,
     types: types

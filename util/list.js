@@ -34,7 +34,7 @@ availablePaths = [
 "../tests/test-transform.js",
 "../tests/test-worker.js",
 "../util/controller.js",
-"../util/json-editor.js",
+"../util/json-ui.js",
 "../util/listdir.sh",
 "../util/list.js",
 "../util/require.js",
