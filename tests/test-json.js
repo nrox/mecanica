@@ -121,6 +121,17 @@ var test = {
     editor.setValues(defaultSettings);
     editor.showEditor('#container');
     makeGetValues(editor);
+  },
+  'ware object': function () {
+    var obj = require('../ware/random-shapes.js').getObject();
+    var template = {};
+    _.each(obj, function (o, k) {
+      template[k] = {folded: true};
+    });
+    editor.useTemplate(template);
+    editor.setValues(obj);
+    editor.showEditor('#container');
+    makeGetValues(editor);
   }
 };
 
