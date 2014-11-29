@@ -680,7 +680,7 @@
     },
     constraint: {
       remove: function () {
-        destroy(getObject.apply(null, arguments));
+        destroy(this);
       },
       disable: function () {
         if (Ammo) {

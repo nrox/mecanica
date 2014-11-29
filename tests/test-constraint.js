@@ -49,8 +49,8 @@ function addAllTests() {
     group: 'body',
     type: 'basic',
     shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
-    position: {  x: 0, y: 0, z: 0 },
-    rotation: { x: 0, y: 0, z: 0 },
+    position: {  x: 0.5, y: 0.5, z: 0.5 },
+    rotation: { x: 0.5, y: 0.3, z: 0 },
     material: {type: 'phong', color: 0x338855},
     mass: 0
   };
@@ -111,7 +111,7 @@ function addAllTests() {
   ca.base = {x: 0, y: 0, z: 0};
   ca.up = {z: 1};
   ca.front = {y: 1};
-  cb.base = {x: 0, y: 0, z: -5};
+  cb.base = {x: 0, y: 0, z: 5};
   cb.up = {z: 1};
   cb.front = {y: 1};
   var bodyBCopy = utils.deepCopy(bodyB);
