@@ -1,41 +1,36 @@
-_unusable! / broken !_
-======================
-
 Mecânica
 ========
 
 mechanism simulation with ammo.js and three.js
 
-current state: _unusable/broken_
-
 [gh-pages](https://nrox.github.io/mecanica/)
 
-#usage
+##usage
 
-First Define the scene/world in a json object. Save it to the /ware folder. Call is for example
+Define the scene/world in a json object. Examples in ware/ folder
 
     /ware/world.js
 
-##browser + web worker
-
-Include require.js
+Include jquery.js and the custom require.js in an html page
 
     <script src='lib/jquery.js'></script>
-    <script src='require.js'></script>
+    <script src='util/require.js'></script>
 
-Load the predefined script.js with the world description
+Load the predefined world.js with the world description
 
-    var director = require('director.js')
+    var f = require('factory.js');
+    f.loadScene('http://...world.js');
 
-    director.loadScene('world.js');
 
-#todo
+##json editor
+
+##todo
 
 * allow joining and removing systems (collections of bodies and constraints)
 
 * properly define and test constraints axis of movement
 
-* properly dispose/destroy objects
+* properly dispose/destroy objects, check memory leaks
 
 * add hinge constraint methods in ammo.js
 

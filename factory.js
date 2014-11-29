@@ -554,7 +554,6 @@
       }
     },
     renderer: {
-      //TODO simplify this mess
       _default: function (options) {
         try {
           constructor.renderer.webgl.call(this, options);
