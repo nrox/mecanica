@@ -131,5 +131,20 @@ module.exports = {
     move.body.ammoTransform.op_mul(fixBodyTrans);
     move.body.position = make('physics', 'position', this.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
     move.body.quaternion = make('physics', 'quaternion', this.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
+  },
+  appendSVG: function ($, container, attr) {
+    var svg = $('<svg></svg>');
+    attr || (attr = {});
+    svg.attr(attr);
+    svg.css({
+      'background-color': '#999',
+      'color': '#111',
+      'max-width': attr.width || '200px',
+      'max-height': attr.height || '300px'
+    });
+    var w = $('<div></div>');
+    w.append(svg);
+    $(container).append(w.html());
+    w.remove();
   }
 };
