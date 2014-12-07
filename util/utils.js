@@ -2,7 +2,9 @@ module.exports = {
   stringify: function (obj) {
     return JSON.stringify(obj,
       function (k, v) {
-        return v === undefined ? null : v;
+        if (v === undefined) return null;
+        if (typeof v == 'function') return '' + v;
+        return v;
       }, '  ');
   },
   deepCopy: function (json) {
@@ -131,5 +133,19 @@ module.exports = {
     move.body.ammoTransform.op_mul(fixBodyTrans);
     move.body.position = make('physics', 'position', this.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
     move.body.quaternion = make('physics', 'quaternion', this.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
+  },
+  configChart: function (Chart, customOptions) {
+    _.extend(Chart.defaults.global, {
+      animation: false,
+      showScale: true,
+      scaleOverride: false,
+      scaleIntegersOnly: false,
+      responsive: false,
+      maintainAspectRatio: true,
+      showTooltips: false
+    });
+    if (typeof customOptions == 'object') {
+      _.extend(Chart.defaults.global, customOptions);
+    }
   }
 };
