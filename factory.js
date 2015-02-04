@@ -693,12 +693,24 @@
       },
       setAngle: function (angle) {
         this.ammo.setLimit(angle, angle, 0.9, 0.3, 1.0);
+        this.bodyA.ammo.activate();
+        this.bodyB.ammo.activate();
+      },
+      relax: function(){
+        this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+        this.bodyA.ammo.activate();
+        this.bodyB.ammo.activate();
       },
       enableMotor: function(velocity, binary){
-        this.ammo.enableAngularMotor(true, velocity, binary)
+        //this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+        this.ammo.enableAngularMotor(true, velocity, binary);
+        this.bodyA.ammo.activate();
+        this.bodyB.ammo.activate();
       },
       disableMotor: function(){
         this.ammo.enableAngularMotor(false, 0, 0);
+        this.bodyA.ammo.activate();
+        this.bodyB.ammo.activate();
       }
     }
   };

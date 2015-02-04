@@ -4,6 +4,8 @@ var THREE = require('../lib/three.js');
 var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 var $ = require('../lib/jquery.js');
+var Editor = require('../util/json-ui.js');
+
 var test = {
 };
 
@@ -25,7 +27,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     pack.connector[connectorB.id] = connectorB;
     pack.constraint = {};
     constraint = utils.deepCopy(constraint);
-    constraint.type = constraint.id =type;
+    constraint.type = constraint.id = type;
     pack.constraint[constraint.id] = constraint;
     pack.monitor = {m1: {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
     pack.light = {
@@ -49,41 +51,46 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
 
 var inputs = {
   hinge: function (type) {
-    var trig = $('#triggers');
-    var i = $('<input type="text" value="0"/>');
-    var v = $('<input type="text" value="1"/>');
-    var binary = $('<input type="text" value="1"/>');
-    var b = $('<button>set angle</button>');
-    var m = $('<button>enable motor</button>');
-    var d = $('<button>disable motor</button>');
-
-    trig.append("angle...:");
-    trig.append(i);
-    trig.append(b);
-
-    trig.append("<br />");
-    trig.append("velocity:");
-    trig.append(v);
-    trig.append("<br />");
-    trig.append("binary..:");
-    trig.append(binary);
-    trig.append(m);
-    trig.append(d);
-
-
-    b.on('click', function () {
-      var c = factory.getObject('constraint', type);
-      //factory.method.constraint.enableMotor.call(c, Number(v.val()), Number(binary.val()));
-      factory.method.constraint.setAngle.call(c, Number(i.val()));
-    });
-    m.on('click', function () {
-      var c = factory.getObject('constraint', type);
-      factory.method.constraint.enableMotor.call(c, Number(v.val()), Number(binary.val()));
-    });
-    d.on('click', function () {
-      var c = factory.getObject('constraint', type);
-      factory.method.constraint.disableMotor.call(c);
-    });
+    var template = {
+      angle: {
+        'radians': {type: 'range', min: -5, max: 5, step: 0.5}
+      },
+      motor: {
+        velocity: {type: 'range', min: -5, max: 5, step: 1},
+        binary: {type: 'range', min: 0, max: 50, step: 1}
+      }
+    };
+    var ui = {
+      angle: {
+        radians: 0,
+        set: function () {
+          var c = factory.getObject('constraint', type);
+          var angle = this.getValues().angle.radians;
+          factory.method.constraint.setAngle.call(c, angle);
+        },
+        relax: function () {
+          var c = factory.getObject('constraint', type);
+          factory.method.constraint.relax.call(c);
+        }
+      },
+      motor: {
+        velocity: 1,
+        binary: 1,
+        enable: function () {
+          var c = factory.getObject('constraint', type);
+          var values = this.getValues().motor;
+          factory.method.constraint.enableMotor.call(c, values.velocity, values.binary);
+        },
+        disable: function () {
+          var c = factory.getObject('constraint', type);
+          factory.method.constraint.disableMotor.call(c);
+        }
+      }
+    };
+    var editor = new Editor();
+    editor.useTemplate(template);
+    editor.setValues(ui);
+    editor.showEditor('#triggers');
   }
 };
 
