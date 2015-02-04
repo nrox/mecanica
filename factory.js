@@ -91,6 +91,9 @@
    * @returns {*}
    */
   function getObject() {
+    if (arguments[0] instanceof Array){
+      return getObject.apply(null, arguments[0]);
+    }
     var obj = objects;
     for (var i = 0; i < arguments.length; i++) {
       obj = obj[arguments[i]];
@@ -687,6 +690,15 @@
           getScene().ammo.removeConstraint(this.ammo);
         }
         this.enabled = false;
+      },
+      setAngle: function (angle) {
+        this.ammo.setLimit(angle, angle, 0.9, 0.3, 1.0);
+      },
+      enableMotor: function(velocity, binary){
+        this.ammo.enableAngularMotor(true, velocity, binary)
+      },
+      disableMotor: function(){
+        this.ammo.enableAngularMotor(false, 0, 0);
       }
     }
   };
@@ -1440,7 +1452,8 @@
     getScopes: getScopes,
     getAmmo: function () {
       return ammoHelper;
-    }
+    },
+    method: method
   };
 
   return module.exports;

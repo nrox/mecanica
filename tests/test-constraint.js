@@ -9,6 +9,7 @@ var test = {
 
 function clearObjects() {
   factory.destroyAll();
+  $('#triggers').empty();
 }
 
 function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
@@ -24,7 +25,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     pack.connector[connectorB.id] = connectorB;
     pack.constraint = {};
     constraint = utils.deepCopy(constraint);
-    constraint.type = type;
+    constraint.type = constraint.id =type;
     pack.constraint[constraint.id] = constraint;
     pack.monitor = {m1: {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
     pack.light = {
@@ -35,13 +36,56 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     factory.loadScene(pack, {
       axisHelper: 5,
       wireframe: true,
-      webWorker: true,
+      webWorker: false,
       autoStart: true,
       connectorHelper: 0.7,
       canvasContainer: '#container'
     });
+    if (inputs[type]) {
+      inputs[type](type);
+    }
   };
 }
+
+var inputs = {
+  hinge: function (type) {
+    var trig = $('#triggers');
+    var i = $('<input type="text" value="0"/>');
+    var v = $('<input type="text" value="1"/>');
+    var binary = $('<input type="text" value="1"/>');
+    var b = $('<button>set angle</button>');
+    var m = $('<button>enable motor</button>');
+    var d = $('<button>disable motor</button>');
+
+    trig.append("angle...:");
+    trig.append(i);
+    trig.append(b);
+
+    trig.append("<br />");
+    trig.append("velocity:");
+    trig.append(v);
+    trig.append("<br />");
+    trig.append("binary..:");
+    trig.append(binary);
+    trig.append(m);
+    trig.append(d);
+
+
+    b.on('click', function () {
+      var c = factory.getObject('constraint', type);
+      //factory.method.constraint.enableMotor.call(c, Number(v.val()), Number(binary.val()));
+      factory.method.constraint.setAngle.call(c, Number(i.val()));
+    });
+    m.on('click', function () {
+      var c = factory.getObject('constraint', type);
+      factory.method.constraint.enableMotor.call(c, Number(v.val()), Number(binary.val()));
+    });
+    d.on('click', function () {
+      var c = factory.getObject('constraint', type);
+      factory.method.constraint.disableMotor.call(c);
+    });
+  }
+};
 
 function addAllTests() {
   var bodyA = {
