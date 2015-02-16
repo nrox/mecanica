@@ -692,7 +692,8 @@
         this.enabled = false;
       },
       setAngle: function (angle) {
-        this.ammo.setLimit(angle, angle, 0.9, 0.3, 1.0);
+        //use setMotorTarget ?
+        this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
         this.bodyA.ammo.activate();
         this.bodyB.ammo.activate();
       },

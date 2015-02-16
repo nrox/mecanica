@@ -36,8 +36,8 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
       l3: {position: {y: -5, z: 1}, color: 0x445566}
     };
     factory.loadScene(pack, {
-      axisHelper: 5,
-      wireframe: true,
+      axisHelper: 0,
+      wireframe: false,
       webWorker: false,
       autoStart: true,
       connectorHelper: 0.7,
@@ -52,8 +52,8 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
 var inputs = {
   hinge: function (type) {
     var template = {
-      angle: {
-        'radians': {type: 'range', min: -5, max: 5, step: 0.5}
+      servo: {
+        'angle(°)': {type: 'range', min: -180, max: 180, step: 5}
       },
       motor: {
         velocity: {type: 'range', min: -5, max: 5, step: 1},
@@ -61,11 +61,12 @@ var inputs = {
       }
     };
     var ui = {
-      angle: {
-        radians: 0,
+      servo: {
+        'angle(°)': 0,
         set: function () {
           var c = factory.getObject('constraint', type);
-          var angle = this.getValues().angle.radians;
+          var angle = this.getValues().servo['angle(°)'];
+          angle = angle * Math.PI / 180;
           factory.method.constraint.setAngle.call(c, angle);
         },
         relax: function () {
@@ -102,7 +103,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
     position: {  x: 0.5, y: 0.5, z: 0.5 },
     rotation: { x: 0.5, y: 0.3, z: 0 },
-    material: {type: 'phong', color: 0x338855},
+    material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
     mass: 0
   };
   var bodyB = {
@@ -112,7 +113,7 @@ function addAllTests() {
     shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'phong', color: 0x991122},
+    material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
     mass: 1
   };
   var connectorA = {
@@ -129,7 +130,7 @@ function addAllTests() {
     group: 'connector',
     type: 'relative',
     body: bodyB.id,
-    base: {x: 1, y: 1, z: 1},
+    base: {x: 1, y: 1, z: 1.01},
     up: {y: 1},
     front: {x: 1}
   };
@@ -150,9 +151,9 @@ function addAllTests() {
   type = 'hinge';
   ca = utils.deepCopy(connectorA);
   cb = utils.deepCopy(connectorB);
-  ca.base = {x: -1, y: -1, z: 0};
+  ca.base = {x: -1, y: -1, z: -1};
   ca.up = {z: 1};
-  cb.base = {x: 1, y: 1, z: 0};
+  cb.base = {x: 1, y: 1, z: 1};
   cb.up = {z: 1};
   test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 
