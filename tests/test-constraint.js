@@ -224,7 +224,7 @@ function gearTest() {
     body: {
       wall: {
         type: 'basic',
-        shape: { type: 'box', dx: 2, dz: 6, dy: 6, segments: 4 },
+        shape: { type: 'box', dx: 1.9, dz: 10, dy: 6, segments: 5 },
         position: { x: -1 },
         material: {type: 'phong', color: 0x335588, opacity: 0.5, transparent: true, wireframe: true},
         mass: 0,
@@ -238,6 +238,11 @@ function gearTest() {
             base: {x: 1, y: -2, z: -2},
             up: {x: 1},
             front: {z: 1}
+          },
+          wC: {
+            base: {x: 1, y: 0, z: -4},
+            up: {x: 1},
+            front: {z: 1}
           }
         }
       },
@@ -245,11 +250,30 @@ function gearTest() {
         type: 'basic',
         shape: { type: 'cylinder', r: 4, dy: 2, segments: 8},
         position: {x: 1, y: 3, z: 3},
-        rotation: {z: -Math.PI/2},
+        rotation: {z: -Math.PI / 2},
         material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
         mass: 1,
         connector: {
           'cA': {
+            base: {y: -1},
+            up: {y: 1},
+            front: {z: 1}
+          },
+          'cwa': {
+            base: {y: 1, z: 3},
+            up: {y: 1},
+            front: {z: 1}
+          }
+        }
+      },
+      weight: {
+        type: 'basic',
+        shape: { type: 'cylinder', r: 0.5, dy: 2},
+        rotation: {z: Math.PI / 2},
+        material: {type: 'phong', color: 0x335522, opacity: 0.5, transparent: true},
+        mass: 2,
+        connector: {
+          'cww': {
             base: {y: -1},
             up: {y: 1},
             front: {z: 1}
@@ -259,11 +283,25 @@ function gearTest() {
       b: {
         type: 'basic',
         shape: { type: 'cylinder', r: 1, dy: 2, segments: 8 },
-        rotation: {z: Math.PI/2},
+        rotation: {z: Math.PI / 2},
         material: {type: 'phong', color: 0x885555, opacity: 0.5, transparent: true},
         mass: 1,
         connector: {
           'cB': {
+            base: {y: -1},
+            up: {y: 1},
+            front: {z: 1}
+          }
+        }
+      },
+      c: {
+        type: 'basic',
+        shape: { type: 'cylinder', r: 1.5, dy: 2, segments: 8 },
+        rotation: {z: Math.PI / 2},
+        material: {type: 'phong', color: 0x335577, opacity: 0.5, transparent: true},
+        mass: 1,
+        connector: {
+          'cC': {
             base: {y: -1},
             up: {y: 1},
             front: {z: 1}
@@ -280,12 +318,28 @@ function gearTest() {
         bodyB: 'a',
         approach: true
       },
+      wcons: {
+        type: 'hinge',
+        a: 'cwa',
+        b: 'cww',
+        bodyA: 'a',
+        bodyB: 'weight',
+        approach: true
+      },
       wb: {
         type: 'hinge',
         a: 'wB',
         b: 'cB',
         bodyA: 'wall',
         bodyB: 'b',
+        approach: true
+      },
+      wc: {
+        type: 'hinge',
+        a: 'wC',
+        b: 'cC',
+        bodyA: 'wall',
+        bodyB: 'c',
         approach: true
       },
       gear: {
@@ -295,6 +349,15 @@ function gearTest() {
         bodyA: 'a',
         bodyB: 'b',
         ratio: 0.25,
+        approach: false
+      },
+      gear2: {
+        type: 'gear',
+        a: 'cB',
+        b: 'cC',
+        bodyA: 'b',
+        bodyB: 'c',
+        ratio: 1.5,
         approach: false
       }
     },
