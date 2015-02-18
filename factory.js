@@ -508,6 +508,49 @@
             );
           };
         }
+      },
+      //for linear motors
+      fixed: function (options) {
+        constructor.constraint._abstract.call(this, options);
+        if (Ammo) {
+          var transformA = new Ammo.btTransform();
+          transformA.setOrigin(this.a.base.ammo);
+
+          var yAxis = this.a.up.ammo;
+          var zAxis = this.a.front.ammo;
+          var xAxis = yAxis.cross(zAxis).normalize();
+
+          //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+          var basis = transformA.getBasis();
+          //set the new coordinate system and swap x, y
+          basis.setValue(
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
+          );
+          transformA.setBasis(basis);
+
+          var transformB = new Ammo.btTransform();
+          transformB.setOrigin(this.b.base.ammo);
+
+          yAxis = this.b.up.ammo;
+          zAxis = this.b.front.ammo;
+          xAxis = yAxis.cross(zAxis).normalize();
+          //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+          basis = transformB.getBasis();
+          //set the new coordinate system and swap x, y
+          basis.setValue(
+            yAxis.x(), xAxis.x(), zAxis.x(),
+            yAxis.y(), xAxis.y(), zAxis.y(),
+            yAxis.z(), xAxis.z(), zAxis.z()
+          );
+          transformB.setBasis(basis);
+          this.create = function () {
+            this.ammo = new Ammo.btFixedConstraint(
+              this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+            );
+          };
+        }
       }
     },
     scene: { //the same as world
@@ -694,6 +737,7 @@
       setAngle: function (angle) {
         //use setMotorTarget ?
         this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
+        //this.ammo.setMotorTarget(angle, 2);
         this.bodyA.ammo.activate();
         this.bodyB.ammo.activate();
       },
