@@ -425,7 +425,7 @@
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
           if (this.approach) {
-            utils.approachConnectors(this.a, this.b, make, Ammo);
+            //utils.approachConnectors(this.a, this.b, make, Ammo);
           }
         }
       },

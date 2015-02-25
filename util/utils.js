@@ -110,6 +110,7 @@ module.exports = {
     console.log('position:', t.getOrigin().x(), t.getOrigin().y(), t.getOrigin().z());
     console.log('quaternion:', t.getRotation().x(), t.getRotation().y(), t.getRotation().z(), t.getRotation().w());
   },
+
   approachConnectors: function (fix, move, make, ammoHelper) {
     //move bodies to match connectors, which are already normalized, with computed transforms
     if (!ammoHelper) return;
@@ -134,6 +135,7 @@ module.exports = {
     move.body.position = make('physics', 'position', this.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
     move.body.quaternion = make('physics', 'quaternion', this.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
   },
+
   configChart: function (Chart, customOptions) {
     _.extend(Chart.defaults.global, {
       animation: false,
