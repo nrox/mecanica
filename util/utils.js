@@ -123,14 +123,11 @@ module.exports = {
     var fixConTrans = new ammoHelper.btTransform(fix.ammoTransform);
     var fixBodyTrans = new ammoHelper.btTransform(fix.body.ammoTransform);
 
-    //move body to origin and then its connector to origin
-    moveConInvTrans.op_mul(moveBodyInvTrans);
-    //the move.body to fix connector relative position
-    fixConTrans.op_mul(moveConInvTrans);
-    //then apply fix body transform
-    fixBodyTrans.op_mul(fixConTrans);
-    //reuse it apply to body to move
-    move.body.ammoTransform.op_mul(fixBodyTrans);
+    moveBodyInvTrans.op_mul(fixBodyTrans);
+    moveBodyInvTrans.op_mul(fixConTrans);
+    moveBodyInvTrans.op_mul(moveConInvTrans);
+
+    move.body.ammoTransform.op_mul(moveBodyInvTrans);
     move.body.position = make('physics', 'position', this.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
     move.body.quaternion = make('physics', 'quaternion', this.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
   },

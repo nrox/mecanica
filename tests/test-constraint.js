@@ -208,8 +208,10 @@ function addAllTests() {
   cb = utils.deepCopy(connectorB);
   ca.base = {x: -1, y: -1, z: -1};
   ca.up = {z: 1};
+  ca.front = {y: 1};
   cb.base = {x: 1, y: 1, z: 1};
   cb.up = {z: 1};
+  cb.front = {y: 1};
   bodyBCopy = utils.deepCopy(bodyB);
   bodyBCopy.mass = 1;
   test[type] = makeTest(bodyA, bodyBCopy, ca, cb, type, _.extend({}, constraintOptions, {approach: false}));
@@ -366,7 +368,7 @@ function gearTest() {
         approach: false
       },
       wcons: {
-        type: 'hinge',
+        type: 'fixed',
         a: 'cwa',
         b: 'cww',
         bodyA: 'a',
