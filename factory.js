@@ -77,6 +77,16 @@
 
   setScope('default');
 
+  //if we are using worker for simulation
+  function useAmmo(){
+    return !!Ammo;
+  }
+
+  //if we are using three.js for visualization/interaction
+  function useWebGL(){
+    return !!THREE;
+  }
+
   /**
    * arguments for this function are keys leading to the deep nested element in object
    * we want to retrieve (by reference)
@@ -135,8 +145,8 @@
           x: 0, y: 0, z: 0
         });
         notifyUndefined(this);
-        if (Ammo) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-        if (THREE) this.three = new THREE.Vector3(this.x, this.y, this.z);
+        if (useAmmo()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+        if (useWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
       },
       quaternion: function (options) {
         include(this, options, {
@@ -152,10 +162,10 @@
           this.z = c1 * c2 * s3 + s1 * s2 * c3;
           this.w = c1 * c2 * c3 - s1 * s2 * s3;
         }
-        if (Ammo) {
+        if (useAmmo()) {
           this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
         }
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
         }
       },
@@ -177,15 +187,15 @@
         include(this, options, {
           r: 1, segments: 12
         });
-        if (Ammo) this.ammo = new Ammo.btSphereShape(this.r);
-        if (THREE) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
+        if (useAmmo()) this.ammo = new Ammo.btSphereShape(this.r);
+        if (useWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
       },
       box: function (options) {
         include(this, options, {
           dx: 1, dy: 1, dz: 1, segments: 1
         });
-        if (Ammo) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-        if (THREE) {
+        if (useAmmo()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
+        if (useWebGL()) {
           this.three = new THREE.BoxGeometry(
             this.dx, this.dy, this.dz,
             this.segments, this.segments, this.segments
@@ -196,15 +206,15 @@
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (Ammo) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
-        if (THREE) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
+        if (useAmmo()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
+        if (useWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
       },
       cone: function (options) {
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (Ammo) this.ammo = new Ammo.btConeShape(this.r, this.dy);
-        if (THREE) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+        if (useAmmo()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
+        if (useWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
       },
       compound: function (options) {
         include(this, options, {
@@ -219,7 +229,7 @@
         var _this = this;
         var compound;
         var transParent;
-        if (Ammo) {
+        if (useAmmo()) {
           compound = new Ammo.btCompoundShape;
           transParent = new Ammo.btTransform;
           transParent.setIdentity();
@@ -230,7 +240,7 @@
           var child = make('shape', childOptions);
           var pos = make('physics', 'position', childOptions.position || {});
           var qua = make('physics', 'quaternion', childOptions.rotation || {});
-          if (Ammo) {
+          if (useAmmo()) {
             var transChild = new Ammo.btTransform;
             transChild.setIdentity();
             transChild.setRotation(qua.ammo);
@@ -238,17 +248,17 @@
             compound.addChildShape(transChild, child.ammo);
             Ammo.destroy(transChild);
           }
-          if (THREE) {
+          if (useWebGL()) {
             var tc = new THREE.Matrix4;
             tc.makeRotationFromQuaternion(qua.three);
             tc.setPosition(pos.three);
             _this.parent.three.merge(child.three, tc);
           }
         });
-        if (Ammo) {
+        if (useAmmo()) {
           this.ammo = compound;
         }
-        if (THREE) {
+        if (useWebGL()) {
           this.three = this.parent.three;
         }
       }
@@ -263,7 +273,7 @@
           color: 0x333333, opacity: 1, transparent: false,
           wireframe: getSettings().wireframe
         });
-        if (THREE) this.three = new THREE.MeshBasicMaterial(opt(this));
+        if (useWebGL()) this.three = new THREE.MeshBasicMaterial(opt(this));
       },
       phong: function (options) {
         include(this, options, {
@@ -272,7 +282,7 @@
           emissive: 0x000000, specular: 0x555555,
           wireframe: getSettings().wireframe
         });
-        if (THREE) this.three = new THREE.MeshPhongMaterial(opt(this));
+        if (useWebGL()) this.three = new THREE.MeshPhongMaterial(opt(this));
       }
     },
     light: {
@@ -285,7 +295,7 @@
           lookAt: {}, castShadow: getSettings().castShadow,
           shadowDistance: 20
         });
-        if (THREE) {
+        if (useWebGL()) {
           var light = new THREE.DirectionalLight(this.color);
           light.position.copy(make('physics', 'position', this.position).three);
           if (typeof(this.lookAt) == 'object') {
@@ -339,7 +349,7 @@
         } else {
           this.quaternion = make('physics', 'quaternion', {w: 1});
         }
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.Mesh(shape.three, material.three);
           if (this.axisHelper) {
             shape.three.computeBoundingSphere();
@@ -347,7 +357,7 @@
             this.three.add(new THREE.AxisHelper(r));
           }
         }
-        if (Ammo) {
+        if (useAmmo()) {
           this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
         }
         _.each(this.connector, function (c, id) {
@@ -419,13 +429,13 @@
           approach: false //move bodyB towards bodyA to match connectors
         });
         notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
-        if (Ammo) {
+        if (useAmmo()) {
           this.bodyA = getObject('body', this.bodyA);
           this.bodyB = getObject('body', this.bodyB);
           this.a = this.bodyA.connector[this.a];
           this.b = this.bodyB.connector[this.b];
           if (this.approach) {
-            //utils.approachConnectors(this.a, this.b, make, Ammo);
+            utils.approachConnectors(this.a, this.b, make, Ammo);
           }
         }
       },
@@ -435,7 +445,7 @@
       //for pendulum-like constraints
       point: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (Ammo) {
+        if (useAmmo()) {
           this.create = function () {
             this.ammo = new Ammo.btPoint2PointConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
@@ -446,7 +456,7 @@
       //for free wheels, doors
       hinge: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (Ammo) {
+        if (useAmmo()) {
           this.create = function () {
             this.ammo = new Ammo.btHingeConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
@@ -458,7 +468,7 @@
       gear: function (options) {
         constructor.constraint._abstract.call(this, options);
         notifyUndefined(this, ['ratio']);
-        if (Ammo) {
+        if (useAmmo()) {
           this.create = function () {
             this.ammo = new Ammo.btGearConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
@@ -469,7 +479,7 @@
       //for linear motors
       slider: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (Ammo) {
+        if (useAmmo()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -512,7 +522,7 @@
       //for linear motors
       fixed: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (Ammo) {
+        if (useAmmo()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -562,10 +572,10 @@
           gravity: {y: -9.81}
         });
         this.scope = getScope();
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.Scene();
         }
-        if (Ammo) {
+        if (useAmmo()) {
           this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
           this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
           this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
@@ -634,14 +644,14 @@
       },
       webgl: function (options) {
         constructor.renderer._intro.call(this, options);
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.WebGLRenderer({canvas: this.canvas});
         }
         constructor.renderer._outro.call(this);
       },
       canvas: function (options) {
         constructor.renderer._intro.call(this, options);
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.CanvasRenderer({canvas: this.canvas});
         }
         constructor.renderer._outro.call(this);
@@ -658,7 +668,7 @@
           lookAt: {}
         });
         this.position = make('physics', 'position', this.position);
-        if (THREE) {
+        if (useWebGL()) {
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
           this.three.position.copy(this.position.three);
           this.three.lookAt(make('physics', 'position', this.lookAt).three);
@@ -676,7 +686,7 @@
         notifyUndefined(this, ['lookAt']);
         this.axis = make('physics', 'vector', this.axis);
         this.lookAt = getObject('body', this.lookAt);
-        if (THREE) {
+        if (useWebGL()) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         }
@@ -697,7 +707,7 @@
         } else {
           this.lookAt = make('physics', 'position', this.lookAt);
         }
-        if (THREE) {
+        if (useWebGL()) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         }
@@ -708,11 +718,11 @@
   var method = {
     body: {
       updateMotionState: function () {
-        if (THREE) {
+        if (useWebGL()) {
           this.three.quaternion.copy(this.quaternion.three);
           this.three.position.copy(this.position.three);
         }
-        if (Ammo) {
+        if (useAmmo()) {
           this.ammoTransform.setIdentity();
           this.ammoTransform.setRotation(this.quaternion.ammo);
           this.ammoTransform.setOrigin(this.position.ammo);
@@ -729,7 +739,7 @@
         destroy(this);
       },
       disable: function () {
-        if (Ammo) {
+        if (useAmmo()) {
           getScene().ammo.removeConstraint(this.ammo);
         }
         this.enabled = false;
@@ -773,7 +783,7 @@
       }
     },
     constraint: function (obj) {
-      if (Ammo) {
+      if (useAmmo()) {
         getScene().ammo.removeConstraint(obj.ammo);
         Ammo.destroy(obj.ammo);
       }
@@ -783,12 +793,12 @@
         destroy(c);
       });
       var scene = getScene();
-      if (THREE) {
+      if (useWebGL()) {
         scene.three.remove(obj.three);
         obj.three.geometry.dispose();
         obj.three.material.dispose();
       }
-      if (Ammo) {
+      if (useAmmo()) {
         scene.ammo.removeRigidBody(obj.ammo);
         Ammo.destroy(obj.ammo);
       }
@@ -820,7 +830,7 @@
     },
     scene: function (scene) {
       //should call this after destroying all children generated by make
-      if (THREE) {
+      if (useWebGL()) {
         cancelAnimationFrame(scene._rafid);
         clearTimeout(scene._rstid);
         while (scene.three.children.length) {
@@ -831,7 +841,7 @@
         }
       }
       //TODO miss something ?
-      if (Ammo) {
+      if (useAmmo()) {
         clearTimeout(scene._stid);
         Ammo.destroy(scene.btDefaultCollisionConfiguration);
         Ammo.destroy(scene.btCollisionDispatcher);
@@ -1218,7 +1228,7 @@
     var settings = getSettings();
     var scene = getScene();
     if (settings.axisHelper) {
-      if (THREE) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
+      if (useWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
     loadSystem(objects);
     function loadSystem(objs) {
@@ -1226,19 +1236,19 @@
       _.each(objs.body, function (body) {
         if (!body._added && (body._added = true)) {
           method.body.updateMotionState.call(body);
-          if (THREE) scene.three.add(body.three);
-          if (Ammo) scene.ammo.addRigidBody(body.ammo);
+          if (useWebGL()) scene.three.add(body.three);
+          if (useAmmo()) scene.ammo.addRigidBody(body.ammo);
         }
       });
       _.each(objs.constraint, function (cons) {
         if (!cons._added && (cons._added = true)) {
-          if (Ammo) {
+          if (useAmmo()) {
             cons.create.call(cons);
             scene.ammo.addConstraint(cons.ammo);
           }
         }
       });
-      if (THREE) {
+      if (useWebGL()) {
         _.each(objs.light, function (light) {
           if (!light._added && (light._added = true)) {
             scene.three.add(light.three);
@@ -1259,7 +1269,7 @@
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
       _.each(objs.body, function (body) {
-        if (Ammo) copyPhysicsFromAmmo(body, trans);
+        if (useAmmo()) copyPhysicsFromAmmo(body, trans);
         if (THREE && !isWorker) copyPhysicsToThree(body);
       });
     }
@@ -1306,7 +1316,7 @@
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
-      if (Ammo) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
+      if (useAmmo()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
       copyPhysics(objects);
       if (isWorker) {
         packPhysics(objects, packet);

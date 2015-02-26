@@ -159,7 +159,7 @@ function addAllTests() {
     position: { x: -2, y: -2, z: -2},
     rotation: { x: 0, y: 0, z: 0 },
     material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
-    mass: 0
+    mass: 1
   };
   var connectorA = {
     id: 'cA',
