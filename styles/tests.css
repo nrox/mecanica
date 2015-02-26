@@ -65,6 +65,7 @@ table.results td, table.results th {
 }
 
 .console {
+    clear: both;
     border-radius: 5px 5px 1px 1px;
     border: 2px solid #999;
     border-top: 20px solid #eee;
@@ -87,4 +88,12 @@ table.results td, table.results th {
 
 .console > .warn {
     color: #ee8;
+}
+
+#container, #triggers {
+    float: left;
+}
+
+#status {
+    clear: both;
 }

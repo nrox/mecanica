@@ -107,7 +107,7 @@
         'margin': '2px 3px',
         'min-width': '30px',
         'font-weight': 'normal',
-        'border-radius': '1em'
+        'border-radius': '0.3em'
       },
       key: {
         'margin': '1px',
