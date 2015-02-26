@@ -38,7 +38,7 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
     factory.loadScene(pack, {
       axisHelper: 0,
       wireframe: false,
-      webWorker: false,
+      webWorker: true,
       autoStart: true,
       connectorHelper: 0.7,
       canvasContainer: '#container'
@@ -50,6 +50,21 @@ function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
 }
 
 var inputs = {
+  point: function (type) {
+    var ui = {
+      add: function () {
+        var c = factory.getObject('constraint', type);
+        c.add();
+      },
+      remove: function () {
+        var c = factory.getObject('constraint', type);
+        c.remove();
+      }
+    };
+    var editor = new Editor();
+    editor.setValues(ui);
+    editor.showEditor('#triggers');
+  },
   hinge: function (type) {
     var template = {
       servo: {
@@ -67,11 +82,11 @@ var inputs = {
           var c = factory.getObject('constraint', type);
           var angle = this.getValues().servo['angle(°)'];
           angle = angle * Math.PI / 180;
-          factory.method.constraint.setAngle.call(c, angle);
+          c.setAngle(angle);
         },
         relax: function () {
           var c = factory.getObject('constraint', type);
-          factory.method.constraint.relax.call(c);
+          c.relax();
         }
       },
       motor: {
@@ -80,11 +95,11 @@ var inputs = {
         enable: function () {
           var c = factory.getObject('constraint', type);
           var values = this.getValues().motor;
-          factory.method.constraint.enableMotor.call(c, values.velocity, values.binary);
+          c.enableMotor(values.velocity, values.binary);
         },
         disable: function () {
           var c = factory.getObject('constraint', type);
-          factory.method.constraint.disableMotor.call(c);
+          c.disableMotor();
         }
       }
     };
@@ -109,14 +124,13 @@ var inputs = {
         'angle(°)': 0,
         set: function () {
           var c = factory.getObject('constraint', actuator);
-          console.log(c);
           var angle = this.getValues().servo['angle(°)'];
           angle = angle * Math.PI / 180;
-          factory.method.constraint.setAngle.call(c, angle);
+          c.setAngle(angle);
         },
         relax: function () {
           var c = factory.getObject('constraint', actuator);
-          factory.method.constraint.relax.call(c);
+          c.relax();
         }
       },
       motor: {
@@ -125,11 +139,11 @@ var inputs = {
         enable: function () {
           var c = factory.getObject('constraint', actuator);
           var values = this.getValues().motor;
-          factory.method.constraint.enableMotor.call(c, values.velocity, values.binary);
+          c.enableMotor(values.velocity, values.binary);
         },
         disable: function () {
           var c = factory.getObject('constraint', actuator);
-          factory.method.constraint.disableMotor.call(c);
+          c.disableMotor();
         }
       }
     };
@@ -139,6 +153,8 @@ var inputs = {
     editor.showEditor('#triggers');
   }
 };
+
+inputs.fixed = inputs.point;
 
 function addAllTests() {
   var bodyA = {
@@ -388,7 +404,7 @@ function gearTest() {
   factory.loadScene(pack, {
     axisHelper: 2,
     wireframe: false,
-    webWorker: false,
+    webWorker: true,
     autoStart: true,
     connectorHelper: 0.7,
     canvasContainer: '#container'

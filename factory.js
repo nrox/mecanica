@@ -78,12 +78,12 @@
   setScope('default');
 
   //if we are using worker for simulation
-  function useAmmo(){
+  function isSimulator() {
     return !!Ammo;
   }
 
   //if we are using three.js for visualization/interaction
-  function useWebGL(){
+  function useWebGL() {
     return !!THREE;
   }
 
@@ -101,7 +101,7 @@
    * @returns {*}
    */
   function getObject() {
-    if (arguments[0] instanceof Array){
+    if (arguments[0] instanceof Array) {
       return getObject.apply(null, arguments[0]);
     }
     var obj = objects;
@@ -128,6 +128,28 @@
     return options;
   }
 
+  function addSimulatorMethod() {
+    var funName;
+    var reference = method;
+    var args = utils.argList(arguments);
+    for (var i = 0; i < args.length; i++) {
+      funName = args[i];
+      reference = reference[funName];
+    }
+    if (!this[funName] && (typeof(reference) == 'function')) {
+      if (isSimulator()) {
+        this[funName] = reference;
+      } else {
+        this[funName] = function () {
+          post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
+        }
+      }
+    } else {
+      console.warn(this);
+      console.warn(funName + ' already exists or is not a function');
+    }
+  }
+
   /**
    * CONSTRUCTORS ************************************************************
    */
@@ -145,7 +167,7 @@
           x: 0, y: 0, z: 0
         });
         notifyUndefined(this);
-        if (useAmmo()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+        if (isSimulator()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
         if (useWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
       },
       quaternion: function (options) {
@@ -162,7 +184,7 @@
           this.z = c1 * c2 * s3 + s1 * s2 * c3;
           this.w = c1 * c2 * c3 - s1 * s2 * s3;
         }
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
         }
         if (useWebGL()) {
@@ -187,14 +209,14 @@
         include(this, options, {
           r: 1, segments: 12
         });
-        if (useAmmo()) this.ammo = new Ammo.btSphereShape(this.r);
+        if (isSimulator()) this.ammo = new Ammo.btSphereShape(this.r);
         if (useWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
       },
       box: function (options) {
         include(this, options, {
           dx: 1, dy: 1, dz: 1, segments: 1
         });
-        if (useAmmo()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
+        if (isSimulator()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
         if (useWebGL()) {
           this.three = new THREE.BoxGeometry(
             this.dx, this.dy, this.dz,
@@ -206,14 +228,14 @@
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (useAmmo()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
+        if (isSimulator()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
         if (useWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
       },
       cone: function (options) {
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (useAmmo()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
+        if (isSimulator()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
         if (useWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
       },
       compound: function (options) {
@@ -229,7 +251,7 @@
         var _this = this;
         var compound;
         var transParent;
-        if (useAmmo()) {
+        if (isSimulator()) {
           compound = new Ammo.btCompoundShape;
           transParent = new Ammo.btTransform;
           transParent.setIdentity();
@@ -240,7 +262,7 @@
           var child = make('shape', childOptions);
           var pos = make('physics', 'position', childOptions.position || {});
           var qua = make('physics', 'quaternion', childOptions.rotation || {});
-          if (useAmmo()) {
+          if (isSimulator()) {
             var transChild = new Ammo.btTransform;
             transChild.setIdentity();
             transChild.setRotation(qua.ammo);
@@ -255,7 +277,7 @@
             _this.parent.three.merge(child.three, tc);
           }
         });
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.ammo = compound;
         }
         if (useWebGL()) {
@@ -357,7 +379,7 @@
             this.three.add(new THREE.AxisHelper(r));
           }
         }
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
         }
         _.each(this.connector, function (c, id) {
@@ -429,7 +451,7 @@
           approach: false //move bodyB towards bodyA to match connectors
         });
         notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.bodyA = getObject('body', this.bodyA);
           this.bodyB = getObject('body', this.bodyB);
           this.a = this.bodyA.connector[this.a];
@@ -438,6 +460,8 @@
             utils.approachConnectors(this.a, this.b, make, Ammo);
           }
         }
+        addSimulatorMethod.call(this, 'constraint', 'add');
+        addSimulatorMethod.call(this, 'constraint', 'remove');
       },
       _default: function (options) {
         constructor.constraint.point.call(this, options);
@@ -445,7 +469,7 @@
       //for pendulum-like constraints
       point: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.create = function () {
             this.ammo = new Ammo.btPoint2PointConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
@@ -456,7 +480,7 @@
       //for free wheels, doors
       hinge: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.create = function () {
             this.ammo = new Ammo.btHingeConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
@@ -464,11 +488,16 @@
             );
           };
         }
+        addSimulatorMethod.call(this, 'constraint', 'enableMotor');
+        addSimulatorMethod.call(this, 'constraint', 'disableMotor');
+        addSimulatorMethod.call(this, 'constraint', 'relax');
+        addSimulatorMethod.call(this, 'constraint', 'setAngle');
+
       },
       gear: function (options) {
         constructor.constraint._abstract.call(this, options);
         notifyUndefined(this, ['ratio']);
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.create = function () {
             this.ammo = new Ammo.btGearConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
@@ -479,7 +508,7 @@
       //for linear motors
       slider: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (useAmmo()) {
+        if (isSimulator()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -522,7 +551,7 @@
       //for linear motors
       fixed: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (useAmmo()) {
+        if (isSimulator()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -575,7 +604,7 @@
         if (useWebGL()) {
           this.three = new THREE.Scene();
         }
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
           this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
           this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
@@ -715,6 +744,16 @@
     }
   };
 
+  /**
+   * arguments: group, id, method, [arg1 [, arg2 [...]]]
+   */
+  function execMethod(objectPath, funName, args) {
+    var obj = getObject(objectPath);
+    if (obj && obj[funName]) {
+      obj[funName].apply(obj, args);
+    }
+  }
+
   var method = {
     body: {
       updateMotionState: function () {
@@ -722,7 +761,7 @@
           this.three.quaternion.copy(this.quaternion.three);
           this.three.position.copy(this.position.three);
         }
-        if (useAmmo()) {
+        if (isSimulator()) {
           this.ammoTransform.setIdentity();
           this.ammoTransform.setRotation(this.quaternion.ammo);
           this.ammoTransform.setOrigin(this.position.ammo);
@@ -735,37 +774,54 @@
       }
     },
     constraint: {
-      remove: function () {
-        destroy(this);
-      },
-      disable: function () {
-        if (useAmmo()) {
-          getScene().ammo.removeConstraint(this.ammo);
+      add: function () {
+        if (!this.enabled && isSimulator()) {
+          this.create();
+          getScene().ammo.addConstraint(this.ammo);
+          this.enabled = true;
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
         }
-        this.enabled = false;
+      },
+      remove: function () {
+        if (this.enabled && isSimulator()) {
+          getScene().ammo.removeConstraint(this.ammo);
+          Ammo.destroy(this.ammo);
+          this.enabled = false;
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
+        }
       },
       setAngle: function (angle) {
-        //use setMotorTarget ?
-        this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
-        //this.ammo.setMotorTarget(angle, 2);
-        this.bodyA.ammo.activate();
-        this.bodyB.ammo.activate();
+        if (isSimulator()) {
+          //use setMotorTarget ?
+          this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
+          //this.ammo.setMotorTarget(angle, 2);
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
+        }
       },
-      relax: function(){
-        this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
-        this.bodyA.ammo.activate();
-        this.bodyB.ammo.activate();
+      relax: function () {
+        if (isSimulator()) {
+          this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
+        }
       },
-      enableMotor: function(velocity, binary){
-        //this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
-        this.ammo.enableAngularMotor(true, velocity, binary);
-        this.bodyA.ammo.activate();
-        this.bodyB.ammo.activate();
+      enableMotor: function (velocity, binary) {
+        if (isSimulator()) {
+          //this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+          this.ammo.enableAngularMotor(true, velocity, binary);
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
+        }
       },
-      disableMotor: function(){
-        this.ammo.enableAngularMotor(false, 0, 0);
-        this.bodyA.ammo.activate();
-        this.bodyB.ammo.activate();
+      disableMotor: function () {
+        if (isSimulator()) {
+          this.ammo.enableAngularMotor(false, 0, 0);
+          this.bodyA.ammo.activate();
+          this.bodyB.ammo.activate();
+        }
       }
     }
   };
@@ -783,9 +839,8 @@
       }
     },
     constraint: function (obj) {
-      if (useAmmo()) {
-        getScene().ammo.removeConstraint(obj.ammo);
-        Ammo.destroy(obj.ammo);
+      if (isSimulator()) {
+        obj.remove();
       }
     },
     body: function (obj) {
@@ -798,7 +853,7 @@
         obj.three.geometry.dispose();
         obj.three.material.dispose();
       }
-      if (useAmmo()) {
+      if (isSimulator()) {
         scene.ammo.removeRigidBody(obj.ammo);
         Ammo.destroy(obj.ammo);
       }
@@ -841,7 +896,7 @@
         }
       }
       //TODO miss something ?
-      if (useAmmo()) {
+      if (isSimulator()) {
         clearTimeout(scene._stid);
         Ammo.destroy(scene.btDefaultCollisionConfiguration);
         Ammo.destroy(scene.btCollisionDispatcher);
@@ -1237,15 +1292,13 @@
         if (!body._added && (body._added = true)) {
           method.body.updateMotionState.call(body);
           if (useWebGL()) scene.three.add(body.three);
-          if (useAmmo()) scene.ammo.addRigidBody(body.ammo);
+          if (isSimulator()) scene.ammo.addRigidBody(body.ammo);
         }
       });
       _.each(objs.constraint, function (cons) {
-        if (!cons._added && (cons._added = true)) {
-          if (useAmmo()) {
-            cons.create.call(cons);
-            scene.ammo.addConstraint(cons.ammo);
-          }
+        if (!cons._added) {
+          cons._added = true;
+          cons.add();
         }
       });
       if (useWebGL()) {
@@ -1269,7 +1322,7 @@
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
       _.each(objs.body, function (body) {
-        if (useAmmo()) copyPhysicsFromAmmo(body, trans);
+        if (isSimulator()) copyPhysicsFromAmmo(body, trans);
         if (THREE && !isWorker) copyPhysicsToThree(body);
       });
     }
@@ -1316,7 +1369,7 @@
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
-      if (useAmmo()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
+      if (isSimulator()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
       copyPhysics(objects);
       if (isWorker) {
         packPhysics(objects, packet);
@@ -1520,7 +1573,8 @@
     getAmmo: function () {
       return ammoHelper;
     },
-    method: method
+    method: method,
+    execMethod: execMethod
   };
 
   return module.exports;
