@@ -479,6 +479,9 @@
       },
       //for free wheels, doors
       hinge: function (options) {
+        include(this, options, {
+          angle: undefined
+        });
         constructor.constraint._abstract.call(this, options);
         if (isSimulator()) {
           this.create = function () {
@@ -492,7 +495,6 @@
         addSimulatorMethod.call(this, 'constraint', 'disableMotor');
         addSimulatorMethod.call(this, 'constraint', 'relax');
         addSimulatorMethod.call(this, 'constraint', 'setAngle');
-
       },
       gear: function (options) {
         constructor.constraint._abstract.call(this, options);
@@ -795,8 +797,9 @@
       setAngle: function (angle) {
         if (isSimulator()) {
           //use setMotorTarget ?
-          this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
+          //this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
           //this.ammo.setMotorTarget(angle, 2);
+          this.angle = angle;
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
@@ -1366,6 +1369,12 @@
       var curTime = (new Date()).getTime() / 1000;
       var dt = curTime - scene._lastTime;
       scene._lastTime = curTime;
+      //callbacks beforeStep
+      _.each(objects.constraint, function(c, id){
+        if ((c.type=='hinge') && (c.angle!==undefined)){
+          c.ammo.setMotorTarget(c.angle, dt);
+        }
+      });
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);

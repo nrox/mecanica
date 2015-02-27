@@ -76,6 +76,14 @@ var inputs = {
       }
     };
     var ui = {
+      add: function () {
+        var c = factory.getObject('constraint', type);
+        c.add();
+      },
+      remove: function () {
+        var c = factory.getObject('constraint', type);
+        c.remove();
+      },
       servo: {
         'angle(°)': 0,
         set: function () {
@@ -110,6 +118,7 @@ var inputs = {
   },
   gear: function (actuator) {
     actuator = 'motor';
+    var type = 'gear';
     var template = {
       servo: {
         'angle(°)': {type: 'range', min: -180, max: 180, step: 5}
@@ -120,6 +129,14 @@ var inputs = {
       }
     };
     var ui = {
+      add: function () {
+        var c = factory.getObject('constraint', type);
+        c.add();
+      },
+      remove: function () {
+        var c = factory.getObject('constraint', type);
+        c.remove();
+      },
       servo: {
         'angle(°)': 0,
         set: function () {
@@ -154,7 +171,7 @@ var inputs = {
   }
 };
 
-inputs.fixed = inputs.point;
+inputs.fixed = inputs.slider = inputs.point;
 
 function addAllTests() {
   var bodyA = {
