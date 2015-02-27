@@ -1370,10 +1370,21 @@
       var dt = curTime - scene._lastTime;
       scene._lastTime = curTime;
       //callbacks beforeStep
-      _.each(objects.constraint, function(c, id){
-        if ((c.type=='hinge') && (c.angle!==undefined)){
+      _.each(objects.constraint, function (c, id) {
+        if ((c.type == 'hinge') && c.ammo && (c.angle !== undefined)) {
+          //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
+          //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
           c.ammo.setMotorTarget(c.angle, dt);
+          /*
+           } else if ((c.type=='slider') && c.ammo && (c._limit===undefined)){
+           console.log("hurray!!");
+           c._limit = 0;
+           c.ammo.setLowerAngLimit(0);
+           c.ammo.setUpperAngLimit(0);
+           */
         }
+
+
       });
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
