@@ -161,6 +161,14 @@
         include(this, options, defaultSettings);
       }
     },
+    system: {
+      //this system is created loading it's data from an url and rotating or translating children
+      load: function(options){
+        include(this, options, {
+          url: undefined, position: {}, quaternion: undefined, rotation: undefined
+        });
+      }
+    },
     physics: {
       vector: function (options) {
         include(this, options, {
@@ -357,12 +365,14 @@
           shape = make('shape', this.shape);
         }
         this.shape = shape;
+
         var material;
         if (typeof this.material == 'string') { //get from objects with id
           material = getObject('material', this.material);
         } else { //make from options
           material = make('material', this.material);
         }
+        this.material = material;
         this.position = make('physics', 'position', this.position);
         if (this.quaternion) {
           this.quaternion = make('physics', 'quaternion', this.quaternion);
@@ -1374,7 +1384,8 @@
         if ((c.type == 'hinge') && c.ammo && (c.angle !== undefined)) {
           //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
           //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
-          c.ammo.setMotorTarget(c.angle, dt);
+          // c.ammo.getHingeAngle()
+          c.ammo.setMotorTarget(c.angle, dt); //TODO use max angular vel
           /*
            } else if ((c.type=='slider') && c.ammo && (c._limit===undefined)){
            console.log("hurray!!");
