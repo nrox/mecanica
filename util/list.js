@@ -30,6 +30,7 @@ availablePaths = [
 "../tests/test-collision.js",
 "../tests/test-constraint.js",
 "../tests/test-factory.js",
+"../tests/test.html",
 "../tests/test-json.js",
 "../tests/test-require.js",
 "../tests/test-shapes.js",

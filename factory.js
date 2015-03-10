@@ -487,6 +487,23 @@
           };
         }
       },
+      motor: function (options) {
+        include(this, options, {
+          maxBinary: 1,
+          maxVelocity: 0.5
+        });
+        constructor.constraint.hinge.call(this, options);
+      },
+      servo: function (options) {
+        include(this, options, {
+          angle: 0,
+          lowerLimit: 0,
+          upperLimit: Math.PI/2,
+          maxBinary: 1,
+          maxVelocity: 0.5
+        });
+        constructor.constraint.hinge.call(this, options);
+      },
       //for free wheels, doors
       hinge: function (options) {
         include(this, options, {
