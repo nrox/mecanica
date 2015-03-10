@@ -163,7 +163,7 @@
     },
     system: {
       //this system is created loading it's data from an url and rotating or translating children
-      load: function(options){
+      load: function (options) {
         include(this, options, {
           url: undefined, position: {}, quaternion: undefined, rotation: undefined
         });
@@ -518,6 +518,16 @@
         }
       },
       //for linear motors
+      linear: function (options){
+        include(this, options, {
+          position: 0,
+          lowerLimit: 0,
+          upperLimit: 1,
+          maxForce: 1,
+          maxVelocity: 0.2
+        });
+        constructor.constraint.slider.call(this, options);
+      },
       slider: function (options) {
         constructor.constraint._abstract.call(this, options);
         if (isSimulator()) {
@@ -1386,13 +1396,13 @@
           //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
           // c.ammo.getHingeAngle()
           c.ammo.setMotorTarget(c.angle, dt); //TODO use max angular vel
-          /*
-           } else if ((c.type=='slider') && c.ammo && (c._limit===undefined)){
-           console.log("hurray!!");
-           c._limit = 0;
-           c.ammo.setLowerAngLimit(0);
-           c.ammo.setUpperAngLimit(0);
-           */
+
+        } else if ((c.type == 'slider') && c.ammo && (c._limit === undefined)) {
+          console.log("hurray!!");
+          c._limit = 0;
+          c.ammo.setLowerAngLimit(0);
+          c.ammo.setUpperAngLimit(0);
+
         }
 
 
