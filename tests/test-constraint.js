@@ -116,6 +116,57 @@ var inputs = {
     editor.setValues(ui);
     editor.showEditor('#triggers');
   },
+  servo: function (type) {
+    var template = {
+      'angle(°)': {type: 'range', min: -180, max: 180, step: 5},
+      velocity: {type: 'range', min: -5, max: 5, step: 1},
+      binary: {type: 'range', min: 0, max: 50, step: 1}
+    };
+    var ui = {
+      'angle(°)': 0,
+      set: function () {
+        var c = factory.getObject('constraint', type);
+        var values = this.getValues();
+        var angle = values['angle(°)'];
+        angle = angle * Math.PI / 180;
+        c.enableMotor(values.velocity, values.binary);
+        c.setAngle(angle);
+      },
+      relax: function () {
+        var c = factory.getObject('constraint', type);
+        c.relax();
+      },
+      velocity: 1,
+      binary: 1
+    };
+    var editor = new Editor();
+    editor.useTemplate(template);
+    editor.setValues(ui);
+    editor.showEditor('#triggers');
+  },
+  motor: function (type) {
+    var template = {
+      velocity: {type: 'range', min: -10, max: 10, step: 1},
+      binary: {type: 'range', min: 0, max: 50, step: 1}
+    };
+    var ui = {
+      velocity: 1,
+      binary: 1,
+      enable: function () {
+        var c = factory.getObject('constraint', type);
+        var values = this.getValues();
+        c.enableMotor(values.velocity, values.binary);
+      },
+      disable: function () {
+        var c = factory.getObject('constraint', type);
+        c.disableMotor();
+      }
+    };
+    var editor = new Editor();
+    editor.useTemplate(template);
+    editor.setValues(ui);
+    editor.showEditor('#triggers');
+  },
   gear: function (actuator) {
     actuator = 'motor';
     var type = 'gear';
@@ -234,6 +285,12 @@ function addAllTests() {
   ca.up = {z: 1};
   cb.base = {x: 1, y: 1, z: 1};
   cb.up = {z: 1};
+  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
+
+  type = 'motor';
+  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
+
+  type = 'servo';
   test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 
   type = 'fixed';
