@@ -117,21 +117,23 @@ var inputs = {
     editor.showEditor('#triggers');
   },
   servo: function (type) {
+    var editor = new Editor();
     var template = {
-      'angle(°)': {type: 'range', min: -180, max: 180, step: 5},
+      'angle(°)': {type: 'range', min: -180, max: 180, step: 5,
+        onChange: function () {
+          var c = factory.getObject('constraint', type);
+          var values = editor.getValues();
+          var angle = values['angle(°)'];
+          angle = angle * Math.PI / 180;
+          c.enable(values.velocity, values.binary);
+          c.setAngle(angle);
+        }
+      },
       velocity: {type: 'range', min: -5, max: 5, step: 1},
       binary: {type: 'range', min: 0, max: 50, step: 1}
     };
     var ui = {
       'angle(°)': 0,
-      set: function () {
-        var c = factory.getObject('constraint', type);
-        var values = this.getValues();
-        var angle = values['angle(°)'];
-        angle = angle * Math.PI / 180;
-        c.enable(values.velocity, values.binary);
-        c.setAngle(angle);
-      },
       disable: function () {
         var c = factory.getObject('constraint', type);
         c.disable();
@@ -139,7 +141,6 @@ var inputs = {
       velocity: 1,
       binary: 1
     };
-    var editor = new Editor();
     editor.useTemplate(template);
     editor.setValues(ui);
     editor.showEditor('#triggers');

@@ -290,6 +290,7 @@
               }
             }
             $v.text(next.toString());
+            $v.trigger('change');
           }
 
           return u;
@@ -347,6 +348,7 @@
           $value.css(css.value);
           $value.css(css[type] || {});
         }
+        if (specs.onChange) $value.on('change', specs.onChange);
         //extend css from specs
         $key.css(specs.keyCSS || {});
         $value.css(specs.valueCSS || {});
