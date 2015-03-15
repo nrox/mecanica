@@ -129,12 +129,12 @@ var inputs = {
         var values = this.getValues();
         var angle = values['angle(°)'];
         angle = angle * Math.PI / 180;
-        c.enableMotor(values.velocity, values.binary);
+        c.enable(values.velocity, values.binary);
         c.setAngle(angle);
       },
-      relax: function () {
+      disable: function () {
         var c = factory.getObject('constraint', type);
-        c.relax();
+        c.disable();
       },
       velocity: 1,
       binary: 1
@@ -155,11 +155,11 @@ var inputs = {
       enable: function () {
         var c = factory.getObject('constraint', type);
         var values = this.getValues();
-        c.enableMotor(values.velocity, values.binary);
+        c.enable(values.velocity, values.binary);
       },
       disable: function () {
         var c = factory.getObject('constraint', type);
-        c.disableMotor();
+        c.disable();
       }
     };
     var editor = new Editor();
@@ -188,30 +188,17 @@ var inputs = {
         var c = factory.getObject('constraint', type);
         c.remove();
       },
-      servo: {
-        'angle(°)': 0,
-        set: function () {
-          var c = factory.getObject('constraint', actuator);
-          var angle = this.getValues().servo['angle(°)'];
-          angle = angle * Math.PI / 180;
-          c.setAngle(angle);
-        },
-        relax: function () {
-          var c = factory.getObject('constraint', actuator);
-          c.relax();
-        }
-      },
       motor: {
         velocity: 1,
         binary: 1,
         enable: function () {
           var c = factory.getObject('constraint', actuator);
           var values = this.getValues().motor;
-          c.enableMotor(values.velocity, values.binary);
+          c.enable(values.velocity, values.binary);
         },
         disable: function () {
           var c = factory.getObject('constraint', actuator);
-          c.disableMotor();
+          c.disable();
         }
       }
     };
@@ -416,7 +403,7 @@ function gearTest() {
     },
     constraint: {
       motor: {
-        type: 'hinge',
+        type: 'motor',
         a: 'wA',
         b: 'cA',
         bodyA: 'wall',

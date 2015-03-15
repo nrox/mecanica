@@ -78,12 +78,12 @@
   setScope('default');
 
   //if we are using worker for simulation
-  function isSimulator() {
+  function runsPhysics() {
     return !!Ammo;
   }
 
   //if we are using three.js for visualization/interaction
-  function useWebGL() {
+  function runsWebGL() {
     return !!THREE;
   }
 
@@ -128,25 +128,14 @@
     return options;
   }
 
-  function addSimulatorMethod() {
-    var funName;
-    var reference = method;
-    var args = utils.argList(arguments);
-    for (var i = 0; i < args.length; i++) {
-      funName = args[i];
-      reference = reference[funName];
-    }
-    if (!this[funName] && (typeof(reference) == 'function')) {
-      if (isSimulator()) {
-        this[funName] = reference;
-      } else {
-        this[funName] = function () {
-          post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
-        }
-      }
+  function addPhysicsMethod(funName, reference) {
+    if (runsPhysics()) {
+      this[funName] = reference;
     } else {
-      console.warn(this);
-      console.warn(funName + ' already exists or is not a function');
+      //let it be executed in worker
+      this[funName] = function () {
+        post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
+      }
     }
   }
 
@@ -175,8 +164,8 @@
           x: 0, y: 0, z: 0
         });
         notifyUndefined(this);
-        if (isSimulator()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-        if (useWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+        if (runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+        if (runsWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
       },
       quaternion: function (options) {
         include(this, options, {
@@ -192,10 +181,10 @@
           this.z = c1 * c2 * s3 + s1 * s2 * c3;
           this.w = c1 * c2 * c3 - s1 * s2 * s3;
         }
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
         }
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
         }
       },
@@ -217,15 +206,15 @@
         include(this, options, {
           r: 1, segments: 12
         });
-        if (isSimulator()) this.ammo = new Ammo.btSphereShape(this.r);
-        if (useWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
+        if (runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
+        if (runsWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
       },
       box: function (options) {
         include(this, options, {
           dx: 1, dy: 1, dz: 1, segments: 1
         });
-        if (isSimulator()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-        if (useWebGL()) {
+        if (runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
+        if (runsWebGL()) {
           this.three = new THREE.BoxGeometry(
             this.dx, this.dy, this.dz,
             this.segments, this.segments, this.segments
@@ -236,15 +225,15 @@
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (isSimulator()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
-        if (useWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
+        if (runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
+        if (runsWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
       },
       cone: function (options) {
         include(this, options, {
           r: 1, dy: 1, segments: 12
         });
-        if (isSimulator()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
-        if (useWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+        if (runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
+        if (runsWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
       },
       compound: function (options) {
         include(this, options, {
@@ -259,7 +248,7 @@
         var _this = this;
         var compound;
         var transParent;
-        if (isSimulator()) {
+        if (runsPhysics()) {
           compound = new Ammo.btCompoundShape;
           transParent = new Ammo.btTransform;
           transParent.setIdentity();
@@ -270,7 +259,7 @@
           var child = make('shape', childOptions);
           var pos = make('physics', 'position', childOptions.position || {});
           var qua = make('physics', 'quaternion', childOptions.rotation || {});
-          if (isSimulator()) {
+          if (runsPhysics()) {
             var transChild = new Ammo.btTransform;
             transChild.setIdentity();
             transChild.setRotation(qua.ammo);
@@ -278,17 +267,17 @@
             compound.addChildShape(transChild, child.ammo);
             Ammo.destroy(transChild);
           }
-          if (useWebGL()) {
+          if (runsWebGL()) {
             var tc = new THREE.Matrix4;
             tc.makeRotationFromQuaternion(qua.three);
             tc.setPosition(pos.three);
             _this.parent.three.merge(child.three, tc);
           }
         });
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.ammo = compound;
         }
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = this.parent.three;
         }
       }
@@ -303,7 +292,7 @@
           color: 0x333333, opacity: 1, transparent: false,
           wireframe: getSettings().wireframe
         });
-        if (useWebGL()) this.three = new THREE.MeshBasicMaterial(opt(this));
+        if (runsWebGL()) this.three = new THREE.MeshBasicMaterial(opt(this));
       },
       phong: function (options) {
         include(this, options, {
@@ -312,7 +301,7 @@
           emissive: 0x000000, specular: 0x555555,
           wireframe: getSettings().wireframe
         });
-        if (useWebGL()) this.three = new THREE.MeshPhongMaterial(opt(this));
+        if (runsWebGL()) this.three = new THREE.MeshPhongMaterial(opt(this));
       }
     },
     light: {
@@ -325,7 +314,7 @@
           lookAt: {}, castShadow: getSettings().castShadow,
           shadowDistance: 20
         });
-        if (useWebGL()) {
+        if (runsWebGL()) {
           var light = new THREE.DirectionalLight(this.color);
           light.position.copy(make('physics', 'position', this.position).three);
           if (typeof(this.lookAt) == 'object') {
@@ -381,7 +370,7 @@
         } else {
           this.quaternion = make('physics', 'quaternion', {w: 1});
         }
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.Mesh(shape.three, material.three);
           if (this.axisHelper) {
             shape.three.computeBoundingSphere();
@@ -389,7 +378,7 @@
             this.three.add(new THREE.AxisHelper(r));
           }
         }
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
         }
         _.each(this.connector, function (c, id) {
@@ -461,7 +450,7 @@
           approach: false //move bodyB towards bodyA to match connectors
         });
         notifyUndefined(this, ['a', 'b', 'bodyA', 'bodyB']);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.bodyA = getObject('body', this.bodyA);
           this.bodyB = getObject('body', this.bodyB);
           this.a = this.bodyA.connector[this.a];
@@ -470,8 +459,8 @@
             utils.approachConnectors(this.a, this.b, make, Ammo);
           }
         }
-        addSimulatorMethod.call(this, 'constraint', 'add');
-        addSimulatorMethod.call(this, 'constraint', 'remove');
+        addPhysicsMethod.call(this, 'add', method.constraint.add);
+        addPhysicsMethod.call(this, 'remove', method.constraint.remove);
       },
       _default: function (options) {
         constructor.constraint.point.call(this, options);
@@ -479,7 +468,7 @@
       //for pendulum-like constraints
       point: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.create = function () {
             this.ammo = new Ammo.btPoint2PointConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
@@ -487,30 +476,50 @@
           };
         }
       },
+      //...ex: for motorized wheels
       motor: function (options) {
         include(this, options, {
           maxBinary: 1,
           maxVelocity: 0.5
         });
         constructor.constraint.hinge.call(this, options);
+        addPhysicsMethod.call(this, 'enable', method.constraint.enable);
+        addPhysicsMethod.call(this, 'disable', method.constraint.disable);
       },
+      //like robotic servo motors, based on the hinge constraint
       servo: function (options) {
         include(this, options, {
           angle: 0,
           lowerLimit: 0,
-          upperLimit: Math.PI/2,
+          upperLimit: Math.PI,
           maxBinary: 1,
           maxVelocity: 0.5
         });
         constructor.constraint.hinge.call(this, options);
+        this.afterCreate = function () {
+          this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
+        };
+        this.beforeStep = function () {
+          if (runsPhysics()) {
+            var c = this;
+            //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
+            //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
+            var dt = Math.abs(c.ammo.getHingeAngle() - c.angle) / c.maxVelocity;
+            c.ammo.setMotorTarget(c.angle, dt);
+          }
+        };
+        addPhysicsMethod.call(this, 'enable', method.constraint.enable);
+        addPhysicsMethod.call(this, 'disable', method.constraint.disable);
+        addPhysicsMethod.call(this, 'setAngle', method.constraint.setAngle);
       },
       //for free wheels, doors
       hinge: function (options) {
         include(this, options, {
-          angle: undefined
+          lowerLimit: 1,
+          upperLimit: -1
         });
         constructor.constraint._abstract.call(this, options);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.create = function () {
             this.ammo = new Ammo.btHingeConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
@@ -518,15 +527,11 @@
             );
           };
         }
-        addSimulatorMethod.call(this, 'constraint', 'enableMotor');
-        addSimulatorMethod.call(this, 'constraint', 'disableMotor');
-        addSimulatorMethod.call(this, 'constraint', 'relax');
-        addSimulatorMethod.call(this, 'constraint', 'setAngle');
       },
       gear: function (options) {
         constructor.constraint._abstract.call(this, options);
         notifyUndefined(this, ['ratio']);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.create = function () {
             this.ammo = new Ammo.btGearConstraint(
               this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
@@ -534,20 +539,44 @@
           };
         }
       },
-      //for linear motors
-      linear: function (options){
+      //for linear motors, its based on the slider constraint
+      //the position along the up direction is changed with a motor
+      //has no angular rotation
+      linear: function (options) {
         include(this, options, {
           position: 0,
           lowerLimit: 0,
           upperLimit: 1,
           maxForce: 1,
-          maxVelocity: 0.2
+          maxVelocity: 1
         });
         constructor.constraint.slider.call(this, options);
+        this.create = function () {
+          this.ammo = new Ammo.btSliderConstraint(
+            this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+          );
+        };
+        this.afterCreate = function () {
+          var c = this;
+          c.ammo.setLowerAngLimit(0);
+          c.ammo.setUpperAngLimit(0);
+          c.ammo.setPoweredAngMotor(false);
+          c.ammo.setLowerLinLimit(c.lowerLimit);
+          c.ammo.setUpperLinLimit(c.upperLimit);
+          c.ammo.setMaxLinMotorForce(c.maxForce);
+        };
+        addPhysicsMethod.call(this, 'setPosition', method.constraint.setPosition);
       },
+      //slider can move and rotate along the up direction
       slider: function (options) {
+        include(this, options, {
+          lowerLinear: 0,
+          upperLinear: 1,
+          lowerAngular: 1,
+          upperAngular: 0
+        });
         constructor.constraint._abstract.call(this, options);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -585,12 +614,21 @@
               this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
             );
           };
+          this.afterCreate = function () {
+            var c = this;
+            c.ammo.setLowerAngLimit(c.lowerAngular);
+            c.ammo.setUpperAngLimit(c.upperAngular);
+            c.ammo.setLowerLinLimit(c.lowerLinear);
+            c.ammo.setUpperLinLimit(c.upperLinear);
+            c.ammo.setPoweredAngMotor(false);
+            c.ammo.setPoweredLinMotor(false);
+          };
         }
       },
-      //for linear motors
+      //fixed constraint have 0 degrees of freedom
       fixed: function (options) {
         constructor.constraint._abstract.call(this, options);
-        if (isSimulator()) {
+        if (runsPhysics()) {
           var transformA = new Ammo.btTransform();
           transformA.setOrigin(this.a.base.ammo);
 
@@ -640,10 +678,10 @@
           gravity: {y: -9.81}
         });
         this.scope = getScope();
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.Scene();
         }
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
           this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
           this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
@@ -712,14 +750,14 @@
       },
       webgl: function (options) {
         constructor.renderer._intro.call(this, options);
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.WebGLRenderer({canvas: this.canvas});
         }
         constructor.renderer._outro.call(this);
       },
       canvas: function (options) {
         constructor.renderer._intro.call(this, options);
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.CanvasRenderer({canvas: this.canvas});
         }
         constructor.renderer._outro.call(this);
@@ -736,7 +774,7 @@
           lookAt: {}
         });
         this.position = make('physics', 'position', this.position);
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
           this.three.position.copy(this.position.three);
           this.three.lookAt(make('physics', 'position', this.lookAt).three);
@@ -754,7 +792,7 @@
         notifyUndefined(this, ['lookAt']);
         this.axis = make('physics', 'vector', this.axis);
         this.lookAt = getObject('body', this.lookAt);
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         }
@@ -775,7 +813,7 @@
         } else {
           this.lookAt = make('physics', 'position', this.lookAt);
         }
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.axis.three.normalize();
           this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
         }
@@ -796,11 +834,11 @@
   var method = {
     body: {
       updateMotionState: function () {
-        if (useWebGL()) {
+        if (runsWebGL()) {
           this.three.quaternion.copy(this.quaternion.three);
           this.three.position.copy(this.position.three);
         }
-        if (isSimulator()) {
+        if (runsPhysics()) {
           this.ammoTransform.setIdentity();
           this.ammoTransform.setRotation(this.quaternion.ammo);
           this.ammoTransform.setOrigin(this.position.ammo);
@@ -814,50 +852,53 @@
     },
     constraint: {
       add: function () {
-        if (!this.enabled && isSimulator()) {
+        if (!this._added && runsPhysics()) {
           this.create();
+          if (this.afterCreate) this.afterCreate();
           getScene().ammo.addConstraint(this.ammo);
-          this.enabled = true;
+          this._added = true;
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
       },
       remove: function () {
-        if (this.enabled && isSimulator()) {
+        if (this._added && runsPhysics()) {
           getScene().ammo.removeConstraint(this.ammo);
           Ammo.destroy(this.ammo);
-          this.enabled = false;
+          this._added = false;
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
       },
+      //servos only
       setAngle: function (angle) {
-        if (isSimulator()) {
-          //use setMotorTarget ?
-          //this.ammo.setLimit(angle, angle, 0.9, 0.3, 0.9);
-          //this.ammo.setMotorTarget(angle, 2);
+        if (runsPhysics()) {
+          //angle is set in beforeStep
           this.angle = angle;
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
       },
-      relax: function () {
-        if (isSimulator()) {
-          this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+      //linear motors only
+      setPosition: function (position) {
+        if (runsPhysics()) {
+          //TODO do this the proper way, with target velocity. This is like forcing position and using brakes          this.position = position;
+          this.position = position;
+          this.ammo.setLowerLinLimit(position);
+          this.ammo.setUpperLinLimit(position);
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
       },
-      enableMotor: function (velocity, binary) {
-        if (isSimulator()) {
-          //this.ammo.setLimit(1, -1, 0.9, 0.3, 1.0);
+      enable: function (velocity, binary) {
+        if (runsPhysics()) {
           this.ammo.enableAngularMotor(true, velocity, binary);
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
         }
       },
-      disableMotor: function () {
-        if (isSimulator()) {
+      disable: function () {
+        if (runsPhysics()) {
           this.ammo.enableAngularMotor(false, 0, 0);
           this.bodyA.ammo.activate();
           this.bodyB.ammo.activate();
@@ -879,7 +920,7 @@
       }
     },
     constraint: function (obj) {
-      if (isSimulator()) {
+      if (runsPhysics()) {
         obj.remove();
       }
     },
@@ -888,12 +929,12 @@
         destroy(c);
       });
       var scene = getScene();
-      if (useWebGL()) {
+      if (runsWebGL()) {
         scene.three.remove(obj.three);
         obj.three.geometry.dispose();
         obj.three.material.dispose();
       }
-      if (isSimulator()) {
+      if (runsPhysics()) {
         scene.ammo.removeRigidBody(obj.ammo);
         Ammo.destroy(obj.ammo);
       }
@@ -925,7 +966,7 @@
     },
     scene: function (scene) {
       //should call this after destroying all children generated by make
-      if (useWebGL()) {
+      if (runsWebGL()) {
         cancelAnimationFrame(scene._rafid);
         clearTimeout(scene._rstid);
         while (scene.three.children.length) {
@@ -936,7 +977,7 @@
         }
       }
       //TODO miss something ?
-      if (isSimulator()) {
+      if (runsPhysics()) {
         clearTimeout(scene._stid);
         Ammo.destroy(scene.btDefaultCollisionConfiguration);
         Ammo.destroy(scene.btCollisionDispatcher);
@@ -1323,7 +1364,7 @@
     var settings = getSettings();
     var scene = getScene();
     if (settings.axisHelper) {
-      if (useWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
+      if (runsWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
     loadSystem(objects);
     function loadSystem(objs) {
@@ -1331,17 +1372,14 @@
       _.each(objs.body, function (body) {
         if (!body._added && (body._added = true)) {
           method.body.updateMotionState.call(body);
-          if (useWebGL()) scene.three.add(body.three);
-          if (isSimulator()) scene.ammo.addRigidBody(body.ammo);
+          if (runsWebGL()) scene.three.add(body.three);
+          if (runsPhysics()) scene.ammo.addRigidBody(body.ammo);
         }
       });
       _.each(objs.constraint, function (cons) {
-        if (!cons._added) {
-          cons._added = true;
-          cons.add();
-        }
+        cons.add();
       });
-      if (useWebGL()) {
+      if (runsWebGL()) {
         _.each(objs.light, function (light) {
           if (!light._added && (light._added = true)) {
             scene.three.add(light.three);
@@ -1362,7 +1400,7 @@
     function copyPhysics(objs) {
       _.each(objs.system, copyPhysics);
       _.each(objs.body, function (body) {
-        if (isSimulator()) copyPhysicsFromAmmo(body, trans);
+        if (runsPhysics()) copyPhysicsFromAmmo(body, trans);
         if (THREE && !isWorker) copyPhysicsToThree(body);
       });
     }
@@ -1407,27 +1445,13 @@
       var dt = curTime - scene._lastTime;
       scene._lastTime = curTime;
       //callbacks beforeStep
-      _.each(objects.constraint, function (c, id) {
-        if ((c.type == 'hinge') && c.ammo && (c.angle !== undefined)) {
-          //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
-          //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
-          // c.ammo.getHingeAngle()
-          c.ammo.setMotorTarget(c.angle, dt); //TODO use max angular vel
-
-        } else if ((c.type == 'slider') && c.ammo && (c._limit === undefined)) {
-          console.log("hurray!!");
-          c._limit = 0;
-          c.ammo.setLowerAngLimit(0);
-          c.ammo.setUpperAngLimit(0);
-
-        }
-
-
+      _.each(objects.constraint, function (c) {
+        if (c.beforeStep) c.beforeStep.call(c);
       });
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
-      if (isSimulator()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
+      if (runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
       copyPhysics(objects);
       if (isWorker) {
         packPhysics(objects, packet);

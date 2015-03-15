@@ -59,13 +59,30 @@ var test = {
   },
   btHingeConstraint: function () {
     var obj = new Ammo.btHingeConstraint();
-    utils.logKeys(obj, 'btHingeConstraint properties');
     utils.checkKeys(obj,
       [ 'setLimit',
         'enableAngularMotor',
         'setMotorTarget',
         'getHingeAngle'],
       'checking btHingeConstraint keys');
+
+  },
+  btSliderConstraint: function () {
+    var obj = new Ammo.btSliderConstraint();
+    utils.checkKeys(obj,
+      [ 'setLowerLinLimit',
+        'setUpperLinLimit',
+        'setPoweredLinMotor',
+        'setTargetLinMotorVelocity',
+        'setMaxLinMotorForce',
+        'getLinearPos',
+        'setLowerAngLimit',
+        'setUpperAngLimit',
+        'setPoweredAngMotor',
+        'setTargetAngMotorVelocity',
+        'setMaxAngMotorForce'
+      ],
+      'checking btSliderConstraint keys');
 
   },
   'properties list': function () {
