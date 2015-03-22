@@ -158,6 +158,18 @@
         });
       }
     },
+    method: {
+      _abstract: function(options){
+        include(this, options, {
+          execute: undefined, type: undefined, name: undefined
+        });
+        notifyUndefined(this, ['execute','type','name']);
+        this[this.name] = eval(this.execute);
+      },
+      beforeStep: function(options){
+        constructor.method._abstract.call(this, options);
+      }
+    },
     physics: {
       vector: function (options) {
         include(this, options, {

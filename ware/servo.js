@@ -1,40 +1,69 @@
-var utils = require('../util/utils.js');
+var _ = require('../lib/underscore.js');
 module.exports.getObject = function (options) {
   console.warn('this servo is not ready to be used');
+  options = _.defaults(options, {
+    id: 'servo',
+    caseWidth: 1,
+    caseHeight: 0.5,
+    caseLength: 2,
+    caseMass: 0.9,
+    caseColor: 0x333333,
+    shaftDiameter: 0.5,
+    shaftHeight: 0.1,
+    shaftMass: 0.1,
+    shaftColor: 0x999999,
+    shaftMargin: 0.15,
+    tolerance: 0.001 //to avoid friction between shaft and case
+  });
+  //TODO find a way to include methods into systems
+  var method = {
+
+  };
   return {
     shape: {
-      id1: {
-        type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
-        dx: utils.randomLinear(1, 3),
-        dy: utils.randomLinear(1, 3),
-        dz: utils.randomLinear(1, 3),
-        r: utils.randomLinear(0.5, 2),
-        segments: ~~utils.randomLinear(8, 16)
+      case: {
+        type: 'box',
+        dx: options.caseLength,
+        dy: options.caseHeight,
+        dz: options.caseWidth
       },
-      id2: {
-        type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
-        dx: utils.randomLinear(1, 2),
-        dy: utils.randomLinear(1, 2),
-        dz: utils.randomLinear(1, 2),
-        r: utils.randomLinear(0.5, 1),
-        segments: ~~utils.randomLinear(8, 16)
+      shaft: {
+        type: 'cylinder',
+        dy: options.shaftHeight,
+        r: options.shaftDiameter / 2,
+        segments: 8
       }
     },
     material: {
-      id3: {type: 'phong', color: 0x333333 },
-      id4: {type: 'phong', color: utils.randomColor() }
+      case: {type: 'phong', color: options.caseColor },
+      shaft: {type: 'phong', color: options.shaftColor }
     },
     body: {
-      id5: { mass: 0, shape: 'id1', material: 'id4'},
-      id6: { mass: 1, shape: 'id2', material: 'id3', position: {x: 0, y: 0, z: 3}}
-    },
-    connector: {
-      c1: {body: 'id5'},
-      c2: {body: 'id6', base: {z: -3}}
+      case: {
+        mass: options.caseMass, shape: 'case', material: 'case',
+        connector: {
+          toShaft: {
+            base: {y: options.caseHeight / 2, x: options.caseLength / 2 - options.shaftMargin}
+          }
+        },
+        shaft: {
+          mass: options.shaftMass, shape: 'shaft', material: 'shaft',
+          position: {y: (options.caseHeight / 2 + options.shaftHeight / 2 + options.tolerance)},
+          connector: {
+            toCase: {
+              base: {y: -(options.shaftHeight/2 + options.tolerance)}
+            }
+          }
+        }
+      }
     },
     constraint: {
-      cons: {
-        a: 'c1', b: 'c2', bodyA: 'id5', bodyB: 'id6'
+      servo: {
+        type: 'servo',
+        bodyA: 'case',
+        a: 'toShaft',
+        bodyB: 'shaft',
+        b: 'toCase'
       }
     }
   };

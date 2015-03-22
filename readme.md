@@ -9,7 +9,44 @@ Mechanism simulation with Ammo.js and THREE.js.
 
 Alpha
 
-#Usage: How it should work _(but doesn't)_
+#Supported Features
+
+##Simulation control
+
+* speed
+* step frequency
+
+##Actuators
+
+* Rotational motors
+* Servos, with angle feedback
+* Linear Motors, with position feedback
+
+##Sensors
+
+* ?
+
+##Constraints
+
+* Point
+* Fixed
+* Slider
+* Hinge
+
+##Bodies
+
+* Sphere
+* Box
+* Cylinder
+* Cone
+* Composites
+
+##Materials
+
+* THREE.js supported materials
+
+
+#Usage: How it should work
 
 ##Creating and Saving, Controlling Simulation
 
