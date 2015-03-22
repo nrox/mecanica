@@ -7,7 +7,6 @@ availablePaths = [
 "..//readme.md",
 "..//styles",
 "..//tests",
-"..//usage.md",
 "..//util",
 "..//ware",
 "../examples/example-collision.html",

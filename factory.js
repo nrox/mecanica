@@ -41,7 +41,8 @@
     connector: {}, //this should not be here! it should be accessed and destroyed within the body
     constraint: {}, //point, slider, hinge ...
     light: {},
-    monitor: {} //set of camera + renderer
+    monitor: {}, //set of camera + renderer
+    method: {} //methods available to the system
   };
 
   //collection of isolated objects, allows to have parallel worlds
@@ -161,12 +162,20 @@
     method: {
       _abstract: function(options){
         include(this, options, {
-          execute: undefined, type: undefined, name: undefined
+          execute: undefined
         });
-        notifyUndefined(this, ['execute','type','name']);
-        this[this.name] = eval(this.execute);
+        notifyUndefined(this, ['execute']);
+        //execute should be a string representation of a function, or a function
+        //in both cases this should work
+        eval('this.execute = ' + this.execute);
+      },
+      _default: function(options){
+        constructor.method._abstract.call(this, options);
       },
       beforeStep: function(options){
+        constructor.method._abstract.call(this, options);
+      },
+      afterStep: function(options){
         constructor.method._abstract.call(this, options);
       }
     },
@@ -927,6 +936,11 @@
     },
     material: function (obj) {
     },
+    method: function (obj) {
+      //remove the function, in order to release references to other objects
+      //optionally use delete
+      obj.execute = undefined;
+    },
     connector: function (obj) {
       if (ammoHelper) {
         // ammoHelper.destroy(obj.ammoTransform);
@@ -1461,11 +1475,17 @@
       _.each(objects.constraint, function (c) {
         if (c.beforeStep) c.beforeStep.call(c);
       });
+      _.each(objects.method, function (m) {
+        if (m.type == 'beforeStep') m.beforeStep.execute();
+      });
       //maxSubSteps > timeStep / fixedTimeStep
       //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
       var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
       if (runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
       copyPhysics(objects);
+      _.each(objects.method, function (m) {
+        if (m.type == 'afterStep') m.afterStep.execute();
+      });
       if (isWorker) {
         packPhysics(objects, packet);
         post(['transfer', packet], 'transfer physics');
@@ -1627,6 +1647,32 @@
     while (workerFunctions.pop()) {
     }
   }
+
+  /**
+   * SYSTEMS
+   */
+
+  function System(path){
+    this.objects = getObject(path);
+    this.assumeMethods();
+  }
+
+  System.prototype.assumeMethods = function(meths){
+    var _this = this;
+    _.each(meths || this.objects.method, function(meth, id){
+      _this[id] = function(){
+        return meth.execute.apply(null, utils.argList(arguments));
+      };
+    });
+  };
+
+  System.prototype.getObject = function(){
+    var backup = objects;
+    objects = this.objects;
+    var obj = getObject.apply(null, utils.argList(arguments));
+    objects = backup;
+    return obj;
+  };
 
 
   /**
