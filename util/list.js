@@ -7,6 +7,7 @@ availablePaths = [
 "..//readme.md",
 "..//styles",
 "..//tests",
+"..//usage.md",
 "..//util",
 "..//ware",
 "../examples/example-collision.html",
@@ -49,4 +50,5 @@ availablePaths = [
 "../ware/loader.html",
 "../ware/random-shapes.js",
 "../ware/readme.md",
+"../ware/servo.js",
 ]
