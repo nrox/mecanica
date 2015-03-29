@@ -168,6 +168,7 @@
         //execute should be a string representation of a function, or a function
         //in both cases this should work
         eval('this.execute = ' + this.execute);
+        console.log(this);
       },
       _default: function(options){
         constructor.method._abstract.call(this, options);

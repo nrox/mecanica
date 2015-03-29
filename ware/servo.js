@@ -1,5 +1,5 @@
 var _ = require('../lib/underscore.js');
-module.exports.getObject = function (options, factory) {
+module.exports.getObject = function (options) {
   console.warn('this servo is not ready to be used');
   options = _.defaults(options || {}, {
     id: 'servo',
@@ -61,15 +61,15 @@ module.exports.getObject = function (options, factory) {
         }
       }
     }/*,
-    constraint: {
-      servo: {
-        type: 'servo',
-        bodyA: 'case',
-        a: 'toShaft',
-        bodyB: 'shaft',
-        b: 'toCase'
-      }
-    }*/, scene: {
+     constraint: {
+     servo: {
+     type: 'servo',
+     bodyA: 'case',
+     a: 'toShaft',
+     bodyB: 'shaft',
+     b: 'toCase'
+     }
+     }*/, scene: {
       s1: {}
     },
     monitor: {
@@ -79,16 +79,17 @@ module.exports.getObject = function (options, factory) {
       l1: {position: {x: 5, z: -5}},
       l2: {position: {x: -7, y: 6, z: 5}, color: 0x8899bb},
       l3: {position: {y: -5, z: 1}, color: 0x445566}
+    },
+    method: {
+      setAngle: {
+        //type: 'beforeStep',
+        execute: "" + function (angle) {
+          //angle in degrees
+          //var s = getObject('constraint', 'servo');
+          //s.setAngle(angle * 180 / Math.PI);
+          //console.log(1);
+        }
+      }
     }
-    /*,
-     method: {
-     setAngle: {
-     execute: "" + function (angle) {
-     //angle in degrees
-     var s = factory.getObject('constraint', 'servo');
-     s.setAngle(angle * 180 / Math.PI);
-     }
-     }
-     }*/
   };
 };
