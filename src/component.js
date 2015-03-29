@@ -3,6 +3,4 @@
  *
  */
 
-
-
 console.log(1);

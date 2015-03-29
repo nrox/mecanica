@@ -17,15 +17,21 @@ module.exports = function (grunt) {
         }
       }
     },
+    shell: {
+      listDir: {
+        command: 'cd util && bash listdir.sh'
+      }
+    },
     watch: {
       files: ['<%= concat.basic.src %>'],
-      tasks: ['concat']
+      tasks: ['concat','shell:listDir']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', ['connect','watch']);
 
