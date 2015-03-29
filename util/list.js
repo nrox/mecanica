@@ -2295,7 +2295,7 @@ availablePaths = [
 "../node_modules/http-server/test/fixtures/root",
 "../node_modules/http-server/test/fixtures/root/canYouSeeMe",
 "../node_modules/http-server/test/fixtures/root/file",
-"../src/component.js",
+"../src/_component.js",
 "../src/system.js",
 "../styles/tests.css",
 "../tests/index.html",
