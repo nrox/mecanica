@@ -1,0 +1,29 @@
+{
+  "name": "mecanica.js",
+  "version": "0.0.2",
+  "description": "Mechanism simulation with THREE.js and Ammo.js",
+  "author": "nrox https://github.com/nrox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nrox/mecanica"
+  },
+  "keywords": [
+    "physics",
+    "3d",
+    "javascript",
+    "mechanism",
+    "webgl",
+    "ammo.js",
+    "bullet",
+    "three.js"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-connect": "^0.9.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "http-server": "^0.8.0"
+  },
+  "license": "MIT"
+}
