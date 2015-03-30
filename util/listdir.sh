@@ -7,3 +7,4 @@ ls -R ../ | awk '
 NF&&f{ print "\""s"/"$0"\"," }' >> list.js
 echo \] >> list.js
 
+sed -i '/node_modules/d' list.js

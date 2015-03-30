@@ -3,8 +3,21 @@
  *
  */
 
-function System() {
-
+function System(options) {
+  this.include(options, {});
+  this.objects = {
+    settings: {}, //preferences
+    scene: {}, //three scene + ammo world
+    system: {}, //high level structure of objects, identified by keys
+    shape: {}, //sphere, box, cylinder, cone ...
+    material: {}, //basic, phong, lambert ? ...
+    body: {}, //shape + mesh
+    connector: {}, //this should not be here! it should be accessed and destroyed within the body
+    constraint: {}, //point, slider, hinge ...
+    light: {},
+    monitor: {}, //set of camera + renderer
+    method: {} //methods available to the system
+  };
 }
 
 /**
@@ -67,21 +80,24 @@ System.prototype.make = function () {
     console.error('group is not defined');
     return undefined;
   }
-  type = constructor[group][type] && type || '_default';
-  var cons = constructor[group] && constructor[group][type];
+  type = type || '_default';
+  var cons = this.maker[group];
   var obj;
   if (typeof cons == 'function') {
     if (typeof(options) != 'object') options = {};
-    if (!options.id) options.id = nextId(type);
+    if (!options.id) options.id = this.nextId(type);
     obj = new cons(options, this);
-    if (group !== SYSTEM) obj.group = group;
-    if (group !== SYSTEM) obj.type = type;
+    if (group !== 'system') obj.group = group;
+    if (group !== 'system') obj.type = type;
     if (!options._dontSave && this.objects[group]) this.objects[group][obj.id] = obj;
-    debug && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(opt(obj)));
+    this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
     console.warn('incapable of making object:');
     console.log(JSON.stringify(arguments));
   }
   return obj;
 };
+
+extend(System, Component);
+Component.prototype.maker.system = System;
 

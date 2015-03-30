@@ -52,7 +52,11 @@ Alpha
 
 ###Initialization
 
-    var world = new Mecanica.World({});
+    var world = new Mecanica.World({
+        worker: true, //use web worker
+        server: false, //run simulation in server side
+        browser: true //render objects with three.js scene and webgl canvas
+    });
 
     //several ways to import objects
     world.importLocal('scenario.js');

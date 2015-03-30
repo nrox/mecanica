@@ -37,7 +37,8 @@
         'transform': 'test-transform.js',
         'shapes': 'test-shapes.js',
         'json ui': 'test-json.js',
-        'charts': 'test-chart.js'
+        'charts': 'test-chart.js',
+        'components' : 'test-components.js'
     };
 </script>
 
@@ -76,8 +77,11 @@
     }
 
     window.onload = function () {
-        var utils = require('../util/test.js', undefined);
+
+        var utils = require('../util/test.js');
+
         var $index = $('#index');
+
         _.each(scripts, function (script, title) {
             var e = $('<button />', {
                 'class': 'test',

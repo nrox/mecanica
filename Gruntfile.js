@@ -3,10 +3,30 @@ module.exports = function (grunt) {
   grunt.initConfig({
     concat: {
       basic: {
-        src: ['src/*.js'],
+        src: [
+          'src/component.js',
+          'src/settings.js',
+          'src/system.js',
+          'src/method.js',
+          'src/vector.js',
+          'src/shape.js',
+          'src/material.js',
+          'src/light.js',
+          'src/body.js',
+          'src/connector.js',
+          'src/constraint.js',
+          'src/scene.js',
+          'src/monitor.js',
+          'src/renderer.js',
+          'src/worker.js',
+          'src/simulation.js',
+          'src/exports.js'
+        ],
         dest: 'mecanica.js'
       },
       options: {
+        banner: '(function(){\n',
+        footer: '\n})();'
       }
     },
     connect: {
