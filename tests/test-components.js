@@ -174,6 +174,18 @@ var test = {
       connectorA: 'c', bodyB: 'b'
     }, 'constraint default type');
     testUtils.checkKeys(obj, ['add', 'remove', 'create'], 'constraint basic methods');
+  },
+  Monitor: function () {
+    console.warn('TODO');
+  },
+  Camera: function () {
+    console.warn('TODO');
+  },
+  Renderer: function () {
+    console.warn('TODO');
+  },
+  Light: function () {
+    console.warn('TODO');
   }
 };
 

@@ -12,14 +12,14 @@ var _ = require('lib/underscore.js');
 var ammoHelper = require('lib/ammo.js');
 var utils = require('util/utils.js');
 
-var Ammo = undefined;
-var THREE = undefined;
+var Ammo, THREE, jQuery;
 
 if (RUNS_PHYSICS){
   Ammo = ammoHelper;
 }
 if (RUNS_WEBGL){
   THREE = require('lib/three.js');
+  jQuery = require('lib/jquery.js');
 }
 
 function extend(target, source) {
@@ -133,6 +133,3 @@ Mecanica.prototype.destroy = function () {
 };
 
 extend(Mecanica, Component);
-
-
-

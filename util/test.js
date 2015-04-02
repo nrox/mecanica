@@ -117,6 +117,7 @@ module.exports = {
         if (timeout) {
           setTimeout(obj[keys[i]], timeout * i);
         } else {
+          console.info(keys[i]);
           obj[keys[i]]();
         }
       }

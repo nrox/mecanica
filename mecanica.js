@@ -13,14 +13,14 @@ var _ = require('lib/underscore.js');
 var ammoHelper = require('lib/ammo.js');
 var utils = require('util/utils.js');
 
-var Ammo = undefined;
-var THREE = undefined;
+var Ammo, THREE, jQuery;
 
 if (RUNS_PHYSICS){
   Ammo = ammoHelper;
 }
 if (RUNS_WEBGL){
   THREE = require('lib/three.js');
+  jQuery = require('lib/jquery.js');
 }
 
 function extend(target, source) {
@@ -134,9 +134,6 @@ Mecanica.prototype.destroy = function () {
 };
 
 extend(Mecanica, Component);
-
-
-
 
 function Settings(options) {
   this.include(options, {
@@ -530,7 +527,6 @@ extend(Body, Component);
 Component.prototype.maker.body = Body;
 function Connector(options, system){
   this.construct(options, system, 'relative');
-
 }
 
 Connector.prototype.types = {
@@ -908,15 +904,147 @@ Scene.prototype.types = {
 
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
-function Camera(){
-
+function Camera(options, system){
+  this.construct(options, system, 'perspective');
 }
-function Monitor(){
 
-}
-function Renderer(){
+Camera.prototype.types = {
+  perspective: function (options, system) {
+    this.include(options, {
+      fov: 45, aspect: 1, near: 0.1, far: 1000,
+      position: {x: 5, y: 7, z: 10},
+      lookAt: {}
+    });
+    this.position = new Vector(this.position);
+    if (this.runsWebGL()) {
+      this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+      this.three.position.copy(this.position.three);
+      this.three.lookAt(new Vector(this.lookAt).three);
+    }
+  },
+  //follow a body
+  tracker: function (options, system) {
+    this.include(options, {
+      fov: 45, aspect: 1, near: 0.1, far: 1000,
+      axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
+      distance: 15, //distance to keep
+      inertia: 1, //for changing position, in seconds
+      lookAt: null
+    });
+    this.notifyUndefined(['lookAt']);
+    this.axis = new Vector(this.axis);
+    this.lookAt = system.getObject('body', this.lookAt);
+    if (this.runsWebGL()) {
+      this.axis.three.normalize();
+      this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+    }
+  },
+  //follow a body
+  satellite: function (options, system) {
+    this.include(options, {
+      fov: 45, aspect: 1, near: 0.1, far: 1000,
+      axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
+      distance: 15, //distance to keep
+      inertia: 1, //for changing position, in seconds
+      lookAt: null
+    });
+    this.notifyUndefined(['lookAt']);
+    this.axis =new Vector(this.axis);
+    if (typeof(this.lookAt) == 'string') {
+      this.lookAt = system.getObject('body', this.lookAt);
+    } else {
+      this.lookAt = new Vector(this.lookAt);
+    }
+    if (this.runsWebGL()) {
+      this.axis.three.normalize();
+      this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+    }
+  }
+};
 
+extend(Camera, Component);
+Component.prototype.maker.camera = Camera;
+function Monitor(options, system){
+  this.construct(options, system, 'complete');
 }
+
+Monitor.prototype.types = {
+  complete: function (options, system) {
+    this.include(options, {
+      renderer: 'available',
+      camera: 'perspective',
+      width: 500, height: 500,
+      fov: 35, near: 0.1, far: 1000,
+      position: {x: 5, y: 7, z: 10},
+      axis: {x: 5, y: 7, z: 10},
+      lookAt: {}, //vector or body id
+      distance: 15, //distance to keep, in case of tracker
+      inertia: 1
+    });
+    var o = this.optionsWithoutId();
+    o.aspect = o.width / o.height;
+    this.renderer = system.make('renderer', o.renderer, o);
+    this.camera = system.make('camera', o.camera, o);
+  }
+};
+
+extend(Monitor, Component);
+Component.prototype.maker.monitor = Monitor;
+function Renderer(options, system) {
+  this.construct(options, system, 'available');
+}
+
+Renderer.prototype.types = {
+  available: function (options, system) {
+    try {
+      Renderer.prototype.types.webgl.call(this, options, system);
+    } catch (e) {
+      Renderer.prototype.types.canvas.call(this, options, system);
+    }
+  },
+  _intro: function (options, system) {
+    this.include(options, {
+      width: 500, height: 500, container: undefined
+    });
+    if (jQuery && THREE) {
+      if (system.getSettings().reuseCanvas) {
+        this.canvas = jQuery('canvas[monitor=""]').first();
+        if (this.canvas.length) {
+          this.canvas.attr('monitor', this.id);
+          this.canvas.show();
+          this.canvas = this.canvas.get(0);
+        } else {
+          delete this.canvas;
+        }
+      }
+    }
+  },
+  _outro: function (options, system) {
+    if (jQuery && THREE) {
+      var settings = system.getSettings();
+      jQuery(settings.canvasContainer).append(this.three.domElement);
+      jQuery(this.three.domElement).attr('monitor', this.id);
+      this.three.setSize(this.width, this.height);
+    }
+  },
+  webgl: function (options, system) {
+    Renderer.prototype.types._intro.call(this, options, system);
+    if (this.runsWebGL()) {
+      this.three = new THREE.WebGLRenderer({canvas: this.canvas});
+    }
+    Renderer.prototype.types._outro.call(this, options, system);
+  },
+  canvas: function (options, system) {
+    Renderer.prototype.types._intro.call(this, options, system);
+    if (this.runsWebGL()) {
+      this.three = new THREE.CanvasRenderer({canvas: this.canvas});
+    }
+    Renderer.prototype.types._outro.call(this, options, system);
+  }
+};
+
+extend(Renderer, Component);
+Component.prototype.maker.renderer = Renderer;
 /**
  * Created by nrox on 3/30/15.
  */

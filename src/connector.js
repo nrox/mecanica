@@ -1,6 +1,5 @@
 function Connector(options, system){
   this.construct(options, system, 'relative');
-
 }
 
 Connector.prototype.types = {
