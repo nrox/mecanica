@@ -7,6 +7,12 @@ module.exports = {
   Vector: Vector,
   Quaternion: Quaternion,
   Settings: Settings,
-  Shape: Shape
+  Shape: Shape,
+  Material: Material,
+  Body: Body,
+  Connector: Connector,
+  Constraint: Constraint,
+  Light: Light,
+  Scene: Scene
 };
 

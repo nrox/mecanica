@@ -86,9 +86,9 @@ System.prototype.make = function () {
   if (typeof cons == 'function') {
     if (typeof(options) != 'object') options = {};
     if (!options.id) options.id = this.nextId(type);
+    options.group = group;
+    options.type = type;
     obj = new cons(options, this);
-    if (group !== 'system') obj.group = group;
-    if (group !== 'system') obj.type = type;
     if (!options._dontSave && this.objects[group]) this.objects[group][obj.id] = obj;
     this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
@@ -98,6 +98,15 @@ System.prototype.make = function () {
   return obj;
 };
 
+System.prototype.getSettings = function () {
+  //FIXME
+  return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+System.prototype.getScene = function () {
+  //FIXME
+  return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+};
 extend(System, Component);
 Component.prototype.maker.system = System;
 

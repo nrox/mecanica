@@ -4,13 +4,23 @@
  */
 
 
-var _ = require('lib/underscore.js');
-var Ammo = require('lib/ammo.js');
-var THREE = require('lib/three.js');
-
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
 var RUNS_WEBGL = true;
+
+var _ = require('lib/underscore.js');
+var ammoHelper = require('lib/ammo.js');
+var utils = require('util/utils.js');
+
+var Ammo = undefined;
+var THREE = undefined;
+
+if (RUNS_PHYSICS){
+  Ammo = ammoHelper;
+}
+if (RUNS_WEBGL){
+  THREE = require('lib/three.js');
+}
 
 function extend(target, source) {
   _.defaults(target.prototype, source.prototype);
@@ -84,10 +94,30 @@ Component.prototype.nextId = (function () {
   };
 })();
 
+Component.prototype.construct = function(options, system, defaultType){
+  if (!this.types[options.type]) options.type = defaultType;
+  var cons = this.types[options.type];
+  this.system = system;
+  cons.call(this, options, system);
+};
+
+Component.prototype.types = {};
+
 Component.prototype.maker = {};
 
 Component.prototype.debug = function () {
   return false;
+};
+
+Component.prototype.addPhysicsMethod = function (funName, reference) {
+  if (this.runsPhysics()) {
+    this[funName] = reference;
+  } else {
+    //let it be executed in worker
+    this[funName] = function () {
+      post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
+    }
+  }
 };
 
 function Mecanica(options) {

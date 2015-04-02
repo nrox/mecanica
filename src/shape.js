@@ -1,9 +1,8 @@
-function Shape(options, system){
-  var cons = this.types[options.type];
-  cons.call(this, options, system);
+function Shape(options, system) {
+  this.construct(options, system, 'sphere');
 }
 
-Shape.prototype.types =  {
+Shape.prototype.types = {
   sphere: function (options) {
     this.include(options, {
       r: 1, segments: 12

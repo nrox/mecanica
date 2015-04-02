@@ -27,7 +27,5 @@ function Quaternion(options) {
   }
 }
 
-Component.prototype.maker.vector = Vector;
-Component.prototype.maker.quaternion = Quaternion;
 extend(Vector, Component);
 extend(Quaternion, Component);

@@ -637,6 +637,9 @@
               this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
             );
           };
+          this.transformA = transformA;
+          this.transformB = transformB;
+
           this.afterCreate = function () {
             var c = this;
             c.ammo.setLowerAngLimit(c.lowerAngular);

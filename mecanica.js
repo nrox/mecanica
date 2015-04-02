@@ -5,13 +5,23 @@
  */
 
 
-var _ = require('lib/underscore.js');
-var Ammo = require('lib/ammo.js');
-var THREE = require('lib/three.js');
-
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
 var RUNS_WEBGL = true;
+
+var _ = require('lib/underscore.js');
+var ammoHelper = require('lib/ammo.js');
+var utils = require('util/utils.js');
+
+var Ammo = undefined;
+var THREE = undefined;
+
+if (RUNS_PHYSICS){
+  Ammo = ammoHelper;
+}
+if (RUNS_WEBGL){
+  THREE = require('lib/three.js');
+}
 
 function extend(target, source) {
   _.defaults(target.prototype, source.prototype);
@@ -85,10 +95,30 @@ Component.prototype.nextId = (function () {
   };
 })();
 
+Component.prototype.construct = function(options, system, defaultType){
+  if (!this.types[options.type]) options.type = defaultType;
+  var cons = this.types[options.type];
+  this.system = system;
+  cons.call(this, options, system);
+};
+
+Component.prototype.types = {};
+
 Component.prototype.maker = {};
 
 Component.prototype.debug = function () {
   return false;
+};
+
+Component.prototype.addPhysicsMethod = function (funName, reference) {
+  if (this.runsPhysics()) {
+    this[funName] = reference;
+  } else {
+    //let it be executed in worker
+    this[funName] = function () {
+      post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
+    }
+  }
 };
 
 function Mecanica(options) {
@@ -215,9 +245,9 @@ System.prototype.make = function () {
   if (typeof cons == 'function') {
     if (typeof(options) != 'object') options = {};
     if (!options.id) options.id = this.nextId(type);
+    options.group = group;
+    options.type = type;
     obj = new cons(options, this);
-    if (group !== 'system') obj.group = group;
-    if (group !== 'system') obj.type = type;
     if (!options._dontSave && this.objects[group]) this.objects[group][obj.id] = obj;
     this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
@@ -227,6 +257,15 @@ System.prototype.make = function () {
   return obj;
 };
 
+System.prototype.getSettings = function () {
+  //FIXME
+  return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+System.prototype.getScene = function () {
+  //FIXME
+  return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+};
 extend(System, Component);
 Component.prototype.maker.system = System;
 
@@ -264,17 +303,14 @@ function Quaternion(options) {
   }
 }
 
-Component.prototype.maker.vector = Vector;
-Component.prototype.maker.quaternion = Quaternion;
 extend(Vector, Component);
 extend(Quaternion, Component);
 
-function Shape(options, system){
-  var cons = this.types[options.type];
-  cons.call(this, options, system);
+function Shape(options, system) {
+  this.construct(options, system, 'sphere');
 }
 
-Shape.prototype.types =  {
+Shape.prototype.types = {
   sphere: function (options) {
     this.include(options, {
       r: 1, segments: 12
@@ -358,30 +394,523 @@ Shape.prototype.types =  {
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
-/**
- * Created by nrox on 3/30/15.
- */
+function Material(options, system) {
+  this.construct(options, system, 'phong');
+}
 
-/**
- * Created by nrox on 3/30/15.
- */
+Material.prototype.types = {
+  basic: function (options, system) {
+    this.include(options, {
+      friction: 0.3, restitution: 0.2,
+      color: 0x333333, opacity: 1, transparent: false,
+      wireframe: system.getSettings().wireframe || false
+    });
+    if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
+  },
+  phong: function (options, system) {
+    this.include(options, {
+      friction: 0.3, restitution: 0.2,
+      color: 0x333333, opacity: 1, transparent: false,
+      emissive: 0x000000, specular: 0x555555,
+      wireframe: system.getSettings().wireframe || false
+    });
+    if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
+  }
+};
 
-/**
- * Created by nrox on 3/30/15.
- */
+extend(Material, Component);
+Component.prototype.maker.material = Material;
 
-/**
- * Created by nrox on 3/30/15.
- */
 
-/**
- * Created by nrox on 3/30/15.
- */
+function Light(options, system) {
+  this.construct(options, system, 'directional');
+}
 
-/**
- * Created by nrox on 3/30/15.
- */
+Light.prototype.types = {
+  directional: function (options, system) {
+    this.include(options, {
+      color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
+      lookAt: {}, castShadow: system.getSettings().castShadow,
+      shadowDistance: 20
+    });
+    if (this.runsWebGL()) {
+      var light = new THREE.DirectionalLight(this.color);
+      light.position.copy(new Vector(this.position).three);
+      if (typeof(this.lookAt) == 'object') {
+        light.target.position.copy(new Vector(this.lookAt).three);
+      }
+      if (this.castShadow) {
+        light.shadowCameraLeft = -this.shadowDistance;
+        light.shadowCameraTop = -this.shadowDistance;
+        light.shadowCameraRight = this.shadowDistance;
+        light.shadowCameraBottom = this.shadowDistance;
+        light.shadowCameraNear = 0.2 * this.shadowDistance;
+        light.shadowCameraFar = 10 * this.shadowDistance;
+        light.shadowBias = -0.0003;
+        light.shadowMapWidth = light.shadowMapHeight = system.getSettings().shadowMapSize;
+        light.shadowDarkness = 0.35;
+      }
+      this.three = light;
+    }
+  }
+};
 
+extend(Light, Component);
+Component.prototype.maker.light = Light;
+function Body(options, system) {
+  this.construct(options, system, 'basic');
+}
+
+Body.prototype.types = {
+  basic: function (options, system) {
+    this.include(options, {
+      shape: undefined,
+      material: undefined,
+      mass: 0, position: {}, quaternion: undefined, rotation: undefined,
+      connector: {}, axisHelper: system.getSettings().axisHelper
+    });
+    this.notifyUndefined(['shape','material']);
+
+    var shape;
+    var _this = this;
+    if (typeof this.shape == 'string') { //get from objects with id
+      shape = system.getObject('shape', this.shape);
+    } else { //make from options
+      shape = new Shape(this.shape, system);
+    }
+    this.shape = shape;
+
+    var material;
+    if (typeof this.material == 'string') { //get from objects with id
+      material = system.getObject('material', this.material);
+    } else { //make from options
+      material = new Material(this.material, system);
+    }
+    this.material = material;
+
+    this.position = new Vector(this.position);
+    this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
+
+
+    if (this.runsWebGL()) {
+      this.three = new THREE.Mesh(shape.three, material.three);
+      if (this.axisHelper) {
+        shape.three.computeBoundingSphere();
+        var r = shape.three.boundingSphere.radius * 1.5;
+        this.three.add(new THREE.AxisHelper(r));
+      }
+    }
+    if (this.runsPhysics()) {
+      this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
+    }
+    _.each(this.connector, function (c, id) {
+      c.bodyObject = _this;
+      c.body = _this.id;
+      c.id = id;
+      new Connector(c, system);
+    });
+  }
+};
+
+Body.prototype.updateMotionState =function () {
+  if (this.runsWebGL()) {
+    this.three.quaternion.copy(this.quaternion.three);
+    this.three.position.copy(this.position.three);
+  }
+  if (this.runsPhysics()) {
+    this.ammoTransform.setIdentity();
+    this.ammoTransform.setRotation(this.quaternion.ammo);
+    this.ammoTransform.setOrigin(this.position.ammo);
+    var inertia = new Ammo.btVector3(0, 0, 0);
+    if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
+    var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
+    var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
+    this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+extend(Body, Component);
+Component.prototype.maker.body = Body;
+function Connector(options, system){
+  this.construct(options, system, 'relative');
+
+}
+
+Connector.prototype.types = {
+  //base and axis are specified in local coordinates
+  relative: function (options, system) {
+    this.include(options, {
+      body: undefined, //the parent body id
+      base: {x: 0, y: 0, z: 0}, //origin
+      up: {x: 0, y: 0, z: 0}, //axis of rotation or direction of movement, normalized
+      front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
+    });
+    this.notifyUndefined(['body', 'base', 'up', 'front']);
+    var body = options.bodyObject || system.getObject('body', this.body);
+    if (body) {
+      body.connector[this.id] = this;
+      this.body = body;
+      this.ammoTransform = utils.normalizeConnector(this, ammoHelper);
+      this.base = new Vector(this.base);
+      this.up = new Vector(this.up);
+      this.front = new Vector(this.front);
+      //check for orthogonality
+      var helper = system.getSettings().connectorHelper;
+      if (THREE && helper) {
+        //TODO reuse material and geometry
+        var connectorHelperMaterial = new THREE.MeshBasicMaterial({
+          color: 0x555555,
+          transparent: true,
+          opacity: 0.5
+        });
+        var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
+        var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
+        var axis = new THREE.AxisHelper(helper);
+        s.add(axis);
+
+        //rotate the axis to match required directions
+        s.up.copy(this.up.three); // (y axis, green)
+        s.lookAt(this.front.three); // (z axis, blue)
+        s.updateMatrix();
+
+        //reset up
+        //s.up.set(0, 1, 0);
+        s.position.copy(this.base.three);
+        body.three.add(s);
+      }
+    }
+  }
+};
+
+extend(Connector, Component);
+Component.prototype.maker.connector = Connector;
+function Constraint(options, system) {
+  this.construct(options, system, 'point');
+}
+
+Constraint.prototype.types = {
+  //super constructor
+  _abstract: function (options, system) {
+    this.include(options, {
+      bodyA: undefined, //bodyA id
+      bodyB: undefined, //bodyB id
+      a: undefined, //connector id, in body A
+      b: undefined, //connector id, in body B
+      ratio: undefined,
+      approach: false //move bodyB towards bodyA to match connectors
+    });
+    this.notifyUndefined(['a', 'b', 'bodyA', 'bodyB']);
+    if (this.runsPhysics()) {
+      this.bodyA = system.getObject('body', this.bodyA);
+      this.bodyB = system.getObject('body', this.bodyB);
+      this.a = this.bodyA.connector[this.a];
+      this.b = this.bodyB.connector[this.b];
+      if (this.approach) {
+        utils.approachConnectors(this.a, this.b, system.make, Ammo);
+      }
+    }
+    this.addPhysicsMethod('add', Constraint.prototype.methods.add);
+    this.addPhysicsMethod('remove', Constraint.prototype.methods.remove);
+  },
+  //for pendulum-like constraints
+  point: function (options, system) {
+    Constraint.prototype.types._abstract.call(this, options, system);
+    if (this.runsPhysics()) {
+      this.create = function () {
+        this.ammo = new Ammo.btPoint2PointConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
+        );
+      };
+    }
+  },
+  //...ex: for motorized wheels
+  motor: function (options, system) {
+    this.include(options, {
+      maxBinary: 1,
+      maxVelocity: 0.5
+    });
+    Constraint.prototype.types.hinge.call(this, options, system);
+    this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
+    this.addPhysicsMethod('disable',Constraint.prototype.methods.disable);
+  },
+  //like robotic servo motors, based on the hinge constraint
+  servo: function (options, system) {
+    this.include(options, {
+      angle: 0,
+      lowerLimit: 0,
+      upperLimit: Math.PI,
+      maxBinary: 1,
+      maxVelocity: 0.5
+    });
+    Constraint.prototype.types.hinge.call(this, options, system);
+    this.afterCreate = function () {
+      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
+    };
+    this.beforeStep = function () {
+      if (this.runsPhysics()) {
+        var c = this;
+        //FIXME
+        //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
+        //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
+        //var dt = Math.abs(c.ammo.getHingeAngle() - c.angle) / c.maxVelocity;
+        c.ammo.setMotorTarget(c.angle, 0.1);
+      }
+    };
+    this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
+    this.addPhysicsMethod('disable', Constraint.prototype.methods.disable);
+    this.addPhysicsMethod('setAngle', Constraint.prototype.methods.setAngle);
+  },
+  //for free wheels, doors
+  hinge: function (options, system) {
+    this.include(options, {
+      lowerLimit: 1,
+      upperLimit: -1
+    });
+    Constraint.prototype.types._abstract.call(this, options, system);
+    if (this.runsPhysics()) {
+      this.create = function () {
+        this.ammo = new Ammo.btHingeConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
+          this.a.up.ammo, this.b.up.ammo
+        );
+      };
+    }
+  },
+  gear: function (options, system) {
+    Constraint.prototype.types._abstract.call(this, options, system);
+    this.notifyUndefined(['ratio']);
+    if (this.runsPhysics()) {
+      this.create = function () {
+        this.ammo = new Ammo.btGearConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
+        );
+      };
+    }
+  },
+  //for linear motors, its based on the slider constraint
+  //the position along the up direction is changed with a motor
+  //has no angular rotation
+  linear: function (options, system) {
+    this.include(options, {
+      position: 0,
+      lowerLimit: 0,
+      upperLimit: 1,
+      maxForce: 1,
+      maxVelocity: 1
+    });
+    Constraint.prototype.types.slider.call(this, options, system);
+    this.create = function () {
+      this.ammo = new Ammo.btSliderConstraint(
+        this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
+      );
+    };
+    this.afterCreate = function () {
+      var c = this;
+      c.ammo.setLowerAngLimit(0);
+      c.ammo.setUpperAngLimit(0);
+      c.ammo.setPoweredAngMotor(false);
+      c.ammo.setLowerLinLimit(c.lowerLimit);
+      c.ammo.setUpperLinLimit(c.upperLimit);
+      c.ammo.setMaxLinMotorForce(c.maxForce);
+    };
+    this.addPhysicsMethod('setPosition', method.constraint.setPosition);
+  },
+  //slider can move and rotate along the up direction
+  slider: function (options, system) {
+    this.include(options, {
+      lowerLinear: 0,
+      upperLinear: 1,
+      lowerAngular: 1,
+      upperAngular: 0
+    });
+    Constraint.prototype.types._abstract.call(this, options, system);
+    if (this.runsPhysics()) {
+      var transformA = new Ammo.btTransform();
+      transformA.setOrigin(this.a.base.ammo);
+
+      var yAxis = this.a.up.ammo;
+      var zAxis = this.a.front.ammo;
+      var xAxis = yAxis.cross(zAxis).normalize();
+
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      var basis = transformA.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        yAxis.x(), xAxis.x(), zAxis.x(),
+        yAxis.y(), xAxis.y(), zAxis.y(),
+        yAxis.z(), xAxis.z(), zAxis.z()
+      );
+      transformA.setBasis(basis);
+
+      var transformB = new Ammo.btTransform();
+      transformB.setOrigin(this.b.base.ammo);
+
+      yAxis = this.b.up.ammo;
+      zAxis = this.b.front.ammo;
+      xAxis = yAxis.cross(zAxis).normalize();
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      basis = transformB.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        yAxis.x(), xAxis.x(), zAxis.x(),
+        yAxis.y(), xAxis.y(), zAxis.y(),
+        yAxis.z(), xAxis.z(), zAxis.z()
+      );
+      transformB.setBasis(basis);
+
+      this.transformA = transformA;
+      this.transformB = transformB;
+
+      this.create = function () {
+        this.ammo = new Ammo.btSliderConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+        );
+      };
+      this.afterCreate = function () {
+        var c = this;
+        c.ammo.setLowerAngLimit(c.lowerAngular);
+        c.ammo.setUpperAngLimit(c.upperAngular);
+        c.ammo.setLowerLinLimit(c.lowerLinear);
+        c.ammo.setUpperLinLimit(c.upperLinear);
+        c.ammo.setPoweredAngMotor(false);
+        c.ammo.setPoweredLinMotor(false);
+      };
+    }
+  },
+  //fixed constraint have 0 degrees of freedom
+  fixed: function (options, system) {
+    Constraint.prototype.types._abstract.call(this, options, system);
+    if (this.runsPhysics()) {
+      var transformA = new Ammo.btTransform();
+      transformA.setOrigin(this.a.base.ammo);
+
+      var yAxis = this.a.up.ammo;
+      var zAxis = this.a.front.ammo;
+      var xAxis = yAxis.cross(zAxis).normalize();
+
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      var basis = transformA.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        yAxis.x(), xAxis.x(), zAxis.x(),
+        yAxis.y(), xAxis.y(), zAxis.y(),
+        yAxis.z(), xAxis.z(), zAxis.z()
+      );
+      transformA.setBasis(basis);
+
+      var transformB = new Ammo.btTransform();
+      transformB.setOrigin(this.b.base.ammo);
+
+      yAxis = this.b.up.ammo;
+      zAxis = this.b.front.ammo;
+      xAxis = yAxis.cross(zAxis).normalize();
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      basis = transformB.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        yAxis.x(), xAxis.x(), zAxis.x(),
+        yAxis.y(), xAxis.y(), zAxis.y(),
+        yAxis.z(), xAxis.z(), zAxis.z()
+      );
+      transformB.setBasis(basis);
+      this.create = function () {
+        this.ammo = new Ammo.btFixedConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
+        );
+      };
+    }
+  }
+};
+
+Constraint.prototype.methods = {
+  add: function () {
+    if (!this._added && this.runsPhysics()) {
+      this.create();
+      if (this.afterCreate) this.afterCreate();
+      this.system.getScene().ammo.addConstraint(this.ammo);
+      this._added = true;
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  },
+  remove: function () {
+    if (this._added && this.runsPhysics()) {
+      this.system.getScene().ammo.removeConstraint(this.ammo);
+      Ammo.destroy(this.ammo);
+      this._added = false;
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  },
+  //servos only
+  setAngle: function (angle) {
+    if (this.runsPhysics()) {
+      //angle is set in beforeStep
+      this.angle = angle;
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  },
+  //linear motors only
+  setPosition: function (position) {
+    if (this.runsPhysics()) {
+      //TODO do this the proper way, with target velocity. This is like forcing position and using brakes          this.position = position;
+      this.position = position;
+      this.ammo.setLowerLinLimit(position);
+      this.ammo.setUpperLinLimit(position);
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  },
+  enable: function (velocity, binary) {
+    if (this.runsPhysics()) {
+      this.ammo.enableAngularMotor(true, velocity, binary);
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  },
+  disable: function () {
+    if (this.runsPhysics()) {
+      this.ammo.enableAngularMotor(false, 0, 0);
+      this.bodyA.ammo.activate();
+      this.bodyB.ammo.activate();
+    }
+  }
+};
+
+extend(Constraint, Component);
+Component.prototype.maker.constraint = Constraint;
+function Scene(options, system) {
+  this.construct(options, system, 'basic');
+}
+
+Scene.prototype.types = {
+  basic: function (options, system) {
+    this.include(options, {
+      gravity: {y: -9.81}
+    });
+    this.scope = system.getScope();
+    if (this.runsWebGL()) {
+      this.three = new THREE.Scene();
+    }
+    if (this.runsPhysics()) {
+      this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+      this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
+      this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
+      this.btSequentialImpulseConstraintSolver = new Ammo.btSequentialImpulseConstraintSolver();
+      this.ammo = new Ammo.btDiscreteDynamicsWorld(
+        this.btCollisionDispatcher,
+        this.btDbvtBroadphase,
+        this.btSequentialImpulseConstraintSolver,
+        this.btDefaultCollisionConfiguration
+      );
+      this.ammo.setGravity(new Vector(this.gravity).ammo);
+    }
+  }
+};
+
+extend(Scene, Component);
+Component.prototype.maker.scene = Scene;
 /**
  * Created by nrox on 3/30/15.
  */
@@ -404,7 +933,13 @@ module.exports = {
   Vector: Vector,
   Quaternion: Quaternion,
   Settings: Settings,
-  Shape: Shape
+  Shape: Shape,
+  Material: Material,
+  Body: Body,
+  Connector: Connector,
+  Constraint: Constraint,
+  Light: Light,
+  Scene: Scene
 };
 
 
