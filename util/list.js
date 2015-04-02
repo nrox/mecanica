@@ -27,6 +27,7 @@ availablePaths = [
 "../lib/three.js",
 "../lib/underscore.js",
 "../src/body.js",
+"../src/camera.js",
 "../src/component.js",
 "../src/connector.js",
 "../src/constraint.js",

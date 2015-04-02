@@ -13,6 +13,9 @@ module.exports = {
   Connector: Connector,
   Constraint: Constraint,
   Light: Light,
-  Scene: Scene
+  Scene: Scene,
+  Camera: Camera,
+  Monitor: Monitor,
+  Renderer: Renderer
 };
 

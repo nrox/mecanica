@@ -16,6 +16,7 @@ module.exports = function (grunt) {
           'src/connector.js',
           'src/constraint.js',
           'src/scene.js',
+          'src/camera.js',
           'src/monitor.js',
           'src/renderer.js',
           'src/worker.js',

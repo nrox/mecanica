@@ -117,7 +117,7 @@ var test = {
     testUtils.checkValues(obj.options(), {
       mass: 1
     }, 'body options');
-    testUtils.checkKeys(obj, ['three','ammoTransform','ammo'], 'body three, ammo properties');
+    testUtils.checkKeys(obj, ['three', 'ammoTransform', 'ammo'], 'body three, ammo properties');
   },
   Connector: function () {
     var mecanica = require('../mecanica.js');
@@ -138,7 +138,42 @@ var test = {
     testUtils.checkValues(obj.base, {
       x: 1
     }, 'connector options');
-    testUtils.checkKeys(obj, ['body','base','up','front'], 'connector properties');
+    testUtils.checkKeys(obj, ['body', 'base', 'up', 'front'], 'connector properties');
+  },
+  Constraint: function () {
+    var mecanica = require('../mecanica.js');
+    var system = new mecanica.System();
+    system.make('body', {
+      id: 'a',
+      shape: {type: 'box'},
+      material: {color: 0x112233},
+      mass: 1,
+      connector: {
+        c: {up: {y: 1}, front: {z: 1}}
+      }
+    });
+    system.make('body', {
+      id: 'b',
+      shape: {type: 'box'},
+      material: {color: 0x112233},
+      mass: 1,
+      connector: {
+        c: {up: {y: 1}, front: {z: 1}}
+      }
+    });
+    var obj = new mecanica.Constraint({
+      connectorA: 'c',
+      connectorB: 'c',
+      bodyA: 'a',
+      bodyB: 'b'
+    }, system);
+    testUtils.checkValues(obj, {
+      type: 'point'
+    }, 'constraint default type');
+    testUtils.checkValues(obj.options(), {
+      connectorA: 'c', bodyB: 'b'
+    }, 'constraint default type');
+    testUtils.checkKeys(obj, ['add', 'remove', 'create'], 'constraint basic methods');
   }
 };
 

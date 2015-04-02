@@ -8,19 +8,19 @@ Constraint.prototype.types = {
     this.include(options, {
       bodyA: undefined, //bodyA id
       bodyB: undefined, //bodyB id
-      a: undefined, //connector id, in body A
-      b: undefined, //connector id, in body B
+      connectorA: undefined, //connector id, in body A
+      connectorB: undefined, //connector id, in body B
       ratio: undefined,
       approach: false //move bodyB towards bodyA to match connectors
     });
-    this.notifyUndefined(['a', 'b', 'bodyA', 'bodyB']);
+    this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
       this.bodyA = system.getObject('body', this.bodyA);
       this.bodyB = system.getObject('body', this.bodyB);
-      this.a = this.bodyA.connector[this.a];
-      this.b = this.bodyB.connector[this.b];
+      this.connectorA = this.bodyA.connector[this.connectorA];
+      this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.a, this.b, system.make, Ammo);
+        utils.approachConnectors(this.connectorA, this.connectorB, system.make, Ammo);
       }
     }
     this.addPhysicsMethod('add', Constraint.prototype.methods.add);
@@ -32,7 +32,7 @@ Constraint.prototype.types = {
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btPoint2PointConstraint(
-          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo
+          this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo
         );
       };
     }
@@ -84,8 +84,8 @@ Constraint.prototype.types = {
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
-          this.bodyA.ammo, this.bodyB.ammo, this.a.base.ammo, this.b.base.ammo,
-          this.a.up.ammo, this.b.up.ammo
+          this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
+          this.connectorA.up.ammo, this.connectorB.up.ammo
         );
       };
     }
@@ -96,7 +96,7 @@ Constraint.prototype.types = {
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btGearConstraint(
-          this.bodyA.ammo, this.bodyB.ammo, this.a.up.ammo, this.b.up.ammo, this.ratio
+          this.bodyA.ammo, this.bodyB.ammo, this.connectorA.up.ammo, this.connectorB.up.ammo, this.ratio
         );
       };
     }
@@ -127,7 +127,7 @@ Constraint.prototype.types = {
       c.ammo.setUpperLinLimit(c.upperLimit);
       c.ammo.setMaxLinMotorForce(c.maxForce);
     };
-    this.addPhysicsMethod('setPosition', method.constraint.setPosition);
+    this.addPhysicsMethod('setPosition', Constraint.prototype.methods.setPosition);
   },
   //slider can move and rotate along the up direction
   slider: function (options, system) {
@@ -142,8 +142,8 @@ Constraint.prototype.types = {
       var transformA = new Ammo.btTransform();
       transformA.setOrigin(this.a.base.ammo);
 
-      var yAxis = this.a.up.ammo;
-      var zAxis = this.a.front.ammo;
+      var yAxis = this.connectorA.up.ammo;
+      var zAxis = this.connectorA.front.ammo;
       var xAxis = yAxis.cross(zAxis).normalize();
 
       //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
@@ -159,8 +159,8 @@ Constraint.prototype.types = {
       var transformB = new Ammo.btTransform();
       transformB.setOrigin(this.b.base.ammo);
 
-      yAxis = this.b.up.ammo;
-      zAxis = this.b.front.ammo;
+      yAxis = this.connectorB.up.ammo;
+      zAxis = this.connectorB.front.ammo;
       xAxis = yAxis.cross(zAxis).normalize();
       //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
       basis = transformB.getBasis();
@@ -196,10 +196,10 @@ Constraint.prototype.types = {
     Constraint.prototype.types._abstract.call(this, options, system);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
-      transformA.setOrigin(this.a.base.ammo);
+      transformA.setOrigin(this.connectorA.base.ammo);
 
-      var yAxis = this.a.up.ammo;
-      var zAxis = this.a.front.ammo;
+      var yAxis = this.connectorA.up.ammo;
+      var zAxis = this.connectorA.front.ammo;
       var xAxis = yAxis.cross(zAxis).normalize();
 
       //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
@@ -213,10 +213,10 @@ Constraint.prototype.types = {
       transformA.setBasis(basis);
 
       var transformB = new Ammo.btTransform();
-      transformB.setOrigin(this.b.base.ammo);
+      transformB.setOrigin(this.connectorB.base.ammo);
 
-      yAxis = this.b.up.ammo;
-      zAxis = this.b.front.ammo;
+      yAxis = this.connectorB.up.ammo;
+      zAxis = this.connectorB.front.ammo;
       xAxis = yAxis.cross(zAxis).normalize();
       //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
       basis = transformB.getBasis();
