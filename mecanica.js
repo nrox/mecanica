@@ -39,11 +39,6 @@ Component.prototype.runsWebGL = function () {
   return RUNS_WEBGL;
 };
 
-Component.prototype.system = function () {
-  if (arguments[0]) this._parent = arguments[0];
-  return this._parent;
-};
-
 Component.prototype.include = function (options, defaults) {
   var target = this;
   options = _.extend(defaults, _.pick(options, _.keys(defaults), [
@@ -393,20 +388,20 @@ function Material(options, system) {
 }
 
 Material.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: system.getSettings().wireframe || false
+      wireframe: this.system.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
-  phong: function (options, system) {
+  phong: function (options) {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
       emissive: 0x000000, specular: 0x555555,
-      wireframe: system.getSettings().wireframe || false
+      wireframe: this.system.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
   }
@@ -421,10 +416,10 @@ function Light(options, system) {
 }
 
 Light.prototype.types = {
-  directional: function (options, system) {
+  directional: function (options) {
     this.include(options, {
       color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
-      lookAt: {}, castShadow: system.getSettings().castShadow,
+      lookAt: {}, castShadow: this.system.getSettings().castShadow,
       shadowDistance: 20
     });
     if (this.runsWebGL()) {
@@ -441,7 +436,7 @@ Light.prototype.types = {
         light.shadowCameraNear = 0.2 * this.shadowDistance;
         light.shadowCameraFar = 10 * this.shadowDistance;
         light.shadowBias = -0.0003;
-        light.shadowMapWidth = light.shadowMapHeight = system.getSettings().shadowMapSize;
+        light.shadowMapWidth = light.shadowMapHeight = this.system.getSettings().shadowMapSize;
         light.shadowDarkness = 0.35;
       }
       this.three = light;
@@ -456,29 +451,29 @@ function Body(options, system) {
 }
 
 Body.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       shape: undefined,
       material: undefined,
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
-      connector: {}, axisHelper: system.getSettings().axisHelper
+      connector: {}, axisHelper: this.system.getSettings().axisHelper
     });
     this.notifyUndefined(['shape','material']);
 
     var shape;
     var _this = this;
     if (typeof this.shape == 'string') { //get from objects with id
-      shape = system.getObject('shape', this.shape);
+      shape = this.system.getObject('shape', this.shape);
     } else { //make from options
-      shape = new Shape(this.shape, system);
+      shape = new Shape(this.shape, this.system);
     }
     this.shape = shape;
 
     var material;
     if (typeof this.material == 'string') { //get from objects with id
-      material = system.getObject('material', this.material);
+      material = this.system .getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, system);
+      material = new Material(this.material, this.system );
     }
     this.material = material;
 
@@ -501,7 +496,7 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, system);
+      new Connector(c, _this.system );
     });
   }
 };
@@ -531,7 +526,7 @@ function Connector(options, system){
 
 Connector.prototype.types = {
   //base and axis are specified in local coordinates
-  relative: function (options, system) {
+  relative: function (options) {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
@@ -539,7 +534,7 @@ Connector.prototype.types = {
       front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
     });
     this.notifyUndefined(['body', 'base', 'up', 'front']);
-    var body = options.bodyObject || system.getObject('body', this.body);
+    var body = options.bodyObject || this.system.getObject('body', this.body);
     if (body) {
       body.connector[this.id] = this;
       this.body = body;
@@ -548,7 +543,7 @@ Connector.prototype.types = {
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
-      var helper = system.getSettings().connectorHelper;
+      var helper = this.system.getSettings().connectorHelper;
       if (THREE && helper) {
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
@@ -583,7 +578,7 @@ function Constraint(options, system) {
 
 Constraint.prototype.types = {
   //super constructor
-  _abstract: function (options, system) {
+  _abstract: function (options) {
     this.include(options, {
       bodyA: undefined, //bodyA id
       bodyB: undefined, //bodyB id
@@ -594,20 +589,20 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = system.getObject('body', this.bodyA);
-      this.bodyB = system.getObject('body', this.bodyB);
+      this.bodyA = this.system.getObject('body', this.bodyA);
+      this.bodyB = this.system.getObject('body', this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, system.make, Ammo);
+        utils.approachConnectors(this.connectorA, this.connectorB, this.system.make, Ammo);
       }
     }
     this.addPhysicsMethod('add', Constraint.prototype.methods.add);
     this.addPhysicsMethod('remove', Constraint.prototype.methods.remove);
   },
   //for pendulum-like constraints
-  point: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  point: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btPoint2PointConstraint(
@@ -617,17 +612,17 @@ Constraint.prototype.types = {
     }
   },
   //...ex: for motorized wheels
-  motor: function (options, system) {
+  motor: function (options) {
     this.include(options, {
       maxBinary: 1,
       maxVelocity: 0.5
     });
-    Constraint.prototype.types.hinge.call(this, options, system);
+    Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
     this.addPhysicsMethod('disable',Constraint.prototype.methods.disable);
   },
   //like robotic servo motors, based on the hinge constraint
-  servo: function (options, system) {
+  servo: function (options) {
     this.include(options, {
       angle: 0,
       lowerLimit: 0,
@@ -635,7 +630,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
-    Constraint.prototype.types.hinge.call(this, options, system);
+    Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
       this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
     };
@@ -654,12 +649,12 @@ Constraint.prototype.types = {
     this.addPhysicsMethod('setAngle', Constraint.prototype.methods.setAngle);
   },
   //for free wheels, doors
-  hinge: function (options, system) {
+  hinge: function (options) {
     this.include(options, {
       lowerLimit: 1,
       upperLimit: -1
     });
-    Constraint.prototype.types._abstract.call(this, options, system);
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
@@ -669,8 +664,8 @@ Constraint.prototype.types = {
       };
     }
   },
-  gear: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  gear: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     this.notifyUndefined(['ratio']);
     if (this.runsPhysics()) {
       this.create = function () {
@@ -683,7 +678,7 @@ Constraint.prototype.types = {
   //for linear motors, its based on the slider constraint
   //the position along the up direction is changed with a motor
   //has no angular rotation
-  linear: function (options, system) {
+  linear: function (options) {
     this.include(options, {
       position: 0,
       lowerLimit: 0,
@@ -691,7 +686,7 @@ Constraint.prototype.types = {
       maxForce: 1,
       maxVelocity: 1
     });
-    Constraint.prototype.types.slider.call(this, options, system);
+    Constraint.prototype.types.slider.call(this, options);
     this.create = function () {
       this.ammo = new Ammo.btSliderConstraint(
         this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
@@ -709,14 +704,14 @@ Constraint.prototype.types = {
     this.addPhysicsMethod('setPosition', Constraint.prototype.methods.setPosition);
   },
   //slider can move and rotate along the up direction
-  slider: function (options, system) {
+  slider: function (options) {
     this.include(options, {
       lowerLinear: 0,
       upperLinear: 1,
       lowerAngular: 1,
       upperAngular: 0
     });
-    Constraint.prototype.types._abstract.call(this, options, system);
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
       transformA.setOrigin(this.a.base.ammo);
@@ -771,8 +766,8 @@ Constraint.prototype.types = {
     }
   },
   //fixed constraint have 0 degrees of freedom
-  fixed: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  fixed: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
       transformA.setOrigin(this.connectorA.base.ammo);
@@ -909,7 +904,7 @@ function Camera(options, system){
 }
 
 Camera.prototype.types = {
-  perspective: function (options, system) {
+  perspective: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
@@ -923,7 +918,7 @@ Camera.prototype.types = {
     }
   },
   //follow a body
-  tracker: function (options, system) {
+  tracker: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
@@ -933,14 +928,14 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    this.lookAt = system.getObject('body', this.lookAt);
+    this.lookAt = this.system.getObject('body', this.lookAt);
     if (this.runsWebGL()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
   },
   //follow a body
-  satellite: function (options, system) {
+  satellite: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
@@ -951,7 +946,7 @@ Camera.prototype.types = {
     this.notifyUndefined(['lookAt']);
     this.axis =new Vector(this.axis);
     if (typeof(this.lookAt) == 'string') {
-      this.lookAt = system.getObject('body', this.lookAt);
+      this.lookAt = this.system.getObject('body', this.lookAt);
     } else {
       this.lookAt = new Vector(this.lookAt);
     }

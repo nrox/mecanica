@@ -3,20 +3,20 @@ function Material(options, system) {
 }
 
 Material.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: system.getSettings().wireframe || false
+      wireframe: this.system.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
-  phong: function (options, system) {
+  phong: function (options) {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
       emissive: 0x000000, specular: 0x555555,
-      wireframe: system.getSettings().wireframe || false
+      wireframe: this.system.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
   }

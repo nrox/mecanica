@@ -4,7 +4,7 @@ function Constraint(options, system) {
 
 Constraint.prototype.types = {
   //super constructor
-  _abstract: function (options, system) {
+  _abstract: function (options) {
     this.include(options, {
       bodyA: undefined, //bodyA id
       bodyB: undefined, //bodyB id
@@ -15,20 +15,20 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = system.getObject('body', this.bodyA);
-      this.bodyB = system.getObject('body', this.bodyB);
+      this.bodyA = this.system.getObject('body', this.bodyA);
+      this.bodyB = this.system.getObject('body', this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, system.make, Ammo);
+        utils.approachConnectors(this.connectorA, this.connectorB, this.system.make, Ammo);
       }
     }
     this.addPhysicsMethod('add', Constraint.prototype.methods.add);
     this.addPhysicsMethod('remove', Constraint.prototype.methods.remove);
   },
   //for pendulum-like constraints
-  point: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  point: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btPoint2PointConstraint(
@@ -38,17 +38,17 @@ Constraint.prototype.types = {
     }
   },
   //...ex: for motorized wheels
-  motor: function (options, system) {
+  motor: function (options) {
     this.include(options, {
       maxBinary: 1,
       maxVelocity: 0.5
     });
-    Constraint.prototype.types.hinge.call(this, options, system);
+    Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
     this.addPhysicsMethod('disable',Constraint.prototype.methods.disable);
   },
   //like robotic servo motors, based on the hinge constraint
-  servo: function (options, system) {
+  servo: function (options) {
     this.include(options, {
       angle: 0,
       lowerLimit: 0,
@@ -56,7 +56,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
-    Constraint.prototype.types.hinge.call(this, options, system);
+    Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
       this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
     };
@@ -75,12 +75,12 @@ Constraint.prototype.types = {
     this.addPhysicsMethod('setAngle', Constraint.prototype.methods.setAngle);
   },
   //for free wheels, doors
-  hinge: function (options, system) {
+  hinge: function (options) {
     this.include(options, {
       lowerLimit: 1,
       upperLimit: -1
     });
-    Constraint.prototype.types._abstract.call(this, options, system);
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
@@ -90,8 +90,8 @@ Constraint.prototype.types = {
       };
     }
   },
-  gear: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  gear: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     this.notifyUndefined(['ratio']);
     if (this.runsPhysics()) {
       this.create = function () {
@@ -104,7 +104,7 @@ Constraint.prototype.types = {
   //for linear motors, its based on the slider constraint
   //the position along the up direction is changed with a motor
   //has no angular rotation
-  linear: function (options, system) {
+  linear: function (options) {
     this.include(options, {
       position: 0,
       lowerLimit: 0,
@@ -112,7 +112,7 @@ Constraint.prototype.types = {
       maxForce: 1,
       maxVelocity: 1
     });
-    Constraint.prototype.types.slider.call(this, options, system);
+    Constraint.prototype.types.slider.call(this, options);
     this.create = function () {
       this.ammo = new Ammo.btSliderConstraint(
         this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
@@ -130,14 +130,14 @@ Constraint.prototype.types = {
     this.addPhysicsMethod('setPosition', Constraint.prototype.methods.setPosition);
   },
   //slider can move and rotate along the up direction
-  slider: function (options, system) {
+  slider: function (options) {
     this.include(options, {
       lowerLinear: 0,
       upperLinear: 1,
       lowerAngular: 1,
       upperAngular: 0
     });
-    Constraint.prototype.types._abstract.call(this, options, system);
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
       transformA.setOrigin(this.a.base.ammo);
@@ -192,8 +192,8 @@ Constraint.prototype.types = {
     }
   },
   //fixed constraint have 0 degrees of freedom
-  fixed: function (options, system) {
-    Constraint.prototype.types._abstract.call(this, options, system);
+  fixed: function (options) {
+    Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
       transformA.setOrigin(this.connectorA.base.ammo);

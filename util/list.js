@@ -58,6 +58,7 @@ availablePaths = [
 "../tests/test-require.js",
 "../tests/test-shapes.js",
 "../tests/test-transform.js",
+"../tests/test-usage.js",
 "../tests/test-worker.js",
 "../util/controller.js",
 "../util/json-ui.js",

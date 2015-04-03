@@ -38,11 +38,6 @@ Component.prototype.runsWebGL = function () {
   return RUNS_WEBGL;
 };
 
-Component.prototype.system = function () {
-  if (arguments[0]) this._parent = arguments[0];
-  return this._parent;
-};
-
 Component.prototype.include = function (options, defaults) {
   var target = this;
   options = _.extend(defaults, _.pick(options, _.keys(defaults), [

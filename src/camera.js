@@ -3,7 +3,7 @@ function Camera(options, system){
 }
 
 Camera.prototype.types = {
-  perspective: function (options, system) {
+  perspective: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
@@ -17,7 +17,7 @@ Camera.prototype.types = {
     }
   },
   //follow a body
-  tracker: function (options, system) {
+  tracker: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
@@ -27,14 +27,14 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    this.lookAt = system.getObject('body', this.lookAt);
+    this.lookAt = this.system.getObject('body', this.lookAt);
     if (this.runsWebGL()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
   },
   //follow a body
-  satellite: function (options, system) {
+  satellite: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
       axis: {x: 1, y: 0.2, z: 0.3}, //preferred axis of movement
@@ -45,7 +45,7 @@ Camera.prototype.types = {
     this.notifyUndefined(['lookAt']);
     this.axis =new Vector(this.axis);
     if (typeof(this.lookAt) == 'string') {
-      this.lookAt = system.getObject('body', this.lookAt);
+      this.lookAt = this.system.getObject('body', this.lookAt);
     } else {
       this.lookAt = new Vector(this.lookAt);
     }

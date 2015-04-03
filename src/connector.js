@@ -4,7 +4,7 @@ function Connector(options, system){
 
 Connector.prototype.types = {
   //base and axis are specified in local coordinates
-  relative: function (options, system) {
+  relative: function (options) {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
@@ -12,7 +12,7 @@ Connector.prototype.types = {
       front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
     });
     this.notifyUndefined(['body', 'base', 'up', 'front']);
-    var body = options.bodyObject || system.getObject('body', this.body);
+    var body = options.bodyObject || this.system.getObject('body', this.body);
     if (body) {
       body.connector[this.id] = this;
       this.body = body;
@@ -21,7 +21,7 @@ Connector.prototype.types = {
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
-      var helper = system.getSettings().connectorHelper;
+      var helper = this.system.getSettings().connectorHelper;
       if (THREE && helper) {
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({

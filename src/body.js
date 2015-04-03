@@ -3,29 +3,29 @@ function Body(options, system) {
 }
 
 Body.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       shape: undefined,
       material: undefined,
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
-      connector: {}, axisHelper: system.getSettings().axisHelper
+      connector: {}, axisHelper: this.system.getSettings().axisHelper
     });
     this.notifyUndefined(['shape','material']);
 
     var shape;
     var _this = this;
     if (typeof this.shape == 'string') { //get from objects with id
-      shape = system.getObject('shape', this.shape);
+      shape = this.system.getObject('shape', this.shape);
     } else { //make from options
-      shape = new Shape(this.shape, system);
+      shape = new Shape(this.shape, this.system);
     }
     this.shape = shape;
 
     var material;
     if (typeof this.material == 'string') { //get from objects with id
-      material = system.getObject('material', this.material);
+      material = this.system .getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, system);
+      material = new Material(this.material, this.system );
     }
     this.material = material;
 
@@ -48,7 +48,7 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, system);
+      new Connector(c, _this.system );
     });
   }
 };
