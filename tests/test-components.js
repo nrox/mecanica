@@ -18,16 +18,31 @@ var test = {
   },
   Mecanica: function () {
     var mecanica = require('../mecanica.js');
-    var world = new mecanica.Mecanica({worker: false});
+    var world = new mecanica.Mecanica({
+      simSpeed: 5
+    });
+    console.log(world.options());
     testUtils.checkValues(world.options(), {
-      worker: false, server: false, render: true
+      simSpeed: 5
     }, 'Mecanica instance options');
     testUtils.checkKeys(world, [
-      'destroy', 'include', 'options'
-    ], 'Mecanica instance methods');
+      'import'
+    ], 'own methods');
     testUtils.checkKeys(world, [
-      'worker', 'server', 'render'
-    ], 'Mecanica instance assigned options');
+      'getSettings', 'make'
+    ], 'inherited methods from System');
+    testUtils.checkKeys(world, [
+      'renderFrequency', 'axisHelper'
+    ], 'from settings');
+  },
+  System: function () {
+    var mecanica = require('../mecanica.js');
+    var obj = new mecanica.System({}, new mecanica.Mecanica());
+    testUtils.checkKeys(obj, [ 'objects' ], 'System has objects property');
+    testUtils.checkKeys(obj.objects, ['system', 'shape', 'body', 'constraint'], 'System: objects have their slots defined');
+    testUtils.checkKeys(obj, [
+      'include', 'options', 'make', 'getObject', 'getSettings'
+    ], 'System instance methods');
   },
   Vector: function () {
     var mecanica = require('../mecanica.js');
@@ -69,15 +84,6 @@ var test = {
     ], 'Settings instance assigned options');
     testUtils.logKeys(obj, 'Settings instance keys');
   },
-  System: function () {
-    var mecanica = require('../mecanica.js');
-    var obj = new mecanica.System();
-    testUtils.checkKeys(obj, [ 'objects' ], 'System has objects property');
-    testUtils.checkKeys(obj.objects, ['system', 'shape', 'body', 'constraint'], 'System: objects have their slots defined');
-    testUtils.checkKeys(obj, [
-      'include', 'options', 'make', 'getObject', 'getSettings'
-    ], 'System instance methods');
-  },
   Shape: function () {
     var mecanica = require('../mecanica.js');
     var generic = {
@@ -97,8 +103,7 @@ var test = {
       type: 'basic',
       color: 0x223344
     };
-    var system = new mecanica.System();
-    var obj = new mecanica.Material(options, system);
+    var obj = new mecanica.Material(options,  new mecanica.Mecanica());
     testUtils.checkValues(obj.options(), {
       color: 0x223344
     }, 'material options');
@@ -111,8 +116,7 @@ var test = {
       material: {color: 0x112233},
       mass: 1
     };
-    var system = new mecanica.System();
-    var obj = new mecanica.Body(options, system);
+    var obj = new mecanica.Body(options,  new mecanica.Mecanica());
     obj.updateMotionState();
     testUtils.checkValues(obj.options(), {
       mass: 1
@@ -121,7 +125,7 @@ var test = {
   },
   Connector: function () {
     var mecanica = require('../mecanica.js');
-    var system = new mecanica.System();
+    var system =  new mecanica.Mecanica();
     var body = new mecanica.Body({
       shape: {type: 'box'},
       material: {color: 0x112233},
@@ -142,7 +146,7 @@ var test = {
   },
   Constraint: function () {
     var mecanica = require('../mecanica.js');
-    var system = new mecanica.System();
+    var system = new mecanica.Mecanica();
     system.make('body', {
       id: 'a',
       shape: {type: 'box'},

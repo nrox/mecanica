@@ -15,10 +15,10 @@ var utils = require('util/utils.js');
 
 var Ammo, THREE, jQuery;
 
-if (RUNS_PHYSICS){
+if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
-if (RUNS_WEBGL){
+if (RUNS_WEBGL) {
   THREE = require('lib/three.js');
   jQuery = require('lib/jquery.js');
 }
@@ -41,7 +41,7 @@ Component.prototype.runsWebGL = function () {
 
 Component.prototype.include = function (options, defaults) {
   var target = this;
-  options = _.extend(defaults, _.pick(options, _.keys(defaults), [
+  options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
     'id', 'group', 'type', 'comment'
   ]));
   _.extend(target, options);
@@ -90,7 +90,8 @@ Component.prototype.nextId = (function () {
   };
 })();
 
-Component.prototype.construct = function(options, system, defaultType){
+Component.prototype.construct = function (options, system, defaultType) {
+  if (!options) options = {};
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
   this.system = system;
@@ -116,19 +117,6 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
   }
 };
 
-function Mecanica(options) {
-  this.include(options, {
-    worker: false, //use web worker for simulations
-    server: false,//runs simulation in ndoe.js server side
-    render: true //render using webgl
-  });
-}
-
-Mecanica.prototype.destroy = function () {
-
-};
-
-extend(Mecanica, Component);
 
 function Settings(options) {
   this.include(options, {
@@ -154,22 +142,35 @@ Component.prototype.maker.settings = Settings;
  *
  */
 
-function System(options) {
-  this.include(options, {});
-  this.objects = {
-    settings: {}, //preferences
-    scene: {}, //three scene + ammo world
-    system: {}, //high level structure of objects, identified by keys
-    shape: {}, //sphere, box, cylinder, cone ...
-    material: {}, //basic, phong, lambert ? ...
-    body: {}, //shape + mesh
-    connector: {}, //this should not be here! it should be accessed and destroyed within the body
-    constraint: {}, //point, slider, hinge ...
-    light: {},
-    monitor: {}, //set of camera + renderer
-    method: {} //methods available to the system
-  };
+function System(options, system) {
+  this.construct(options, system, 'basic');
 }
+
+System.prototype.types = {
+  //base and axis are specified in local coordinates
+  basic: function (options) {
+    this.include(options, {});
+    this.objects = {
+      settings: {}, //preferences
+      scene: {}, //three scene + ammo world
+      system: {}, //high level structure of objects, identified by keys
+      shape: {}, //sphere, box, cylinder, cone ...
+      material: {}, //basic, phong, lambert ? ...
+      body: {}, //shape + mesh
+      connector: {}, //this should not be here! it should be accessed and destroyed within the body
+      constraint: {}, //point, slider, hinge ...
+      light: {},
+      monitor: {}, //set of camera + renderer
+      method: {} //methods available to the system
+    };
+  },
+  mecanica: function (options) {
+    var settings = new Settings(options);
+    System.prototype.types.basic.call(this);
+    this.objects.settings.use = settings.options();
+    this.include({}, settings.options());
+  }
+};
 
 /**
  * arguments for this function are keys leading to the deep nested element in object
@@ -258,9 +259,72 @@ System.prototype.getScene = function () {
   //FIXME
   return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
 };
+
+System.prototype.loadJSON = function (json) {
+  var _this = this;
+  _.each(_this.objects, function (groupObject, groupName) {
+    groupObject = json[groupName];
+    _.each(groupObject, function (objectOptions, objectId) {
+      objectOptions.id = objectId;
+      _this.make(groupName, objectOptions);
+    });
+  });
+
+  var settings = this.getSettings();
+  var scene = this.getScene();
+  if (settings.axisHelper) {
+    if (this.runsWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
+  }
+
+  loadSystem(this.objects);
+
+  function loadSystem(objs) {
+    _.each(objs.system, loadSystem);
+    _.each(objs.body, function (body) {
+      if (!body._added && (body._added = true)) {
+        body.updateMotionState();
+        if (_this.runsWebGL()) scene.three.add(body.three);
+        if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
+      }
+    });
+    _.each(objs.constraint, function (cons) {
+      cons.add();
+    });
+    if (_this.runsWebGL()) {
+      _.each(objs.light, function (light) {
+        if (!light._added && (light._added = true)) {
+          scene.three.add(light.three);
+        }
+      });
+    }
+  }
+};
+
 extend(System, Component);
 Component.prototype.maker.system = System;
 
+
+function Mecanica(options) {
+  this.construct(options, this, 'mecanica');
+  this.make('scene', {});
+}
+
+Mecanica.prototype.destroy = function () {
+
+};
+
+Mecanica.prototype.import = function (url, id) {
+  console.log(url);
+  var json = require(url);
+  console.log(json);
+  var sys = new System({
+    id: id,
+    type: 'basic'
+  }, this);
+  sys.loadJSON(json);
+};
+
+extend(Mecanica, System);
 
 
 function Vector(options) {
@@ -877,7 +941,6 @@ Scene.prototype.types = {
     this.include(options, {
       gravity: {y: -9.81}
     });
-    this.scope = system.getScope();
     if (this.runsWebGL()) {
       this.three = new THREE.Scene();
     }

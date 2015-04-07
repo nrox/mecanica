@@ -22,7 +22,7 @@ module.exports = {
   },
   constraint: {
     cons: {
-      a: 'c1', b: 'c2', bodyA: 'id5', bodyB: 'id6'
+      connectorA: 'c1', connectorB: 'c2', bodyA: 'id5', bodyB: 'id6'
     }
   },
   scene: {

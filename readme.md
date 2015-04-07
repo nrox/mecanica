@@ -52,50 +52,43 @@ Alpha
 
 ###Initialization
 
-    var world = new Mecanica.World({
-        worker: true, //use web worker
-        server: false, //run simulation in server side
-        browser: true //render objects with three.js scene and webgl canvas
-    });
-
-    //several ways to import objects
-    world.importLocal('scenario.js');
-    world.importURL('http://robots.com/hexapode.js');
-    world.importFromRemoteDatabase({});
-    world.importObject({});
+    var mec = new Mecanica.mec({});
+    
+    //import a system
+    mec.import('ware/basic2.js', 'basic2');
 
     //create object from json to three.js or ammo.js
-    world.build();
+    mec.build();
 
     //activate simulation and/or rendering
-    world.startSimulation({});
-    world.startRendering({});
+    mec.startSimulation({});
+    mec.startRendering({});
 
 ###Control
 
-    world.pauseSimulation();
-    world.pauseRendering();
-    world.continueSimulation();
-    world.continueRendering();
+    mec.pauseSimulation();
+    mec.pauseRendering();
+    mec.continueSimulation();
+    mec.continueRendering();
 
-    world.setSpeed(speed);
+    mec.setSpeed(speed);
 
 ###Insertion, removal
 
-    world.insert({...});
-    world.remove({});
+    mec.insert({...});
+    mec.remove({});
 
 ###Saving
 
     #in object form
-    var json = world.toJSON({});
+    var json = mec.toJSON({});
 
     #to some database
-    world.saveToRemoteDatabase({});
+    mec.saveToRemoteDatabase({});
 
 ###Finishing
 
-    world.destroy();
+    mec.destroy();
 
 ##Defining objects
 
@@ -131,7 +124,7 @@ In a .js file, or json object.
     //if not, it will be added in the current, top level system,
     // overriding bodies, materials and shapes with colliding ids
 
-    world.import(json, systemID);//or world.require(.js);
+    mec.import(json, systemID);//or mec.require(.js);
 
 ###Lights, camera
 
@@ -147,10 +140,10 @@ In a .js file, or json object.
       }
     };
 
-    world.import(json);//or world.require(.js);
-    world.useScene('s1'); //just 1 scene
-    world.useMonitor('s1'); //just 1 monitor at each time, previous id disabled
-    world.useLight('l1'); //several lights possible
+    mec.import(json);//or mec.require(.js);
+    mec.useScene('s1'); //just 1 scene
+    mec.useMonitor('s1'); //just 1 monitor at each time, previous id disabled
+    mec.useLight('l1'); //several lights possible
 
 ###Settings
 
@@ -167,9 +160,9 @@ In a .js file, or json object.
       }
     };
 
-    //applying to the world
-    world.import(json); //or world.require(.js);
-    world.useSettings('debug'); //override current settings with the new ones
+    //applying to the mec
+    mec.import(json); //or mec.require(.js);
+    mec.useSettings('debug'); //override current settings with the new ones
 
 
 #TODO

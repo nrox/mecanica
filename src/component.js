@@ -14,10 +14,10 @@ var utils = require('util/utils.js');
 
 var Ammo, THREE, jQuery;
 
-if (RUNS_PHYSICS){
+if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
-if (RUNS_WEBGL){
+if (RUNS_WEBGL) {
   THREE = require('lib/three.js');
   jQuery = require('lib/jquery.js');
 }
@@ -40,7 +40,7 @@ Component.prototype.runsWebGL = function () {
 
 Component.prototype.include = function (options, defaults) {
   var target = this;
-  options = _.extend(defaults, _.pick(options, _.keys(defaults), [
+  options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
     'id', 'group', 'type', 'comment'
   ]));
   _.extend(target, options);
@@ -89,7 +89,8 @@ Component.prototype.nextId = (function () {
   };
 })();
 
-Component.prototype.construct = function(options, system, defaultType){
+Component.prototype.construct = function (options, system, defaultType) {
+  if (!options) options = {};
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
   this.system = system;
@@ -115,16 +116,3 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
   }
 };
 
-function Mecanica(options) {
-  this.include(options, {
-    worker: false, //use web worker for simulations
-    server: false,//runs simulation in ndoe.js server side
-    render: true //render using webgl
-  });
-}
-
-Mecanica.prototype.destroy = function () {
-
-};
-
-extend(Mecanica, Component);

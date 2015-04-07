@@ -8,8 +8,16 @@ function clearObjects() {
 }
 
 var test = {
-  'Create world': function () {
-
+  'mec = new Mecanica()': function () {
+    var me = new (require('../mecanica.js').Mecanica)();
+    //console.log(me);
+    testUtils.checkKeys(me, [
+      'import', 'destroy', 'make'
+    ], 'methods');
+  },
+  'mec.import(url)': function () {
+    var me = new (require('../mecanica.js').Mecanica)();
+    me.import('../ware/basic2.js');
   }
 };
 

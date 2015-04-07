@@ -7,7 +7,6 @@ Scene.prototype.types = {
     this.include(options, {
       gravity: {y: -9.81}
     });
-    this.scope = system.getScope();
     if (this.runsWebGL()) {
       this.three = new THREE.Scene();
     }
