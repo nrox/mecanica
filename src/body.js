@@ -8,24 +8,24 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
-      connector: {}, axisHelper: this.system.getSettings().axisHelper
+      connector: {}, axisHelper: this.getSettings().axisHelper
     });
     this.notifyUndefined(['shape','material']);
 
     var shape;
     var _this = this;
     if (typeof this.shape == 'string') { //get from objects with id
-      shape = this.system.getObject('shape', this.shape);
+      shape = this.parentSystem.getObject('shape', this.shape);
     } else { //make from options
-      shape = new Shape(this.shape, this.system);
+      shape = new Shape(this.shape, this.parentSystem);
     }
     this.shape = shape;
 
     var material;
     if (typeof this.material == 'string') { //get from objects with id
-      material = this.system .getObject('material', this.material);
+      material = this.parentSystem.getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, this.system );
+      material = new Material(this.material, this.parentSystem );
     }
     this.material = material;
 
@@ -48,7 +48,7 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, _this.system );
+      new Connector(c, _this.parentSystem );
     });
   }
 };

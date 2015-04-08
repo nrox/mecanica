@@ -12,24 +12,14 @@ System.prototype.types = {
   basic: function (options) {
     this.include(options, {});
     this.objects = {
-      settings: {}, //preferences
-      scene: {}, //three scene + ammo world
-      system: {}, //high level structure of objects, identified by keys
       shape: {}, //sphere, box, cylinder, cone ...
       material: {}, //basic, phong, lambert ? ...
       body: {}, //shape + mesh
       connector: {}, //this should not be here! it should be accessed and destroyed within the body
+      system: {}, //high level structure of objects, identified by keys
       constraint: {}, //point, slider, hinge ...
-      light: {},
-      monitor: {}, //set of camera + renderer
       method: {} //methods available to the system
     };
-  },
-  mecanica: function (options) {
-    var settings = new Settings(options);
-    System.prototype.types.basic.call(this);
-    this.objects.settings.use = settings.options();
-    this.include({}, settings.options());
   }
 };
 
@@ -111,16 +101,6 @@ System.prototype.make = function () {
   return obj;
 };
 
-System.prototype.getSettings = function () {
-  //FIXME
-  return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
-};
-
-System.prototype.getScene = function () {
-  //FIXME
-  return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
-};
-
 System.prototype.loadJSON = function (json) {
   var _this = this;
   _.each(_this.objects, function (groupObject, groupName) {
@@ -131,11 +111,7 @@ System.prototype.loadJSON = function (json) {
     });
   });
 
-  var settings = this.getSettings();
   var scene = this.getScene();
-  if (settings.axisHelper) {
-    if (this.runsWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
-  }
 
   loadSystem(this.objects);
 
@@ -151,38 +127,9 @@ System.prototype.loadJSON = function (json) {
     _.each(objs.constraint, function (cons) {
       cons.add();
     });
-    if (_this.runsWebGL()) {
-      _.each(objs.light, function (light) {
-        if (!light._added && (light._added = true)) {
-          scene.three.add(light.three);
-        }
-      });
-    }
   }
 };
 
 extend(System, Component);
 Component.prototype.maker.system = System;
 
-
-function Mecanica(options) {
-  this.construct(options, this, 'mecanica');
-  this.make('scene', {});
-}
-
-Mecanica.prototype.destroy = function () {
-
-};
-
-Mecanica.prototype.import = function (url, id) {
-  console.log(url);
-  var json = require(url);
-  console.log(json);
-  var sys = new System({
-    id: id,
-    type: 'basic'
-  }, this);
-  sys.loadJSON(json);
-};
-
-extend(Mecanica, System);

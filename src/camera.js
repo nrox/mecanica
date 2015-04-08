@@ -27,7 +27,7 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    this.lookAt = this.system.getObject('body', this.lookAt);
+    this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     if (this.runsWebGL()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
@@ -45,7 +45,7 @@ Camera.prototype.types = {
     this.notifyUndefined(['lookAt']);
     this.axis =new Vector(this.axis);
     if (typeof(this.lookAt) == 'string') {
-      this.lookAt = this.system.getObject('body', this.lookAt);
+      this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     } else {
       this.lookAt = new Vector(this.lookAt);
     }

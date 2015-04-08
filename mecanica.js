@@ -94,7 +94,7 @@ Component.prototype.construct = function (options, system, defaultType) {
   if (!options) options = {};
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
-  this.system = system;
+  this.parentSystem = system;
   cons.call(this, options, system);
 };
 
@@ -104,6 +104,22 @@ Component.prototype.maker = {};
 
 Component.prototype.debug = function () {
   return false;
+};
+
+Component.prototype.getSettings = function () {
+  if (this.parentSystem == this) {
+    return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  } else if (this.parentSystem) {
+    return this.parentSystem.getSettings();
+  }
+};
+
+Component.prototype.getScene = function () {
+  if (this.parentSystem == this) {
+    return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+  } else if (this.parentSystem) {
+    return this.parentSystem.getScene();
+  }
 };
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
@@ -118,22 +134,35 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
 };
 
 
-function Settings(options) {
-  this.include(options, {
-    wireframe: false, //show wireframes
-    axisHelper: 0, //show an axis helper in the scene and all bodies
-    connectorHelper: 0,
-    canvasContainer: 'body', //container for renderer,
-    reuseCanvas: true,
-    webWorker: true, //use webworker if available
-    autoStart: true, //auto start simulation and rendering
-    simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-    renderFrequency: 30, //frequency to render canvas
-    simFrequency: 30, //frequency to run a simulation cycle,
-    castShadow: true, //light cast shadows,
-    shadowMapSize: 1024 //shadow map width and height
-  });
+function Settings(options, system) {
+  this.construct(options, system, 'local');
 }
+
+Settings.prototype.types = {
+  global: function(options){
+    this.include(options, {
+      wireframe: false, //show wireframes
+      axisHelper: 0, //show an axis helper in the scene and all bodies
+      connectorHelper: 0,
+      canvasContainer: 'body', //container for renderer,
+      reuseCanvas: true,
+      webWorker: true, //use webworker if available
+      autoStart: true, //auto start simulation and rendering
+      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
+      castShadow: true, //light cast shadows,
+      shadowMapSize: 1024 //shadow map width and height
+    });
+  },
+  local: function(options){
+    this.include(options, {
+      wireframe: false, //show wireframes
+      axisHelper: 0, //show an axis helper
+      connectorHelper: 0
+    });
+  }
+};
 
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
@@ -151,24 +180,14 @@ System.prototype.types = {
   basic: function (options) {
     this.include(options, {});
     this.objects = {
-      settings: {}, //preferences
-      scene: {}, //three scene + ammo world
-      system: {}, //high level structure of objects, identified by keys
       shape: {}, //sphere, box, cylinder, cone ...
       material: {}, //basic, phong, lambert ? ...
       body: {}, //shape + mesh
       connector: {}, //this should not be here! it should be accessed and destroyed within the body
+      system: {}, //high level structure of objects, identified by keys
       constraint: {}, //point, slider, hinge ...
-      light: {},
-      monitor: {}, //set of camera + renderer
       method: {} //methods available to the system
     };
-  },
-  mecanica: function (options) {
-    var settings = new Settings(options);
-    System.prototype.types.basic.call(this);
-    this.objects.settings.use = settings.options();
-    this.include({}, settings.options());
   }
 };
 
@@ -250,18 +269,68 @@ System.prototype.make = function () {
   return obj;
 };
 
-System.prototype.getSettings = function () {
-  //FIXME
-  return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
-};
-
-System.prototype.getScene = function () {
-  //FIXME
-  return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
-};
-
 System.prototype.loadJSON = function (json) {
   var _this = this;
+  _.each(_this.objects, function (groupObject, groupName) {
+    groupObject = json[groupName];
+    _.each(groupObject, function (objectOptions, objectId) {
+      objectOptions.id = objectId;
+      _this.make(groupName, objectOptions);
+    });
+  });
+
+  var scene = this.getScene();
+
+  loadSystem(this.objects);
+
+  function loadSystem(objs) {
+    _.each(objs.system, loadSystem);
+    _.each(objs.body, function (body) {
+      if (!body._added && (body._added = true)) {
+        body.updateMotionState();
+        if (_this.runsWebGL()) scene.three.add(body.three);
+        if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
+      }
+    });
+    _.each(objs.constraint, function (cons) {
+      cons.add();
+    });
+  }
+};
+
+extend(System, Component);
+Component.prototype.maker.system = System;
+
+
+function Mecanica(options) {
+  if (!options) options = {};
+  this.construct(options, this, 'main');
+}
+
+Mecanica.prototype.types = {
+  main: function (options) {
+    this.include(options, {
+      settings: { use: {type: 'global'} },
+      scene: { use: {} },
+      light: { use: {} },
+      system : {},
+      monitor: { use: {} }
+    });
+    this.objects = {
+      settings: {}, //preferences
+      scene: {}, //three scene + ammo world
+      system: {}, //high level structure of objects, identified by keys
+      light: {},
+      monitor: {} //set of camera + renderer
+    };
+    this.notifyUndefined(_.keys(this.objects));
+    this.init(this.options());
+  }
+};
+
+Mecanica.prototype.init = function (json) {
+  var _this = this;
+  //for each already key in objects, check if that type exists in json and build its contents
   _.each(_this.objects, function (groupObject, groupName) {
     groupObject = json[groupName];
     _.each(groupObject, function (objectOptions, objectId) {
@@ -300,23 +369,12 @@ System.prototype.loadJSON = function (json) {
   }
 };
 
-extend(System, Component);
-Component.prototype.maker.system = System;
-
-
-function Mecanica(options) {
-  this.construct(options, this, 'mecanica');
-  this.make('scene', {});
-}
-
 Mecanica.prototype.destroy = function () {
 
 };
 
 Mecanica.prototype.import = function (url, id) {
-  console.log(url);
   var json = require(url);
-  console.log(json);
   var sys = new System({
     id: id,
     type: 'basic'
@@ -397,15 +455,15 @@ Shape.prototype.types = {
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
     if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
-  compound: function (options, system) {
+  compound: function (options) {
     this.include(options, {
       parent: undefined, children: undefined
     });
     this.notifyUndefined(['parent']);
     if (typeof this.parent == 'string') {
-      this.parent = system.getObject('shape', this.parent);
+      this.parent = this.parentSystem.getObject('shape', this.parent);
     } else {
-      this.parent = new Shape(this.parent, system);
+      this.parent = new Shape(this.parent, this.parentSystem);
     }
     var _this = this;
     var compound;
@@ -418,10 +476,10 @@ Shape.prototype.types = {
     }
     _.each(this.children, function (childOptions) {
       childOptions._dontSave = true;
-      var child = new Shape(childOptions, system);
+      var child = new Shape(childOptions, _this.parentSystem);
       var pos = new Vector(childOptions.position || {});
       var qua = new Quaternion(childOptions.rotation || {});
-      if (this.runsPhysics()) {
+      if (_this.runsPhysics()) {
         var transChild = new Ammo.btTransform;
         transChild.setIdentity();
         transChild.setRotation(qua.ammo);
@@ -429,7 +487,7 @@ Shape.prototype.types = {
         compound.addChildShape(transChild, child.ammo);
         Ammo.destroy(transChild);
       }
-      if (this.runsWebGL()) {
+      if (_this.runsWebGL()) {
         var tc = new THREE.Matrix4;
         tc.makeRotationFromQuaternion(qua.three);
         tc.setPosition(pos.three);
@@ -456,7 +514,7 @@ Material.prototype.types = {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: this.system.getSettings().wireframe || false
+      wireframe: this.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
@@ -465,7 +523,7 @@ Material.prototype.types = {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
       emissive: 0x000000, specular: 0x555555,
-      wireframe: this.system.getSettings().wireframe || false
+      wireframe: this.getSettings().wireframe || false
     });
     if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
   }
@@ -483,7 +541,7 @@ Light.prototype.types = {
   directional: function (options) {
     this.include(options, {
       color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
-      lookAt: {}, castShadow: this.system.getSettings().castShadow,
+      lookAt: {}, castShadow: this.getSettings().castShadow,
       shadowDistance: 20
     });
     if (this.runsWebGL()) {
@@ -500,7 +558,7 @@ Light.prototype.types = {
         light.shadowCameraNear = 0.2 * this.shadowDistance;
         light.shadowCameraFar = 10 * this.shadowDistance;
         light.shadowBias = -0.0003;
-        light.shadowMapWidth = light.shadowMapHeight = this.system.getSettings().shadowMapSize;
+        light.shadowMapWidth = light.shadowMapHeight = this.getSettings().shadowMapSize;
         light.shadowDarkness = 0.35;
       }
       this.three = light;
@@ -520,24 +578,24 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
-      connector: {}, axisHelper: this.system.getSettings().axisHelper
+      connector: {}, axisHelper: this.getSettings().axisHelper
     });
     this.notifyUndefined(['shape','material']);
 
     var shape;
     var _this = this;
     if (typeof this.shape == 'string') { //get from objects with id
-      shape = this.system.getObject('shape', this.shape);
+      shape = this.parentSystem.getObject('shape', this.shape);
     } else { //make from options
-      shape = new Shape(this.shape, this.system);
+      shape = new Shape(this.shape, this.parentSystem);
     }
     this.shape = shape;
 
     var material;
     if (typeof this.material == 'string') { //get from objects with id
-      material = this.system .getObject('material', this.material);
+      material = this.parentSystem.getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, this.system );
+      material = new Material(this.material, this.parentSystem );
     }
     this.material = material;
 
@@ -560,7 +618,7 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, _this.system );
+      new Connector(c, _this.parentSystem );
     });
   }
 };
@@ -598,7 +656,7 @@ Connector.prototype.types = {
       front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
     });
     this.notifyUndefined(['body', 'base', 'up', 'front']);
-    var body = options.bodyObject || this.system.getObject('body', this.body);
+    var body = options.bodyObject || this.parentSystem.getObject('body', this.body);
     if (body) {
       body.connector[this.id] = this;
       this.body = body;
@@ -607,7 +665,7 @@ Connector.prototype.types = {
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
-      var helper = this.system.getSettings().connectorHelper;
+      var helper = this.getSettings().connectorHelper;
       if (THREE && helper) {
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
@@ -653,12 +711,12 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = this.system.getObject('body', this.bodyA);
-      this.bodyB = this.system.getObject('body', this.bodyB);
+      this.bodyA = this.parentSystem.getObject('body', this.bodyA);
+      this.bodyB = this.parentSystem.getObject('body', this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, this.system.make, Ammo);
+        utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
       }
     }
     this.addPhysicsMethod('add', Constraint.prototype.methods.add);
@@ -879,7 +937,7 @@ Constraint.prototype.methods = {
     if (!this._added && this.runsPhysics()) {
       this.create();
       if (this.afterCreate) this.afterCreate();
-      this.system.getScene().ammo.addConstraint(this.ammo);
+      this.getScene().ammo.addConstraint(this.ammo);
       this._added = true;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
@@ -887,7 +945,7 @@ Constraint.prototype.methods = {
   },
   remove: function () {
     if (this._added && this.runsPhysics()) {
-      this.system.getScene().ammo.removeConstraint(this.ammo);
+      this.getScene().ammo.removeConstraint(this.ammo);
       Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();
@@ -937,7 +995,7 @@ function Scene(options, system) {
 }
 
 Scene.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       gravity: {y: -9.81}
     });
@@ -991,7 +1049,7 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    this.lookAt = this.system.getObject('body', this.lookAt);
+    this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     if (this.runsWebGL()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
@@ -1009,7 +1067,7 @@ Camera.prototype.types = {
     this.notifyUndefined(['lookAt']);
     this.axis =new Vector(this.axis);
     if (typeof(this.lookAt) == 'string') {
-      this.lookAt = this.system.getObject('body', this.lookAt);
+      this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     } else {
       this.lookAt = new Vector(this.lookAt);
     }
@@ -1053,19 +1111,19 @@ function Renderer(options, system) {
 }
 
 Renderer.prototype.types = {
-  available: function (options, system) {
+  available: function (options) {
     try {
-      Renderer.prototype.types.webgl.call(this, options, system);
+      Renderer.prototype.types.webgl.call(this, options);
     } catch (e) {
-      Renderer.prototype.types.canvas.call(this, options, system);
+      Renderer.prototype.types.canvas.call(this, options);
     }
   },
-  _intro: function (options, system) {
+  _intro: function (options) {
     this.include(options, {
       width: 500, height: 500, container: undefined
     });
     if (jQuery && THREE) {
-      if (system.getSettings().reuseCanvas) {
+      if (this.getSettings().reuseCanvas) {
         this.canvas = jQuery('canvas[monitor=""]').first();
         if (this.canvas.length) {
           this.canvas.attr('monitor', this.id);
@@ -1077,27 +1135,27 @@ Renderer.prototype.types = {
       }
     }
   },
-  _outro: function (options, system) {
+  _outro: function () {
     if (jQuery && THREE) {
-      var settings = system.getSettings();
+      var settings = this.getSettings();
       jQuery(settings.canvasContainer).append(this.three.domElement);
       jQuery(this.three.domElement).attr('monitor', this.id);
       this.three.setSize(this.width, this.height);
     }
   },
-  webgl: function (options, system) {
-    Renderer.prototype.types._intro.call(this, options, system);
+  webgl: function (options) {
+    Renderer.prototype.types._intro.call(this, options);
     if (this.runsWebGL()) {
       this.three = new THREE.WebGLRenderer({canvas: this.canvas});
     }
-    Renderer.prototype.types._outro.call(this, options, system);
+    Renderer.prototype.types._outro.call(this);
   },
-  canvas: function (options, system) {
-    Renderer.prototype.types._intro.call(this, options, system);
+  canvas: function (options) {
+    Renderer.prototype.types._intro.call(this, options);
     if (this.runsWebGL()) {
       this.three = new THREE.CanvasRenderer({canvas: this.canvas});
     }
-    Renderer.prototype.types._outro.call(this, options, system);
+    Renderer.prototype.types._outro.call(this);
   }
 };
 

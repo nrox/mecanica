@@ -15,12 +15,12 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = this.system.getObject('body', this.bodyA);
-      this.bodyB = this.system.getObject('body', this.bodyB);
+      this.bodyA = this.parentSystem.getObject('body', this.bodyA);
+      this.bodyB = this.parentSystem.getObject('body', this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, this.system.make, Ammo);
+        utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
       }
     }
     this.addPhysicsMethod('add', Constraint.prototype.methods.add);
@@ -241,7 +241,7 @@ Constraint.prototype.methods = {
     if (!this._added && this.runsPhysics()) {
       this.create();
       if (this.afterCreate) this.afterCreate();
-      this.system.getScene().ammo.addConstraint(this.ammo);
+      this.getScene().ammo.addConstraint(this.ammo);
       this._added = true;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
@@ -249,7 +249,7 @@ Constraint.prototype.methods = {
   },
   remove: function () {
     if (this._added && this.runsPhysics()) {
-      this.system.getScene().ammo.removeConstraint(this.ammo);
+      this.getScene().ammo.removeConstraint(this.ammo);
       Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();

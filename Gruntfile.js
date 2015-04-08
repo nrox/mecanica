@@ -7,6 +7,7 @@ module.exports = function (grunt) {
           'src/component.js',
           'src/settings.js',
           'src/system.js',
+          'src/mechanic.js',
           'src/method.js',
           'src/vector.js',
           'src/shape.js',

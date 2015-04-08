@@ -93,7 +93,7 @@ Component.prototype.construct = function (options, system, defaultType) {
   if (!options) options = {};
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
-  this.system = system;
+  this.parentSystem = system;
   cons.call(this, options, system);
 };
 
@@ -103,6 +103,22 @@ Component.prototype.maker = {};
 
 Component.prototype.debug = function () {
   return false;
+};
+
+Component.prototype.getSettings = function () {
+  if (this.parentSystem == this) {
+    return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  } else if (this.parentSystem) {
+    return this.parentSystem.getSettings();
+  }
+};
+
+Component.prototype.getScene = function () {
+  if (this.parentSystem == this) {
+    return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+  } else if (this.parentSystem) {
+    return this.parentSystem.getScene();
+  }
 };
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {

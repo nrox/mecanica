@@ -3,7 +3,7 @@ function Scene(options, system) {
 }
 
 Scene.prototype.types = {
-  basic: function (options, system) {
+  basic: function (options) {
     this.include(options, {
       gravity: {y: -9.81}
     });

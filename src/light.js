@@ -6,7 +6,7 @@ Light.prototype.types = {
   directional: function (options) {
     this.include(options, {
       color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
-      lookAt: {}, castShadow: this.system.getSettings().castShadow,
+      lookAt: {}, castShadow: this.getSettings().castShadow,
       shadowDistance: 20
     });
     if (this.runsWebGL()) {
@@ -23,7 +23,7 @@ Light.prototype.types = {
         light.shadowCameraNear = 0.2 * this.shadowDistance;
         light.shadowCameraFar = 10 * this.shadowDistance;
         light.shadowBias = -0.0003;
-        light.shadowMapWidth = light.shadowMapHeight = this.system.getSettings().shadowMapSize;
+        light.shadowMapWidth = light.shadowMapHeight = this.getSettings().shadowMapSize;
         light.shadowDarkness = 0.35;
       }
       this.three = light;

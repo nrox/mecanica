@@ -36,15 +36,15 @@ Shape.prototype.types = {
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
     if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
-  compound: function (options, system) {
+  compound: function (options) {
     this.include(options, {
       parent: undefined, children: undefined
     });
     this.notifyUndefined(['parent']);
     if (typeof this.parent == 'string') {
-      this.parent = system.getObject('shape', this.parent);
+      this.parent = this.parentSystem.getObject('shape', this.parent);
     } else {
-      this.parent = new Shape(this.parent, system);
+      this.parent = new Shape(this.parent, this.parentSystem);
     }
     var _this = this;
     var compound;
@@ -57,10 +57,10 @@ Shape.prototype.types = {
     }
     _.each(this.children, function (childOptions) {
       childOptions._dontSave = true;
-      var child = new Shape(childOptions, system);
+      var child = new Shape(childOptions, _this.parentSystem);
       var pos = new Vector(childOptions.position || {});
       var qua = new Quaternion(childOptions.rotation || {});
-      if (this.runsPhysics()) {
+      if (_this.runsPhysics()) {
         var transChild = new Ammo.btTransform;
         transChild.setIdentity();
         transChild.setRotation(qua.ammo);
@@ -68,7 +68,7 @@ Shape.prototype.types = {
         compound.addChildShape(transChild, child.ammo);
         Ammo.destroy(transChild);
       }
-      if (this.runsWebGL()) {
+      if (_this.runsWebGL()) {
         var tc = new THREE.Matrix4;
         tc.makeRotationFromQuaternion(qua.three);
         tc.setPosition(pos.three);

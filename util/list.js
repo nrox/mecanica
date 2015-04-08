@@ -34,6 +34,7 @@ availablePaths = [
 "../src/exports.js",
 "../src/light.js",
 "../src/material.js",
+"../src/mechanic.js",
 "../src/method.js",
 "../src/monitor.js",
 "../src/renderer.js",

@@ -18,11 +18,8 @@ var test = {
   },
   Mecanica: function () {
     var mecanica = require('../mecanica.js');
-    var world = new mecanica.Mecanica({
-      simSpeed: 5
-    });
-    console.log(world.options());
-    testUtils.checkValues(world.options(), {
+    var world = new mecanica.Mecanica({settings: {use: {simSpeed: 5 }}});
+    testUtils.checkValues(world.options().settings.use, {
       simSpeed: 5
     }, 'Mecanica instance options');
     testUtils.checkKeys(world, [
@@ -31,9 +28,6 @@ var test = {
     testUtils.checkKeys(world, [
       'getSettings', 'make'
     ], 'inherited methods from System');
-    testUtils.checkKeys(world, [
-      'renderFrequency', 'axisHelper'
-    ], 'from settings');
   },
   System: function () {
     var mecanica = require('../mecanica.js');
@@ -41,7 +35,7 @@ var test = {
     testUtils.checkKeys(obj, [ 'objects' ], 'System has objects property');
     testUtils.checkKeys(obj.objects, ['system', 'shape', 'body', 'constraint'], 'System: objects have their slots defined');
     testUtils.checkKeys(obj, [
-      'include', 'options', 'make', 'getObject', 'getSettings'
+      'include', 'options', 'make', 'getObject'
     ], 'System instance methods');
   },
   Vector: function () {
@@ -72,7 +66,7 @@ var test = {
   },
   Settings: function () {
     var mecanica = require('../mecanica.js');
-    var obj = new mecanica.Settings({webWorker: true, renderFrequency: 15});
+    var obj = new mecanica.Settings({type: 'global', webWorker: true, renderFrequency: 15});
     testUtils.checkValues(obj.options(), {
       webWorker: true, renderFrequency: 15
     }, 'Settings instance default options');
@@ -103,7 +97,7 @@ var test = {
       type: 'basic',
       color: 0x223344
     };
-    var obj = new mecanica.Material(options,  new mecanica.Mecanica());
+    var obj = new mecanica.Material(options, new mecanica.Mecanica());
     testUtils.checkValues(obj.options(), {
       color: 0x223344
     }, 'material options');
@@ -116,7 +110,7 @@ var test = {
       material: {color: 0x112233},
       mass: 1
     };
-    var obj = new mecanica.Body(options,  new mecanica.Mecanica());
+    var obj = new mecanica.Body(options, new mecanica.Mecanica());
     obj.updateMotionState();
     testUtils.checkValues(obj.options(), {
       mass: 1
@@ -125,7 +119,7 @@ var test = {
   },
   Connector: function () {
     var mecanica = require('../mecanica.js');
-    var system =  new mecanica.Mecanica();
+    var system = new mecanica.Mecanica();
     var body = new mecanica.Body({
       shape: {type: 'box'},
       material: {color: 0x112233},
@@ -146,7 +140,8 @@ var test = {
   },
   Constraint: function () {
     var mecanica = require('../mecanica.js');
-    var system = new mecanica.Mecanica();
+    var me = new mecanica.Mecanica();
+    var system = me.make({group: 'system', type: 'basic', id: 'top'});
     system.make('body', {
       id: 'a',
       shape: {type: 'box'},
