@@ -130,6 +130,18 @@ System.prototype.loadJSON = function (json) {
   }
 };
 
+System.prototype.toJSON = function () {
+  var json = {};
+  _.each(this.objects, function (groupObjects, groupName) {
+    _.each(groupObjects, function (object, objectId) {
+      if (!json[groupName]) json[groupName] = {};
+      json[groupName][objectId] = object.toJSON();
+    });
+  });
+  return json;
+};
+
+
 extend(System, Component);
 Component.prototype.maker.system = System;
 

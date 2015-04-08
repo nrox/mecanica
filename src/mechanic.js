@@ -71,10 +71,7 @@ Mecanica.prototype.destroy = function () {
 
 Mecanica.prototype.import = function (url, id) {
   var json = require(url);
-  var sys = new System({
-    id: id,
-    type: 'basic'
-  }, this);
+  sys = this.make('system','basic',{id: id});
   sys.loadJSON(json);
 };
 

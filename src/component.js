@@ -40,6 +40,7 @@ Component.prototype.runsWebGL = function () {
 
 Component.prototype.include = function (options, defaults) {
   var target = this;
+  //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
     'id', 'group', 'type', 'comment'
   ]));
@@ -130,5 +131,9 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
       post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
     }
   }
+};
+
+Component.prototype.toJSON = function () {
+  return utils.deepCopy(this._options);
 };
 

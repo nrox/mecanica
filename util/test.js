@@ -1,15 +1,15 @@
-
 var _ = require('../lib/underscore.js');
 
 
 module.exports = {
 
+  logTitle: function (title) {
+    title && console.log('\n' + title);
+  },
   logStatus: function (status, title) {
     if (!title) return;
-    if (!!status) {
-      console.log('true/passed');
-    } else {
-      console.error('FALSE/FAILED ###########################################');
+    if (!status) {
+      console.error(title + ' - test result: FAILED');
     }
   },
   /**
@@ -18,7 +18,7 @@ module.exports = {
    * @param title log text
    */
   logKeys: function (obj, title) {
-    title && console.log('\n' + title);
+    this.logTitle(title);
     var count = 0;
     _.each(obj, function (v, i) {
       count++;
@@ -35,7 +35,7 @@ module.exports = {
    * @returns {boolean} true if all keys present, false otherwise
    */
   checkKeys: function (obj, keys, title) {
-    title && console.log('\n' + title);
+    this.logTitle(title);
     var results = _.map(keys, function (property) {
       if (obj[property] === undefined) {
         title && console.log('  undefined: ' + property);
@@ -58,7 +58,7 @@ module.exports = {
    * @returns {boolean} true if all values match, false otherwise
    */
   checkValues: function (obj, keyValue, title) {
-    title && console.log('\n' + title);
+    this.logTitle(title);
     var results = _.map(keyValue, function (value, property) {
       if ((typeof obj[property] == 'function')) {
         var objValue = obj[property]();
@@ -94,7 +94,7 @@ module.exports = {
    * @returns {boolean}
    */
   instanceOf: function (obj, fun, title) {
-    title && console.log('\n' + title);
+    this.logTitle(title);
     var res = obj instanceof  fun;
     this.logStatus(res, title);
     return res;
