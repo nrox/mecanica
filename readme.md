@@ -52,24 +52,26 @@ Alpha
 
 ###Initialization
 
-    var mec = new Mecanica.mec({});
+    var lib = require('mecanica.js');
+
+    var mec = new lib.Mecanica({});
     
     //import a system
     mec.import('ware/basic2.js', 'basic2');
 
-    //create object from json to three.js or ammo.js
-    mec.build();
-
-    //activate simulation and/or rendering
-    mec.startSimulation({});
-    mec.startRendering({});
-
 ###Control
 
-    mec.pauseSimulation();
-    mec.pauseRendering();
-    mec.continueSimulation();
-    mec.continueRendering();
+    // start stop simulation and rendering
+    me.start();
+    me.stop();
+
+    //start/stop just simulation
+    mec.startSimulation();
+    mec.stopSimulation();
+
+    //start/stop just rendering
+    mec.startRender()
+    mec.stopRender();
 
     mec.setSpeed(speed);
 
@@ -80,11 +82,7 @@ Alpha
 
 ###Saving
 
-    #in object form
-    var json = mec.toJSON({});
-
-    #to some database
-    mec.saveToRemoteDatabase({});
+    var json = mec.toJSON();
 
 ###Finishing
 
@@ -121,8 +119,6 @@ In a .js file, or json object.
     };
 
     //if systemID is provided, the imported object will be added to a new system
-    //if not, it will be added in the current, top level system,
-    // overriding bodies, materials and shapes with colliding ids
 
     mec.import(json, systemID);//or mec.require(.js);
 

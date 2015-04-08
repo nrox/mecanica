@@ -34,8 +34,13 @@ var test = {
       'basic2'
     ], 'system key present');
     testUtils.checkKeys(json.system['basic2'].body, [
-      'id6','id51'
+      'id6','id5'
     ], 'system basic2 bodies');
+  },
+  'mec.start()': function () {
+    var me = new (require('../mecanica.js').Mecanica)();
+    me.import('../ware/basic2.js', 'basic2');
+    me.start();
   }
 };
 

@@ -122,6 +122,9 @@ Component.prototype.getScene = function () {
   }
 };
 
+Component.prototype.destroy = function () {
+};
+
 Component.prototype.addPhysicsMethod = function (funName, reference) {
   if (this.runsPhysics()) {
     this[funName] = reference;

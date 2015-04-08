@@ -6,7 +6,7 @@ Camera.prototype.types = {
   perspective: function (options) {
     this.include(options, {
       fov: 45, aspect: 1, near: 0.1, far: 1000,
-      position: {x: 5, y: 7, z: 10},
+      position: {x: 5, y: 7, z: 20},
       lookAt: {}
     });
     this.position = new Vector(this.position);

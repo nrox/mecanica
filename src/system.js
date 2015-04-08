@@ -92,7 +92,10 @@ System.prototype.make = function () {
     options.group = group;
     options.type = type;
     obj = new cons(options, this);
-    if (!options._dontSave && this.objects[group]) this.objects[group][obj.id] = obj;
+    if (!options._dontSave && this.objects[group]) {
+      if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
+      this.objects[group][obj.id] = obj;
+    }
     this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
     console.warn('incapable of making object:');
@@ -110,24 +113,29 @@ System.prototype.loadJSON = function (json) {
       _this.make(groupName, objectOptions);
     });
   });
+  this.loadIntoScene();
+};
 
+System.prototype.loadIntoScene = function () {
+  //FIXME
+  if (this._loaded) return;
+  this._loaded = true;
+  var objs = this.objects;
+  var _this = this;
   var scene = this.getScene();
-
-  loadSystem(this.objects);
-
-  function loadSystem(objs) {
-    _.each(objs.system, loadSystem);
-    _.each(objs.body, function (body) {
-      if (!body._added && (body._added = true)) {
-        body.updateMotionState();
-        if (_this.runsWebGL()) scene.three.add(body.three);
-        if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
-      }
-    });
-    _.each(objs.constraint, function (cons) {
-      cons.add();
-    });
-  }
+  _.each(objs.system, function (sys) {
+    sys.loadIntoScene();
+  });
+  _.each(objs.body, function (body) {
+    if (!body._added && (body._added = true)) {
+      body.updateMotionState();
+      if (_this.runsWebGL()) scene.three.add(body.three);
+      if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
+    }
+  });
+  _.each(objs.constraint, function (cons) {
+    cons.add();
+  });
 };
 
 System.prototype.toJSON = function () {
