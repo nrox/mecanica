@@ -136,6 +136,12 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
   }
 };
 
+Component.prototype.addRenderMethod = function (funName, reference) {
+  if (this.runsWebGL()) {
+    this[funName] = reference;
+  }
+};
+
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };

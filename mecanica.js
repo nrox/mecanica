@@ -1,4 +1,9 @@
 (function(){
+'use strict';
+
+
+// src/component.js begins
+
 /**
  * component.js
  * super class
@@ -137,10 +142,20 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
   }
 };
 
+Component.prototype.addRenderMethod = function (funName, reference) {
+  if (this.runsWebGL()) {
+    this[funName] = reference;
+  }
+};
+
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
 
+
+// src/component.js ends
+
+// src/settings.js begins
 
 function Settings(options, system) {
   this.construct(options, system, 'local');
@@ -174,6 +189,10 @@ Settings.prototype.types = {
 
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
+// src/settings.js ends
+
+// src/system.js begins
+
 /**
  * system.js
  *
@@ -330,6 +349,10 @@ extend(System, Component);
 Component.prototype.maker.system = System;
 
 
+// src/system.js ends
+
+// src/mechanic.js begins
+
 function Mecanica(options) {
   if (!options) options = {};
   this.construct(options, this, 'main');
@@ -387,8 +410,12 @@ Mecanica.prototype.init = function (json) {
 };
 
 Mecanica.prototype.import = function (url, id) {
+  var json = require(url);
+  this.load(json, id);
+};
+
+Mecanica.prototype.load = function (json, id) {
   try {
-    var json = require(url);
     var sys = this.make('system', 'basic', {id: id});
     sys.loadJSON(json);
   } catch (e) {
@@ -501,13 +528,13 @@ Mecanica.prototype.startRender = function () {
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
-
+  console.log(monitor);
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {
       scene._rafid = requestAnimationFrame(render);
     }, 1000 / settings.renderFrequency);
-    controller.moveCamera(monitor.camera);
+    monitor.camera.move();
     monitor.renderer.three.render(scene.three, monitor.camera.three);
   }
 
@@ -522,6 +549,14 @@ Mecanica.prototype.start = function () {
 
 extend(Mecanica, System);
 
+// src/mechanic.js ends
+
+// src/method.js begins
+
+
+// src/method.js ends
+
+// src/vector.js begins
 
 function Vector(options) {
   this.include(options, {
@@ -554,6 +589,10 @@ function Quaternion(options) {
 
 extend(Vector, Component);
 extend(Quaternion, Component);
+
+// src/vector.js ends
+
+// src/shape.js begins
 
 function Shape(options, system) {
   this.construct(options, system, 'sphere');
@@ -643,6 +682,10 @@ Shape.prototype.types = {
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
+// src/shape.js ends
+
+// src/material.js begins
+
 function Material(options, system) {
   this.construct(options, system, 'phong');
 }
@@ -670,6 +713,10 @@ Material.prototype.types = {
 extend(Material, Component);
 Component.prototype.maker.material = Material;
 
+
+// src/material.js ends
+
+// src/light.js begins
 
 function Light(options, system) {
   this.construct(options, system, 'directional');
@@ -706,6 +753,10 @@ Light.prototype.types = {
 
 extend(Light, Component);
 Component.prototype.maker.light = Light;
+// src/light.js ends
+
+// src/body.js begins
+
 function Body(options, system) {
   this.construct(options, system, 'basic');
 }
@@ -780,6 +831,10 @@ Body.prototype.updateMotionState =function () {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
+// src/body.js ends
+
+// src/connector.js begins
+
 function Connector(options, system){
   this.construct(options, system, 'relative');
 }
@@ -832,6 +887,10 @@ Connector.prototype.types = {
 
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
+// src/connector.js ends
+
+// src/constraint.js begins
+
 function Constraint(options, system) {
   this.construct(options, system, 'point');
 }
@@ -1128,6 +1187,10 @@ Constraint.prototype.methods = {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
+// src/constraint.js ends
+
+// src/scene.js begins
+
 function Scene(options, system) {
   this.construct(options, system, 'basic');
 }
@@ -1158,7 +1221,11 @@ Scene.prototype.types = {
 
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
-function Camera(options, system){
+// src/scene.js ends
+
+// src/camera.js begins
+
+function Camera(options, system) {
   this.construct(options, system, 'perspective');
 }
 
@@ -1175,6 +1242,7 @@ Camera.prototype.types = {
       this.three.position.copy(this.position.three);
       this.three.lookAt(new Vector(this.lookAt).three);
     }
+    this.addRenderMethod('move', Camera.prototype.methods.movePerspective);
   },
   //follow a body
   tracker: function (options) {
@@ -1192,6 +1260,7 @@ Camera.prototype.types = {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
+    this.addRenderMethod('move', Camera.prototype.methods.moveTracker);
   },
   //follow a body
   satellite: function (options) {
@@ -1203,7 +1272,7 @@ Camera.prototype.types = {
       lookAt: null
     });
     this.notifyUndefined(['lookAt']);
-    this.axis =new Vector(this.axis);
+    this.axis = new Vector(this.axis);
     if (typeof(this.lookAt) == 'string') {
       this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     } else {
@@ -1213,11 +1282,75 @@ Camera.prototype.types = {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
+    this.addRenderMethod('move', Camera.prototype.methods.moveSatellite);
+  }
+};
+
+Camera.prototype.methods = {
+  moveTracker: function () {
+    var camera = this;
+    var distance;
+    var requiredPosition = camera.three.position.clone();
+    var bodyPosition = camera.lookAt.three.position;
+    var axis = camera.axis.three;
+    var requiredDistance = camera.distance;
+    var projection = bodyPosition.clone().projectOnVector(axis);
+    distance = projection.distanceTo(bodyPosition);
+    var normal = bodyPosition.clone().sub(projection);
+    var extension;
+    if (distance == 0) {
+      requiredPosition.copy(axis.clone().multiplyScalar(requiredDistance));
+    } else if (distance == requiredDistance) {
+      requiredPosition.copy(projection);
+    } else if (distance > requiredDistance) {
+      extension = distance - requiredDistance;
+      normal.normalize().multiplyScalar(extension);
+      requiredPosition.copy(normal.add(projection));
+    } else {
+      extension = Math.sqrt(Math.pow(requiredDistance, 2) - Math.pow(normal.length(), 2));
+      requiredPosition.copy(projection.add(axis.clone().multiplyScalar(extension)));
+    }
+    //get saved time
+    camera._lastTime = camera._lastTime || (new Date()).getTime();
+    var curTime = (new Date()).getTime();
+    var lapse = curTime - camera._lastTime;
+    camera._lastTime = curTime; //save time
+    var beta;
+    if (lapse == 0) {
+      beta = 10000;
+    } else {
+      beta = lapse / 1000 / (camera.inertia + 0.001);
+    }
+    //TODO use PID controller
+    // pos = (ß * new + pos) / (1 + ß)
+    camera.three.position.add(requiredPosition.multiplyScalar(beta)).divideScalar(1 + beta);
+    camera._lastLookAt = camera._lastLookAt || bodyPosition.clone();
+    camera.three.lookAt(camera._lastLookAt.add(bodyPosition.clone().multiplyScalar(beta)).divideScalar(1 + beta));
+  },
+  moveSatellite: function () {
+    var camera = this;
+    var phase = 0;
+    var time = new Date().getTime();
+    camera.three.position.x = camera.distance * Math.sin(phase + time / 2234);
+    camera.three.position.z = camera.distance * Math.cos(phase + time / 2234);
+    camera.three.position.y = 0.5 * camera.distance * Math.cos(phase + time / 3345);
+    if (camera.lookAt.x !== undefined) { //looking to a position
+      camera.three.lookAt(camera.lookAt.three);
+    } else if (camera.lookAt.shape) { //looking to a body
+      camera.three.lookAt(camera.lookAt.three.position);
+    }
+  },
+  movePerspective: function(){
+
   }
 };
 
 extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
+// src/camera.js ends
+
+// src/monitor.js begins
+
 function Monitor(options, system){
   this.construct(options, system, 'complete');
 }
@@ -1244,6 +1377,10 @@ Monitor.prototype.types = {
 
 extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
+// src/monitor.js ends
+
+// src/renderer.js begins
+
 function Renderer(options, system) {
   this.construct(options, system, 'available');
 }
@@ -1299,10 +1436,22 @@ Renderer.prototype.types = {
 
 extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
+// src/renderer.js ends
+
+// src/worker.js begins
+
 /**
  * Created by nrox on 3/30/15.
  */
 
+// src/worker.js ends
+
+// src/simulation.js begins
+
+
+// src/simulation.js ends
+
+// src/exports.js begins
 
 
 
@@ -1326,4 +1475,5 @@ module.exports = {
 };
 
 
+// src/exports.js ends
 })();

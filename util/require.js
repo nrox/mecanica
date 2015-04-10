@@ -40,6 +40,7 @@
   }
 
   function requiredPath(script) {
+    //TODO make this more understandable
     script = script.replace('/../', '/');
     while (script.indexOf('/../') > 0) script = script.replace('/../', '/');
     if (script.indexOf('./') == 0) script = script.substr(2);

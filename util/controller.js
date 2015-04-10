@@ -1,3 +1,6 @@
+
+//TODO remove this file
+
 module.exports = {
   moveCamera: function (camera) {
     var distance;

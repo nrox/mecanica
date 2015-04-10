@@ -55,8 +55,12 @@ Mecanica.prototype.init = function (json) {
 };
 
 Mecanica.prototype.import = function (url, id) {
+  var json = require(url);
+  this.load(json, id);
+};
+
+Mecanica.prototype.load = function (json, id) {
   try {
-    var json = require(url);
     var sys = this.make('system', 'basic', {id: id});
     sys.loadJSON(json);
   } catch (e) {
@@ -169,13 +173,13 @@ Mecanica.prototype.startRender = function () {
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
-
+  console.log(monitor);
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {
       scene._rafid = requestAnimationFrame(render);
     }, 1000 / settings.renderFrequency);
-    controller.moveCamera(monitor.camera);
+    monitor.camera.move();
     monitor.renderer.three.render(scene.three, monitor.camera.three);
   }
 

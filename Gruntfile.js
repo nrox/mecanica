@@ -27,8 +27,12 @@ module.exports = function (grunt) {
         dest: 'mecanica.js'
       },
       options: {
-        banner: '(function(){\n',
-        footer: '\n})();'
+        separator: '\n',
+        banner: '(function(){\n\'use strict\';\n\n',
+        footer: '\n})();',
+        process: function(src, filePath){
+          return "\n// " + filePath + ' begins\n\n' + src + "\n// " + filePath + " ends";
+        }
       }
     },
     connect: {
