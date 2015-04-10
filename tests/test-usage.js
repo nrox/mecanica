@@ -2,9 +2,13 @@ var testUtils = require('../util/test.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var _ = require('../lib/underscore.js');
+var editorConstructor = require('../util/json-ui.js');
 
 function clearObjects() {
-
+  $("canvas").remove();
+  $('#container').empty();
+  $('#triggers').empty();
+  $('#status').empty();
 }
 
 var test = {
@@ -39,10 +43,31 @@ var test = {
       'id6','id5'
     ], 'system basic2 bodies');
   },
-  'mec.start()': function () {
-    var me = new (require('../mecanica.js').Mecanica)();
+  'mec.start/stop()': function () {
+    var me = new (require('../mecanica.js').Mecanica)({
+      settings: {use: {canvasContainer: '#container', type: 'global'}}
+    });
     me.import('../ware/basic2.js', 'basic2');
     me.start();
+    var buttons = {
+      start: function(){
+        me.start();
+      },
+      stop: function(){
+        me.stop();
+      },
+      speed: 1
+    };
+    var template = {
+      speed: {type: 'range', min: 0, max: 20, step: 0.2, onChange: setSpeed}
+    };
+    function setSpeed(){
+      me.setSpeed(editor.getValues().speed);
+    }
+    var editor = new editorConstructor();
+    editor.setValues(buttons);
+    editor.useTemplate(template);
+    editor.showEditor('#triggers');
   }
 };
 

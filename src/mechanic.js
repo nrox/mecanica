@@ -83,11 +83,11 @@ Mecanica.prototype.startSimulation = function () {
   function simulate() {
     if (scene._destroyed) return;
     //prepare next call
-    scene._stid = setTimeout(simulate, 1000 / settings.simFrequency);
+    _this._stid = setTimeout(simulate, 1000 / settings.simFrequency);
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
-    var dt = curTime - scene._lastTime;
-    scene._lastTime = curTime;
+    var dt = curTime - _this._lastTime;
+    _this._lastTime = curTime;
     //callbacks beforeStep
     //_.each(this.objects.constraint, function (c) {
     //  if (c.beforeStep) c.beforeStep.call(c);
@@ -112,13 +112,21 @@ Mecanica.prototype.startSimulation = function () {
     }
   }
 
-  scene._lastTime = (new Date()).getTime() / 1000;
+  _this._lastTime = (new Date()).getTime() / 1000;
   //stopSimulation(); //make sure is stopped
   simulate(); //then go
 };
 
+Mecanica.prototype.stopSimulation = function () {
+  clearTimeout(this._stid);
+  this._simulationRunning = false;
+};
+
 Mecanica.prototype.startRender = function () {
+
   if (!this.runsWebGL()) return false;
+  if (this._renderRunning) return true;
+
   var settings = this.getSettings();
   var controller = require('./util/controller.js');
   var scene = this.getScene();
@@ -127,21 +135,37 @@ Mecanica.prototype.startRender = function () {
 
   function render() {
     if (scene._destroyed) return;
-    scene._rstid = setTimeout(function () {
-      scene._rafid = requestAnimationFrame(render);
+    if (!_this._renderRunning) return;
+    _this._rstid = setTimeout(function () {
+      _this._rafid = requestAnimationFrame(render);
     }, 1000 / settings.renderFrequency);
     if (!_this.physicsDataReceived()) return;
     monitor.camera.move();
     monitor.renderer.three.render(scene.three, monitor.camera.three);
   }
+
+  _this._renderRunning = true;
   render();
-  //setTimeout(render, 1000 / settings.renderFrequency);
   return true;
+};
+
+Mecanica.prototype.stopRender = function () {
+  clearTimeout(this._rstid);
+  this._renderRunning = false;
 };
 
 Mecanica.prototype.start = function () {
   this.startSimulation();
   this.startRender();
+};
+
+Mecanica.prototype.stop = function () {
+  this.stopSimulation();
+  this.stopRender();
+};
+
+Mecanica.prototype.setSpeed = function (speed) {
+  this.getSettings().simSpeed = Number(speed);
 };
 
 Mecanica.prototype.physicsDataReceived = function () {
