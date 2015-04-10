@@ -10,7 +10,7 @@ Body.prototype.types = {
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
       connector: {}, axisHelper: this.getSettings().axisHelper
     });
-    this.notifyUndefined(['shape','material']);
+    this.notifyUndefined(['shape', 'material']);
 
     var shape;
     var _this = this;
@@ -25,7 +25,7 @@ Body.prototype.types = {
     if (typeof this.material == 'string') { //get from objects with id
       material = this.parentSystem.getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, this.parentSystem );
+      material = new Material(this.material, this.parentSystem);
     }
     this.material = material;
 
@@ -48,12 +48,15 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, _this.parentSystem );
+      new Connector(c, _this.parentSystem);
     });
   }
 };
 
-Body.prototype.updateMotionState =function () {
+/**
+ * updates ammo and three position and rotation from the objects position and rotation
+ */
+Body.prototype.updateMotionState = function () {
   if (this.runsWebGL()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
@@ -67,6 +70,39 @@ Body.prototype.updateMotionState =function () {
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+/**
+ * copy the positions and rotation from ammo object to three object
+ * in between updating also position and rotation assigned to the object
+ */
+Body.prototype.syncPhysics = function () {
+  var body = this;
+  var trans;
+  //copy physics from .ammo object
+  if (this.runsPhysics()) {
+    trans = this._trans;
+    //keep the transform instead of creating all the time
+    if (!trans) {
+      trans = new Ammo.btTransform();
+      this._trans = trans;
+    }
+    body.ammo.getMotionState().getWorldTransform(trans);
+    var position = trans.getOrigin();
+    body.position.x = position.x();
+    body.position.y = position.y();
+    body.position.z = position.z();
+    var quaternion = trans.getRotation();
+    body.quaternion.x = quaternion.x();
+    body.quaternion.y = quaternion.y();
+    body.quaternion.z = quaternion.z();
+    body.quaternion.w = quaternion.w();
+  }
+  //copy physics to .three object
+  if (!this.runsInWorker()) {
+    body.three.position.copy(body.position);
+    body.three.quaternion.copy(body.quaternion);
   }
 };
 

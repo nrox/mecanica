@@ -16,7 +16,7 @@ module.exports = {
     id5: { mass: 0, shape: 'fixed', material: 'id4',
       connector: {c1: {}}
     },
-    id6: { mass: 0, shape: 'satellite', material: 'id3', position: {x: 0, y: 0, z: 3},
+    id6: { mass: 1, shape: 'satellite', material: 'id3', position: {x: 0, y: 0, z: 3},
       connector: {c2: {base: {z: -3}}}
     }
   },

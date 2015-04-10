@@ -38,6 +38,11 @@ Component.prototype.runsWebGL = function () {
   return RUNS_WEBGL;
 };
 
+Component.prototype.runsInWorker = function () {
+  //TODO
+  return false;
+};
+
 Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;

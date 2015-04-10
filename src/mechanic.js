@@ -70,41 +70,11 @@ Mecanica.prototype.load = function (json, id) {
 
 Mecanica.prototype.startSimulation = function () {
   var settings = this.getSettings();
-  var trans = Ammo ? new Ammo.btTransform() : undefined;
   var packet = {};
   var scene = this.getScene();
   var isWorker = false; //utils.isBrowserWorker();
   var objects = this.getObject();
   var _this = this;
-  //copy position and rotation from ammo and then to three
-  function copyPhysics(objs) {
-    _.each(objs.system, copyPhysics);
-    _.each(objs.body, function (body) {
-      if (this.runsPhysics()) copyPhysicsFromAmmo(body, trans);
-      if (this.runsWebGL() && !isWorker) copyPhysicsToThree(body);
-    });
-  }
-
-  function copyPhysicsToThree(body) {
-    body.three.position.copy(body.position);
-    body.three.quaternion.copy(body.quaternion);
-  }
-
-  function copyPhysicsFromAmmo(body, trans) {
-    if (!trans) {
-      trans = new Ammo.btTransform();
-    }
-    body.ammo.getMotionState().getWorldTransform(trans);
-    var position = trans.getOrigin();
-    body.position.x = position.x();
-    body.position.y = position.y();
-    body.position.z = position.z();
-    var quaternion = trans.getRotation();
-    body.quaternion.x = quaternion.x();
-    body.quaternion.y = quaternion.y();
-    body.quaternion.z = quaternion.z();
-    body.quaternion.w = quaternion.w();
-  }
 
   //pack position and rotation to send from worker to window
   function packPhysics(objs, pkt) {
@@ -152,7 +122,7 @@ Mecanica.prototype.startSimulation = function () {
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
-    copyPhysics(objects);
+    _this.syncPhysics();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
@@ -173,7 +143,6 @@ Mecanica.prototype.startRender = function () {
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
-  console.log(monitor);
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {

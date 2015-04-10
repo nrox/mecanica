@@ -138,6 +138,17 @@ System.prototype.loadIntoScene = function () {
   });
 };
 
+System.prototype.syncPhysics = function () {
+  //sync all bodies
+  _.each(this.objects.body, function(body){
+    body.syncPhysics();
+  });
+  //and all child systems
+  _.each(this.objects.system, function(system){
+    system.syncPhysics();
+  });
+};
+
 System.prototype.toJSON = function () {
   var json = {};
   _.each(this.objects, function (groupObjects, groupName) {
@@ -148,6 +159,7 @@ System.prototype.toJSON = function () {
   });
   return json;
 };
+
 
 
 extend(System, Component);

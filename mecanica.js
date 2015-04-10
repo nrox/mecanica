@@ -44,6 +44,11 @@ Component.prototype.runsWebGL = function () {
   return RUNS_WEBGL;
 };
 
+Component.prototype.runsInWorker = function () {
+  //TODO
+  return false;
+};
+
 Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
@@ -333,6 +338,17 @@ System.prototype.loadIntoScene = function () {
   });
 };
 
+System.prototype.syncPhysics = function () {
+  //sync all bodies
+  _.each(this.objects.body, function(body){
+    body.syncPhysics();
+  });
+  //and all child systems
+  _.each(this.objects.system, function(system){
+    system.syncPhysics();
+  });
+};
+
 System.prototype.toJSON = function () {
   var json = {};
   _.each(this.objects, function (groupObjects, groupName) {
@@ -343,6 +359,7 @@ System.prototype.toJSON = function () {
   });
   return json;
 };
+
 
 
 extend(System, Component);
@@ -425,41 +442,11 @@ Mecanica.prototype.load = function (json, id) {
 
 Mecanica.prototype.startSimulation = function () {
   var settings = this.getSettings();
-  var trans = Ammo ? new Ammo.btTransform() : undefined;
   var packet = {};
   var scene = this.getScene();
   var isWorker = false; //utils.isBrowserWorker();
   var objects = this.getObject();
   var _this = this;
-  //copy position and rotation from ammo and then to three
-  function copyPhysics(objs) {
-    _.each(objs.system, copyPhysics);
-    _.each(objs.body, function (body) {
-      if (this.runsPhysics()) copyPhysicsFromAmmo(body, trans);
-      if (this.runsWebGL() && !isWorker) copyPhysicsToThree(body);
-    });
-  }
-
-  function copyPhysicsToThree(body) {
-    body.three.position.copy(body.position);
-    body.three.quaternion.copy(body.quaternion);
-  }
-
-  function copyPhysicsFromAmmo(body, trans) {
-    if (!trans) {
-      trans = new Ammo.btTransform();
-    }
-    body.ammo.getMotionState().getWorldTransform(trans);
-    var position = trans.getOrigin();
-    body.position.x = position.x();
-    body.position.y = position.y();
-    body.position.z = position.z();
-    var quaternion = trans.getRotation();
-    body.quaternion.x = quaternion.x();
-    body.quaternion.y = quaternion.y();
-    body.quaternion.z = quaternion.z();
-    body.quaternion.w = quaternion.w();
-  }
 
   //pack position and rotation to send from worker to window
   function packPhysics(objs, pkt) {
@@ -507,7 +494,7 @@ Mecanica.prototype.startSimulation = function () {
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
-    copyPhysics(objects);
+    _this.syncPhysics();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
@@ -528,7 +515,6 @@ Mecanica.prototype.startRender = function () {
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
-  console.log(monitor);
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {
@@ -769,7 +755,7 @@ Body.prototype.types = {
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
       connector: {}, axisHelper: this.getSettings().axisHelper
     });
-    this.notifyUndefined(['shape','material']);
+    this.notifyUndefined(['shape', 'material']);
 
     var shape;
     var _this = this;
@@ -784,7 +770,7 @@ Body.prototype.types = {
     if (typeof this.material == 'string') { //get from objects with id
       material = this.parentSystem.getObject('material', this.material);
     } else { //make from options
-      material = new Material(this.material, this.parentSystem );
+      material = new Material(this.material, this.parentSystem);
     }
     this.material = material;
 
@@ -807,12 +793,15 @@ Body.prototype.types = {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
-      new Connector(c, _this.parentSystem );
+      new Connector(c, _this.parentSystem);
     });
   }
 };
 
-Body.prototype.updateMotionState =function () {
+/**
+ * updates ammo and three position and rotation from the objects position and rotation
+ */
+Body.prototype.updateMotionState = function () {
   if (this.runsWebGL()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
@@ -826,6 +815,39 @@ Body.prototype.updateMotionState =function () {
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+/**
+ * copy the positions and rotation from ammo object to three object
+ * in between updating also position and rotation assigned to the object
+ */
+Body.prototype.syncPhysics = function () {
+  var body = this;
+  var trans;
+  //copy physics from .ammo object
+  if (this.runsPhysics()) {
+    trans = this._trans;
+    //keep the transform instead of creating all the time
+    if (!trans) {
+      trans = new Ammo.btTransform();
+      this._trans = trans;
+    }
+    body.ammo.getMotionState().getWorldTransform(trans);
+    var position = trans.getOrigin();
+    body.position.x = position.x();
+    body.position.y = position.y();
+    body.position.z = position.z();
+    var quaternion = trans.getRotation();
+    body.quaternion.x = quaternion.x();
+    body.quaternion.y = quaternion.y();
+    body.quaternion.z = quaternion.z();
+    body.quaternion.w = quaternion.w();
+  }
+  //copy physics to .three object
+  if (!this.runsInWorker()) {
+    body.three.position.copy(body.position);
+    body.three.quaternion.copy(body.quaternion);
   }
 };
 
