@@ -2,7 +2,7 @@
 'use strict';
 
 
-// src/component.js begins
+;// src/component.js begins
 
 /**
  * component.js
@@ -160,7 +160,7 @@ Component.prototype.toJSON = function () {
 
 // src/component.js ends
 
-// src/settings.js begins
+;// src/settings.js begins
 
 function Settings(options, system) {
   this.construct(options, system, 'local');
@@ -196,7 +196,7 @@ extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
 // src/settings.js ends
 
-// src/system.js begins
+;// src/system.js begins
 
 /**
  * system.js
@@ -320,31 +320,30 @@ System.prototype.loadIntoScene = function () {
   //FIXME
   if (this._loaded) return;
   this._loaded = true;
-  var objs = this.objects;
   var _this = this;
   var scene = this.getScene();
-  _.each(objs.system, function (sys) {
+  _.each(this.objects.system, function (sys) {
     sys.loadIntoScene();
   });
-  _.each(objs.body, function (body) {
+  _.each(this.objects.body, function (body) {
     if (!body._added && (body._added = true)) {
       body.updateMotionState();
       if (_this.runsWebGL()) scene.three.add(body.three);
       if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
     }
   });
-  _.each(objs.constraint, function (cons) {
+  _.each(this.objects.constraint, function (cons) {
     cons.add();
   });
 };
 
 System.prototype.syncPhysics = function () {
   //sync all bodies
-  _.each(this.objects.body, function(body){
+  _.each(this.objects.body, function (body) {
     body.syncPhysics();
   });
   //and all child systems
-  _.each(this.objects.system, function(system){
+  _.each(this.objects.system, function (system) {
     system.syncPhysics();
   });
 };
@@ -360,15 +359,32 @@ System.prototype.toJSON = function () {
   return json;
 };
 
+/**
+ * update myPack with all subsystems and bodies position and rotation
+ * @param myPack
+ */
+System.prototype.packPhysics = function (myPack) {
 
+  //for each body
+  if (!myPack.body) myPack.body = {};
+  _.each(this.objects.body, function (body, id) {
+    if (!myPack.body[id]) myPack.body[id] = {};
+    body.packPhysics(myPack.body[id]);
+  });
+
+  //for each child system
+  if (!myPack.system) myPack.system = {};
+  _.each(this.objects.system, function (sys, id) {
+    if (!myPack.system[id]) myPack.system[id] = {};
+    sys.packPhysics(myPack.system[id]);
+  });
+};
 
 extend(System, Component);
 Component.prototype.maker.system = System;
-
-
 // src/system.js ends
 
-// src/mechanic.js begins
+;// src/mechanic.js begins
 
 function Mecanica(options) {
   if (!options) options = {};
@@ -441,38 +457,15 @@ Mecanica.prototype.load = function (json, id) {
 };
 
 Mecanica.prototype.startSimulation = function () {
-  var settings = this.getSettings();
-  var packet = {};
-  var scene = this.getScene();
-  var isWorker = false; //utils.isBrowserWorker();
-  var objects = this.getObject();
-  var _this = this;
+  if (!this.runsPhysics()) return false;
+  if (this._simulationRunning) return true;
+  this._simulationRunning = true;
+  this._physicsDataReceived = false;
 
-  //pack position and rotation to send from worker to window
-  function packPhysics(objs, pkt) {
-    if (objs.system) {
-      if (!pkt.system) pkt.system = {};
-      _.each(objs.system, function (sys, id) {
-        if (!pkt.system[id]) pkt.system[id] = {};
-        packPhysics(sys, pkt.system[id]);
-      });
-    }
-    if (objs.body) {
-      if (!pkt.body) pkt.body = {};
-      _.each(objs.body, function (body, id) {
-        if (!pkt.body[id]) pkt.body[id] = {};
-        if (!pkt.body[id].position) pkt.body[id].position = {};
-        if (!pkt.body[id].quaternion) pkt.body[id].quaternion = {};
-        pkt.body[id].position.x = body.position.x;
-        pkt.body[id].position.y = body.position.y;
-        pkt.body[id].position.z = body.position.z;
-        pkt.body[id].quaternion.x = body.quaternion.x;
-        pkt.body[id].quaternion.y = body.quaternion.y;
-        pkt.body[id].quaternion.z = body.quaternion.z;
-        pkt.body[id].quaternion.w = body.quaternion.w;
-      });
-    }
-  }
+  var settings = this.getSettings();
+  var physicsPack = {};
+  var scene = this.getScene();
+  var _this = this;
 
   //simulation loop function, done with setTimeout
   function simulate() {
@@ -499,9 +492,11 @@ Mecanica.prototype.startSimulation = function () {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
 
-    if (isWorker) {
-      packPhysics(objects, packet);
-      post(['transfer', packet], 'transfer physics');
+    if (_this.runsInWorker()) {
+      _this.packPhysics(physicsPack);
+      post(['transfer', physicsPack], 'transfer physics');
+    } else {
+      _this._physicsDataReceived = true;
     }
   }
 
@@ -511,20 +506,25 @@ Mecanica.prototype.startSimulation = function () {
 };
 
 Mecanica.prototype.startRender = function () {
+  if (!this.runsWebGL()) return false;
   var settings = this.getSettings();
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
+  var _this = this;
+
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {
       scene._rafid = requestAnimationFrame(render);
     }, 1000 / settings.renderFrequency);
+    if (!_this.physicsDataReceived()) return;
     monitor.camera.move();
     monitor.renderer.three.render(scene.three, monitor.camera.three);
   }
-
-  setTimeout(render, 1000 / settings.renderFrequency);
+  render();
+  //setTimeout(render, 1000 / settings.renderFrequency);
+  return true;
 };
 
 Mecanica.prototype.start = function () {
@@ -532,17 +532,20 @@ Mecanica.prototype.start = function () {
   this.startRender();
 };
 
+Mecanica.prototype.physicsDataReceived = function () {
+  return !!this._physicsDataReceived;
+};
 
 extend(Mecanica, System);
 
 // src/mechanic.js ends
 
-// src/method.js begins
+;// src/method.js begins
 
 
 // src/method.js ends
 
-// src/vector.js begins
+;// src/vector.js begins
 
 function Vector(options) {
   this.include(options, {
@@ -578,7 +581,7 @@ extend(Quaternion, Component);
 
 // src/vector.js ends
 
-// src/shape.js begins
+;// src/shape.js begins
 
 function Shape(options, system) {
   this.construct(options, system, 'sphere');
@@ -670,7 +673,7 @@ extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
 // src/shape.js ends
 
-// src/material.js begins
+;// src/material.js begins
 
 function Material(options, system) {
   this.construct(options, system, 'phong');
@@ -702,7 +705,7 @@ Component.prototype.maker.material = Material;
 
 // src/material.js ends
 
-// src/light.js begins
+;// src/light.js begins
 
 function Light(options, system) {
   this.construct(options, system, 'directional');
@@ -741,7 +744,7 @@ extend(Light, Component);
 Component.prototype.maker.light = Light;
 // src/light.js ends
 
-// src/body.js begins
+;// src/body.js begins
 
 function Body(options, system) {
   this.construct(options, system, 'basic');
@@ -851,11 +854,27 @@ Body.prototype.syncPhysics = function () {
   }
 };
 
+/*
+  get position and rotation to send from worker to window
+  the result is passed by reference in the argument
+ */
+Body.prototype.packPhysics = function (myPhysics) {
+  if (!myPhysics.position) myPhysics.position = {};
+  if (!myPhysics.quaternion) myPhysics.quaternion = {};
+  myPhysics.position.x = this.position.x;
+  myPhysics.position.y = this.position.y;
+  myPhysics.position.z = this.position.z;
+  myPhysics.quaternion.x = this.quaternion.x;
+  myPhysics.quaternion.y = this.quaternion.y;
+  myPhysics.quaternion.z = this.quaternion.z;
+  myPhysics.quaternion.w = this.quaternion.w;
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;
 // src/body.js ends
 
-// src/connector.js begins
+;// src/connector.js begins
 
 function Connector(options, system){
   this.construct(options, system, 'relative');
@@ -911,7 +930,7 @@ extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
 // src/connector.js ends
 
-// src/constraint.js begins
+;// src/constraint.js begins
 
 function Constraint(options, system) {
   this.construct(options, system, 'point');
@@ -1211,7 +1230,7 @@ extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
 // src/constraint.js ends
 
-// src/scene.js begins
+;// src/scene.js begins
 
 function Scene(options, system) {
   this.construct(options, system, 'basic');
@@ -1245,7 +1264,7 @@ extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
 // src/scene.js ends
 
-// src/camera.js begins
+;// src/camera.js begins
 
 function Camera(options, system) {
   this.construct(options, system, 'perspective');
@@ -1371,7 +1390,7 @@ extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
 // src/camera.js ends
 
-// src/monitor.js begins
+;// src/monitor.js begins
 
 function Monitor(options, system){
   this.construct(options, system, 'complete');
@@ -1401,7 +1420,7 @@ extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
 // src/monitor.js ends
 
-// src/renderer.js begins
+;// src/renderer.js begins
 
 function Renderer(options, system) {
   this.construct(options, system, 'available');
@@ -1460,7 +1479,7 @@ extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
 // src/renderer.js ends
 
-// src/worker.js begins
+;// src/worker.js begins
 
 /**
  * Created by nrox on 3/30/15.
@@ -1468,12 +1487,12 @@ Component.prototype.maker.renderer = Renderer;
 
 // src/worker.js ends
 
-// src/simulation.js begins
+;// src/simulation.js begins
 
 
 // src/simulation.js ends
 
-// src/exports.js begins
+;// src/exports.js begins
 
 
 

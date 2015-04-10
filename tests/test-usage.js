@@ -9,7 +9,9 @@ function clearObjects() {
 
 var test = {
   'mec = new Mecanica()': function () {
+
     var me = new (require('../mecanica.js').Mecanica)();
+
     //console.log(me);
     testUtils.checkKeys(me, [
       'import', 'destroy', 'make'

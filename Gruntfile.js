@@ -31,7 +31,7 @@ module.exports = function (grunt) {
         banner: '(function(){\n\'use strict\';\n\n',
         footer: '\n})();',
         process: function(src, filePath){
-          return "\n// " + filePath + ' begins\n\n' + src + "\n// " + filePath + " ends";
+          return "\n;// " + filePath + ' begins\n\n' + src + "\n// " + filePath + " ends";
         }
       }
     },

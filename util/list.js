@@ -37,6 +37,7 @@ availablePaths = [
 "../src/mechanic.js",
 "../src/method.js",
 "../src/monitor.js",
+"../src/readme.md",
 "../src/renderer.js",
 "../src/scene.js",
 "../src/settings.js",

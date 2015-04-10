@@ -106,5 +106,21 @@ Body.prototype.syncPhysics = function () {
   }
 };
 
+/*
+  get position and rotation to send from worker to window
+  the result is passed by reference in the argument
+ */
+Body.prototype.packPhysics = function (myPhysics) {
+  if (!myPhysics.position) myPhysics.position = {};
+  if (!myPhysics.quaternion) myPhysics.quaternion = {};
+  myPhysics.position.x = this.position.x;
+  myPhysics.position.y = this.position.y;
+  myPhysics.position.z = this.position.z;
+  myPhysics.quaternion.x = this.quaternion.x;
+  myPhysics.quaternion.y = this.quaternion.y;
+  myPhysics.quaternion.z = this.quaternion.z;
+  myPhysics.quaternion.w = this.quaternion.w;
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;

@@ -69,38 +69,15 @@ Mecanica.prototype.load = function (json, id) {
 };
 
 Mecanica.prototype.startSimulation = function () {
-  var settings = this.getSettings();
-  var packet = {};
-  var scene = this.getScene();
-  var isWorker = false; //utils.isBrowserWorker();
-  var objects = this.getObject();
-  var _this = this;
+  if (!this.runsPhysics()) return false;
+  if (this._simulationRunning) return true;
+  this._simulationRunning = true;
+  this._physicsDataReceived = false;
 
-  //pack position and rotation to send from worker to window
-  function packPhysics(objs, pkt) {
-    if (objs.system) {
-      if (!pkt.system) pkt.system = {};
-      _.each(objs.system, function (sys, id) {
-        if (!pkt.system[id]) pkt.system[id] = {};
-        packPhysics(sys, pkt.system[id]);
-      });
-    }
-    if (objs.body) {
-      if (!pkt.body) pkt.body = {};
-      _.each(objs.body, function (body, id) {
-        if (!pkt.body[id]) pkt.body[id] = {};
-        if (!pkt.body[id].position) pkt.body[id].position = {};
-        if (!pkt.body[id].quaternion) pkt.body[id].quaternion = {};
-        pkt.body[id].position.x = body.position.x;
-        pkt.body[id].position.y = body.position.y;
-        pkt.body[id].position.z = body.position.z;
-        pkt.body[id].quaternion.x = body.quaternion.x;
-        pkt.body[id].quaternion.y = body.quaternion.y;
-        pkt.body[id].quaternion.z = body.quaternion.z;
-        pkt.body[id].quaternion.w = body.quaternion.w;
-      });
-    }
-  }
+  var settings = this.getSettings();
+  var physicsPack = {};
+  var scene = this.getScene();
+  var _this = this;
 
   //simulation loop function, done with setTimeout
   function simulate() {
@@ -127,9 +104,11 @@ Mecanica.prototype.startSimulation = function () {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
 
-    if (isWorker) {
-      packPhysics(objects, packet);
-      post(['transfer', packet], 'transfer physics');
+    if (_this.runsInWorker()) {
+      _this.packPhysics(physicsPack);
+      post(['transfer', physicsPack], 'transfer physics');
+    } else {
+      _this._physicsDataReceived = true;
     }
   }
 
@@ -139,20 +118,25 @@ Mecanica.prototype.startSimulation = function () {
 };
 
 Mecanica.prototype.startRender = function () {
+  if (!this.runsWebGL()) return false;
   var settings = this.getSettings();
   var controller = require('./util/controller.js');
   var scene = this.getScene();
   var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
+  var _this = this;
+
   function render() {
     if (scene._destroyed) return;
     scene._rstid = setTimeout(function () {
       scene._rafid = requestAnimationFrame(render);
     }, 1000 / settings.renderFrequency);
+    if (!_this.physicsDataReceived()) return;
     monitor.camera.move();
     monitor.renderer.three.render(scene.three, monitor.camera.three);
   }
-
-  setTimeout(render, 1000 / settings.renderFrequency);
+  render();
+  //setTimeout(render, 1000 / settings.renderFrequency);
+  return true;
 };
 
 Mecanica.prototype.start = function () {
@@ -160,5 +144,8 @@ Mecanica.prototype.start = function () {
   this.startRender();
 };
 
+Mecanica.prototype.physicsDataReceived = function () {
+  return !!this._physicsDataReceived;
+};
 
 extend(Mecanica, System);

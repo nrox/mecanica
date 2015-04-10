@@ -77,7 +77,7 @@
    */
   window.require = function (script, arg) {
 
-    if (arg===undefined) arg = undefined;
+    if (arg === undefined) arg = undefined;
 
     function fileName(script) {
       return script.substr(script.lastIndexOf('/') + 1);
@@ -134,8 +134,13 @@
           module = {
             exports: Ammo
           };
-        } else
-          eval('(function(){\n' + data + '\n})();');
+        } else {
+          try {
+            eval('(function(){\n' + data + '\n})();');
+          } catch (e) {
+            console.error(e);
+          }
+        }
       },
       type: 'GET'
     });

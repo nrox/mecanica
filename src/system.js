@@ -120,31 +120,30 @@ System.prototype.loadIntoScene = function () {
   //FIXME
   if (this._loaded) return;
   this._loaded = true;
-  var objs = this.objects;
   var _this = this;
   var scene = this.getScene();
-  _.each(objs.system, function (sys) {
+  _.each(this.objects.system, function (sys) {
     sys.loadIntoScene();
   });
-  _.each(objs.body, function (body) {
+  _.each(this.objects.body, function (body) {
     if (!body._added && (body._added = true)) {
       body.updateMotionState();
       if (_this.runsWebGL()) scene.three.add(body.three);
       if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
     }
   });
-  _.each(objs.constraint, function (cons) {
+  _.each(this.objects.constraint, function (cons) {
     cons.add();
   });
 };
 
 System.prototype.syncPhysics = function () {
   //sync all bodies
-  _.each(this.objects.body, function(body){
+  _.each(this.objects.body, function (body) {
     body.syncPhysics();
   });
   //and all child systems
-  _.each(this.objects.system, function(system){
+  _.each(this.objects.system, function (system) {
     system.syncPhysics();
   });
 };
@@ -160,8 +159,26 @@ System.prototype.toJSON = function () {
   return json;
 };
 
+/**
+ * update myPack with all subsystems and bodies position and rotation
+ * @param myPack
+ */
+System.prototype.packPhysics = function (myPack) {
 
+  //for each body
+  if (!myPack.body) myPack.body = {};
+  _.each(this.objects.body, function (body, id) {
+    if (!myPack.body[id]) myPack.body[id] = {};
+    body.packPhysics(myPack.body[id]);
+  });
+
+  //for each child system
+  if (!myPack.system) myPack.system = {};
+  _.each(this.objects.system, function (sys, id) {
+    if (!myPack.system[id]) myPack.system[id] = {};
+    sys.packPhysics(myPack.system[id]);
+  });
+};
 
 extend(System, Component);
 Component.prototype.maker.system = System;
-
