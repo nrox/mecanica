@@ -4,7 +4,7 @@ var three = require('../lib/three.js');
 var _ = require('../lib/underscore.js');
 
 function clearObjects() {
-
+  $('#container').empty();
 }
 
 var test = {
@@ -185,6 +185,28 @@ var test = {
   },
   Light: function () {
     console.warn('TODO');
+  },
+  UserInterface: function () {
+    var lib = require('../mecanica.js');
+    var mec = new lib.Mecanica({settings: {uiContainer: '#container'}});
+    var values = {
+      string1: "hello",
+      boolean1: true,
+      function1: function () {
+        alert('hello')
+      },
+      folder1: {
+        value1: 3,
+        subfolder: {
+          subfolder: {
+            value2: 2
+          }
+        }
+      }
+    };
+    var ui = new lib.UserInterface({
+      values: values
+    }, mec);
   }
 };
 

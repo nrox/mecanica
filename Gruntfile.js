@@ -20,8 +20,7 @@ module.exports = function (grunt) {
           'src/camera.js',
           'src/monitor.js',
           'src/renderer.js',
-          'src/web-worker.js',
-          'src/simulation.js',
+          'src/ui.js',
           'src/exports.js'
         ],
         dest: 'mecanica.js'

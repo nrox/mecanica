@@ -9,6 +9,7 @@ Settings.prototype.types = {
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
       canvasContainer: 'body', //container for renderer,
+      uiContainer: 'body',
       reuseCanvas: true,
       webWorker: true, //use webworker if available
       autoStart: true, //auto start simulation and rendering

@@ -34,12 +34,12 @@ var test = {
   'mec.toJSON()': function () {
     var me = new (require('../mecanica.js').Mecanica)();
     me.import('../ware/basic2.js', 'basic2');
-    me.useMonitor();
-    me.useLights({def: {}});
+    //me.useMonitor();
+    me.useLight({def: {}});
     var json = me.toJSON();
     console.log('import basic2.js, and then .toJSON');
     testUtils.checkKeys(json, [
-      'light', 'system', 'scene', 'monitor', 'settings'
+      'light', 'system', 'scene', 'settings'
     ], 'json top properties');
     testUtils.checkKeys(json.system, [
       'basic2'

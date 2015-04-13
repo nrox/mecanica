@@ -16,6 +16,7 @@ module.exports = {
   Scene: Scene,
   Camera: Camera,
   Monitor: Monitor,
-  Renderer: Renderer
+  Renderer: Renderer,
+  UserInterface: UserInterface
 };
 

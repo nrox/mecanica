@@ -38,9 +38,12 @@ Component.prototype.runsWebGL = function () {
   return RUNS_WEBGL;
 };
 
+Component.prototype.runsRender = function () {
+  return RUNS_WEBGL;
+};
+
 Component.prototype.runsInWorker = function () {
-  //TODO
-  return false;
+  return utils.isBrowserWorker();
 };
 
 Component.prototype.include = function (options, defaults) {
