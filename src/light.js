@@ -28,6 +28,18 @@ Light.prototype.types = {
       }
       this.three = light;
     }
+    this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
+  }
+};
+
+Light.prototype.methods = {
+  addToScene: function (scene) {
+    if (this.runsWebGL()) {
+      if (!this._added) {
+        this._added = true;
+        scene.three.add(this.three);
+      }
+    }
   }
 };
 

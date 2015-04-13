@@ -7,8 +7,12 @@ Scene.prototype.types = {
     this.include(options, {
       gravity: {y: -9.81}
     });
+    var settings = this.getSettings();
     if (this.runsWebGL()) {
       this.three = new THREE.Scene();
+      if (settings.axisHelper) {
+        if (this.runsWebGL()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
+      }
     }
     if (this.runsPhysics()) {
       this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();

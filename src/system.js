@@ -20,6 +20,7 @@ System.prototype.types = {
       constraint: {}, //point, slider, hinge ...
       method: {} //methods available to the system
     };
+    this.loadJSON(options);
   }
 };
 
@@ -40,12 +41,34 @@ System.prototype.getObject = function () {
   if (arguments[0] instanceof Array) {
     return this.getObject.apply(this, arguments[0]);
   }
+  //TODO make this recursive
   var obj = this.objects;
   for (var i = 0; i < arguments.length; i++) {
-    obj = obj[arguments[i]];
+    if ((obj instanceof System) || (obj instanceof Mecanica)) {
+      obj = obj.objects[arguments[i]];
+    } else {
+      obj = obj[arguments[i]];
+    }
     if (!obj) break;
   }
   return obj;
+};
+
+System.prototype.getSome = function (group) {
+  var obj = this.getObject(group);
+  return obj[_.keys(obj)[0]];
+};
+
+System.prototype.getSystem = function (id) {
+  return this.getObject('system', id);
+};
+
+System.prototype.getBody = function (id) {
+  return this.getObject('body', id);
+};
+
+System.prototype.getConstraint = function (id) {
+  return this.getObject('constraint', id);
 };
 
 /**
@@ -83,7 +106,7 @@ System.prototype.make = function () {
     console.error('group is not defined');
     return undefined;
   }
-  type = type || '_default';
+  //type = type || '_default';
   var cons = this.maker[group];
   var obj;
   if (typeof cons == 'function') {
@@ -104,6 +127,16 @@ System.prototype.make = function () {
   return obj;
 };
 
+System.prototype.loadSystem = function (json, id) {
+  try {
+    json = json || {};
+    json.id = id;
+    this.make('system', json);
+  } catch (e) {
+    console.error('caught', e);
+  }
+};
+
 System.prototype.loadJSON = function (json) {
   var _this = this;
   _.each(_this.objects, function (groupObject, groupName) {
@@ -113,27 +146,18 @@ System.prototype.loadJSON = function (json) {
       _this.make(groupName, objectOptions);
     });
   });
-  this.loadIntoScene();
 };
 
-System.prototype.loadIntoScene = function () {
-  //FIXME
-  if (this._loaded) return;
-  this._loaded = true;
-  var _this = this;
-  var scene = this.getScene();
+System.prototype.addToScene = function (scene) {
+  if (!scene) scene = this.getScene();
   _.each(this.objects.system, function (sys) {
-    sys.loadIntoScene();
+    sys.addToScene(scene);
   });
   _.each(this.objects.body, function (body) {
-    if (!body._added && (body._added = true)) {
-      body.updateMotionState();
-      if (_this.runsWebGL()) scene.three.add(body.three);
-      if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
-    }
+    body.addToScene(scene);
   });
   _.each(this.objects.constraint, function (cons) {
-    cons.add();
+    cons.addToScene(scene);
   });
 };
 

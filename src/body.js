@@ -73,6 +73,15 @@ Body.prototype.updateMotionState = function () {
   }
 };
 
+Body.prototype.addToScene = function(scene){
+  if (!this._added) {
+    this._added = true;
+    this.updateMotionState();
+    if (this.runsWebGL()) scene.three.add(this.three);
+    if (this.runsPhysics()) scene.ammo.addRigidBody(this.ammo);
+  }
+};
+
 /**
  * copy the positions and rotation from ammo object to three object
  * in between updating also position and rotation assigned to the object

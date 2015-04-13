@@ -220,6 +220,7 @@ System.prototype.types = {
       constraint: {}, //point, slider, hinge ...
       method: {} //methods available to the system
     };
+    this.loadJSON(options);
   }
 };
 
@@ -240,12 +241,34 @@ System.prototype.getObject = function () {
   if (arguments[0] instanceof Array) {
     return this.getObject.apply(this, arguments[0]);
   }
+  //TODO make this recursive
   var obj = this.objects;
   for (var i = 0; i < arguments.length; i++) {
-    obj = obj[arguments[i]];
+    if ((obj instanceof System) || (obj instanceof Mecanica)) {
+      obj = obj.objects[arguments[i]];
+    } else {
+      obj = obj[arguments[i]];
+    }
     if (!obj) break;
   }
   return obj;
+};
+
+System.prototype.getSome = function (group) {
+  var obj = this.getObject(group);
+  return obj[_.keys(obj)[0]];
+};
+
+System.prototype.getSystem = function (id) {
+  return this.getObject('system', id);
+};
+
+System.prototype.getBody = function (id) {
+  return this.getObject('body', id);
+};
+
+System.prototype.getConstraint = function (id) {
+  return this.getObject('constraint', id);
 };
 
 /**
@@ -283,7 +306,7 @@ System.prototype.make = function () {
     console.error('group is not defined');
     return undefined;
   }
-  type = type || '_default';
+  //type = type || '_default';
   var cons = this.maker[group];
   var obj;
   if (typeof cons == 'function') {
@@ -304,6 +327,16 @@ System.prototype.make = function () {
   return obj;
 };
 
+System.prototype.loadSystem = function (json, id) {
+  try {
+    json = json || {};
+    json.id = id;
+    this.make('system', json);
+  } catch (e) {
+    console.error('caught', e);
+  }
+};
+
 System.prototype.loadJSON = function (json) {
   var _this = this;
   _.each(_this.objects, function (groupObject, groupName) {
@@ -313,27 +346,18 @@ System.prototype.loadJSON = function (json) {
       _this.make(groupName, objectOptions);
     });
   });
-  this.loadIntoScene();
 };
 
-System.prototype.loadIntoScene = function () {
-  //FIXME
-  if (this._loaded) return;
-  this._loaded = true;
-  var _this = this;
-  var scene = this.getScene();
+System.prototype.addToScene = function (scene) {
+  if (!scene) scene = this.getScene();
   _.each(this.objects.system, function (sys) {
-    sys.loadIntoScene();
+    sys.addToScene(scene);
   });
   _.each(this.objects.body, function (body) {
-    if (!body._added && (body._added = true)) {
-      body.updateMotionState();
-      if (_this.runsWebGL()) scene.three.add(body.three);
-      if (_this.runsPhysics()) scene.ammo.addRigidBody(body.ammo);
-    }
+    body.addToScene(scene);
   });
   _.each(this.objects.constraint, function (cons) {
-    cons.add();
+    cons.addToScene(scene);
   });
 };
 
@@ -394,11 +418,11 @@ function Mecanica(options) {
 Mecanica.prototype.types = {
   main: function (options) {
     this.include(options, {
-      settings: { use: {type: 'global'} },
-      scene: { use: {} },
-      light: { use: {} },
-      system: {},
-      monitor: { use: {} }
+      settings: undefined,
+      scene: undefined,
+      light: undefined,
+      system: undefined,
+      monitor: undefined
     });
     this.objects = {
       settings: {}, //preferences
@@ -407,38 +431,52 @@ Mecanica.prototype.types = {
       light: {},
       monitor: {} //set of camera + renderer
     };
-    this.notifyUndefined(_.keys(this.objects));
-    this.init(this.options());
+    this.useSettings(this.settings);
+    this.useScene(this.scene);
+
+    var scene = this.getScene();
+
+    //load all systems
+    var _this = this;
+    _.each(this.system, function (sys, id) {
+      _this.loadSystem(sys, id);
+    });
+    this.useLight(this.light);
+
+    _.each(this.objects.system, function (sys) {
+      sys.addToScene(scene);
+    });
+
   }
 };
 
-Mecanica.prototype.init = function (json) {
+Mecanica.prototype.useSettings = function (json) {
+  json = json || {};
+  json.id = 'use';
+  json.type = 'global';
+  this.make('settings', json);
+};
+
+Mecanica.prototype.useMonitor = function (json) {
+  if (this.getSome('monitor')) return;
+  json = json || {};
+  json.id = 'use';
+  this.make('monitor', json);
+};
+
+Mecanica.prototype.useScene = function (json) {
+  json = json || {};
+  json.id = 'use';
+  this.make('scene', json);
+};
+
+Mecanica.prototype.useLight = function (json) {
   var _this = this;
-  //for each already key in objects, check if that type exists in json and build its contents
-  _.each(_this.objects, function (groupObject, groupName) {
-    groupObject = json[groupName];
-    _.each(groupObject, function (objectOptions, objectId) {
-      objectOptions.id = objectId;
-      _this.make(groupName, objectOptions);
-    });
-  });
-
-  var settings = this.getSettings();
-  var scene = this.getScene();
-
-  if (settings.axisHelper) {
-    if (this.runsWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
-  }
-
-  if (_this.runsWebGL()) {
-    _.each(_this.objects.light, function (light) {
-      if (!light._added && (light._added = true)) {
-        scene.three.add(light.three);
-      }
-    });
-  }
-  _.each(this.objects.system, function (sys) {
-    sys.loadIntoScene();
+  _.each(json, function (light, id) {
+    if (_this.getObject('light', id)) return;
+    light = light || {};
+    light.id = id;
+    _this.make('light', light);
   });
 };
 
@@ -518,8 +556,12 @@ Mecanica.prototype.startRender = function () {
   var settings = this.getSettings();
   var controller = require('./util/controller.js');
   var scene = this.getScene();
-  var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
+  this.useMonitor(this.monitor);
+  var monitor = this.getSome('monitor');
   var _this = this;
+  _.each(this.objects.light, function (light) {
+    light.addToScene(scene);
+  });
 
   function render() {
     if (scene._destroyed) return;
@@ -761,6 +803,18 @@ Light.prototype.types = {
       }
       this.three = light;
     }
+    this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
+  }
+};
+
+Light.prototype.methods = {
+  addToScene: function (scene) {
+    if (this.runsWebGL()) {
+      if (!this._added) {
+        this._added = true;
+        scene.three.add(this.three);
+      }
+    }
   }
 };
 
@@ -842,6 +896,15 @@ Body.prototype.updateMotionState = function () {
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+Body.prototype.addToScene = function(scene){
+  if (!this._added) {
+    this._added = true;
+    this.updateMotionState();
+    if (this.runsWebGL()) scene.three.add(this.three);
+    if (this.runsPhysics()) scene.ammo.addRigidBody(this.ammo);
   }
 };
 
@@ -981,8 +1044,8 @@ Constraint.prototype.types = {
         utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
       }
     }
-    this.addPhysicsMethod('add', Constraint.prototype.methods.add);
-    this.addPhysicsMethod('remove', Constraint.prototype.methods.remove);
+    this.addPhysicsMethod('addToScene', Constraint.prototype.methods.addToScene);
+    this.addPhysicsMethod('removeFromScene', Constraint.prototype.methods.removeFromScene);
   },
   //for pendulum-like constraints
   point: function (options) {
@@ -1003,7 +1066,7 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
-    this.addPhysicsMethod('disable',Constraint.prototype.methods.disable);
+    this.addPhysicsMethod('disable', Constraint.prototype.methods.disable);
   },
   //like robotic servo motors, based on the hinge constraint
   servo: function (options) {
@@ -1195,19 +1258,19 @@ Constraint.prototype.types = {
 };
 
 Constraint.prototype.methods = {
-  add: function () {
+  addToScene: function (scene) {
     if (!this._added && this.runsPhysics()) {
       this.create();
       if (this.afterCreate) this.afterCreate();
-      this.getScene().ammo.addConstraint(this.ammo);
+      scene.ammo.addConstraint(this.ammo);
       this._added = true;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
     }
   },
-  remove: function () {
+  removeFromScene: function (scene) {
     if (this._added && this.runsPhysics()) {
-      this.getScene().ammo.removeConstraint(this.ammo);
+      scene.ammo.removeConstraint(this.ammo);
       Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();
@@ -1265,8 +1328,12 @@ Scene.prototype.types = {
     this.include(options, {
       gravity: {y: -9.81}
     });
+    var settings = this.getSettings();
     if (this.runsWebGL()) {
       this.three = new THREE.Scene();
+      if (settings.axisHelper) {
+        if (this.runsWebGL()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
+      }
     }
     if (this.runsPhysics()) {
       this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
@@ -1503,13 +1570,10 @@ extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
 // src/renderer.js ends
 
-;// src/worker.js begins
+;// src/web-worker.js begins
 
-/**
- * Created by nrox on 3/30/15.
- */
 
-// src/worker.js ends
+// src/web-worker.js ends
 
 ;// src/simulation.js begins
 

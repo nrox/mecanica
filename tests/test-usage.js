@@ -27,33 +27,43 @@ var test = {
     testUtils.checkKeys(me.getObject().system, [
       'basic2'
     ], 'system imported');
+    testUtils.checkKeys(me.getObject('system', 'basic2', 'system', 'subsystem', 'body'), [
+      'body2'
+    ], 'subsystem imported');
   },
   'mec.toJSON()': function () {
     var me = new (require('../mecanica.js').Mecanica)();
-    me.import('../ware/basic2.js','basic2');
+    me.import('../ware/basic2.js', 'basic2');
+    me.useMonitor();
+    me.useLights({def: {}});
     var json = me.toJSON();
     console.log('import basic2.js, and then .toJSON');
     testUtils.checkKeys(json, [
-      'light','system','scene','monitor','settings'
+      'light', 'system', 'scene', 'monitor', 'settings'
     ], 'json top properties');
     testUtils.checkKeys(json.system, [
       'basic2'
     ], 'system key present');
     testUtils.checkKeys(json.system['basic2'].body, [
-      'id6','id5'
+      'id6', 'id5'
     ], 'system basic2 bodies');
+    testUtils.checkKeys(json.system.basic2.system.subsystem.body.body2, [
+      'position'
+    ], 'subsystem included');
   },
   'mec.start/stop()': function () {
     var me = new (require('../mecanica.js').Mecanica)({
       settings: {use: {canvasContainer: '#container', type: 'global'}}
     });
     me.import('../ware/basic2.js', 'basic2');
+    me.useLight({def: {}});
+    me.addToScene();
     me.start();
     var buttons = {
-      start: function(){
+      start: function () {
         me.start();
       },
-      stop: function(){
+      stop: function () {
         me.stop();
       },
       speed: 1
@@ -61,9 +71,11 @@ var test = {
     var template = {
       speed: {type: 'range', min: 0, max: 20, step: 0.2, onChange: setSpeed}
     };
-    function setSpeed(){
+
+    function setSpeed() {
       me.setSpeed(editor.getValues().speed);
     }
+
     var editor = new editorConstructor();
     editor.setValues(buttons);
     editor.useTemplate(template);

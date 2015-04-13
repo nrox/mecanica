@@ -45,7 +45,7 @@ availablePaths = [
 "../src/simulation.js",
 "../src/system.js",
 "../src/vector.js",
-"../src/worker.js",
+"../src/web-worker.js",
 "../styles/tests.css",
 "../tests/index.html",
 "../tests/readme.md",

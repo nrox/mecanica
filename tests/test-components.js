@@ -18,10 +18,10 @@ var test = {
   },
   Mecanica: function () {
     var mecanica = require('../mecanica.js');
-    var world = new mecanica.Mecanica({settings: {use: {simSpeed: 5 }}});
-    testUtils.checkValues(world.options().settings.use, {
+    var world = new mecanica.Mecanica({settings: {simSpeed: 5 }});
+    testUtils.checkValues(world.getSettings(), {
       simSpeed: 5
-    }, 'Mecanica instance options');
+    }, 'settings options');
     testUtils.checkKeys(world, [
       'import'
     ], 'own methods');
@@ -172,7 +172,7 @@ var test = {
     testUtils.checkValues(obj.options(), {
       connectorA: 'c', bodyB: 'b'
     }, 'constraint default type');
-    testUtils.checkKeys(obj, ['add', 'remove', 'create'], 'constraint basic methods');
+    testUtils.checkKeys(obj, ['addToScene', 'removeFromScene', 'create'], 'constraint basic methods');
   },
   Monitor: function () {
     console.warn('TODO');

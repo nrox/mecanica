@@ -6,11 +6,11 @@ function Mecanica(options) {
 Mecanica.prototype.types = {
   main: function (options) {
     this.include(options, {
-      settings: { use: {type: 'global'} },
-      scene: { use: {} },
-      light: { use: {} },
-      system: {},
-      monitor: { use: {} }
+      settings: undefined,
+      scene: undefined,
+      light: undefined,
+      system: undefined,
+      monitor: undefined
     });
     this.objects = {
       settings: {}, //preferences
@@ -19,38 +19,52 @@ Mecanica.prototype.types = {
       light: {},
       monitor: {} //set of camera + renderer
     };
-    this.notifyUndefined(_.keys(this.objects));
-    this.init(this.options());
+    this.useSettings(this.settings);
+    this.useScene(this.scene);
+
+    var scene = this.getScene();
+
+    //load all systems
+    var _this = this;
+    _.each(this.system, function (sys, id) {
+      _this.loadSystem(sys, id);
+    });
+    this.useLight(this.light);
+
+    _.each(this.objects.system, function (sys) {
+      sys.addToScene(scene);
+    });
+
   }
 };
 
-Mecanica.prototype.init = function (json) {
+Mecanica.prototype.useSettings = function (json) {
+  json = json || {};
+  json.id = 'use';
+  json.type = 'global';
+  this.make('settings', json);
+};
+
+Mecanica.prototype.useMonitor = function (json) {
+  if (this.getSome('monitor')) return;
+  json = json || {};
+  json.id = 'use';
+  this.make('monitor', json);
+};
+
+Mecanica.prototype.useScene = function (json) {
+  json = json || {};
+  json.id = 'use';
+  this.make('scene', json);
+};
+
+Mecanica.prototype.useLight = function (json) {
   var _this = this;
-  //for each already key in objects, check if that type exists in json and build its contents
-  _.each(_this.objects, function (groupObject, groupName) {
-    groupObject = json[groupName];
-    _.each(groupObject, function (objectOptions, objectId) {
-      objectOptions.id = objectId;
-      _this.make(groupName, objectOptions);
-    });
-  });
-
-  var settings = this.getSettings();
-  var scene = this.getScene();
-
-  if (settings.axisHelper) {
-    if (this.runsWebGL()) scene.three.add(new THREE.AxisHelper(settings.axisHelper));
-  }
-
-  if (_this.runsWebGL()) {
-    _.each(_this.objects.light, function (light) {
-      if (!light._added && (light._added = true)) {
-        scene.three.add(light.three);
-      }
-    });
-  }
-  _.each(this.objects.system, function (sys) {
-    sys.loadIntoScene();
+  _.each(json, function (light, id) {
+    if (_this.getObject('light', id)) return;
+    light = light || {};
+    light.id = id;
+    _this.make('light', light);
   });
 };
 
@@ -130,8 +144,12 @@ Mecanica.prototype.startRender = function () {
   var settings = this.getSettings();
   var controller = require('./util/controller.js');
   var scene = this.getScene();
-  var monitor = this.getObject('monitor', _.keys(this.objects['monitor'])[0]) || {};
+  this.useMonitor(this.monitor);
+  var monitor = this.getSome('monitor');
   var _this = this;
+  _.each(this.objects.light, function (light) {
+    light.addToScene(scene);
+  });
 
   function render() {
     if (scene._destroyed) return;

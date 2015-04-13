@@ -23,8 +23,8 @@ Constraint.prototype.types = {
         utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
       }
     }
-    this.addPhysicsMethod('add', Constraint.prototype.methods.add);
-    this.addPhysicsMethod('remove', Constraint.prototype.methods.remove);
+    this.addPhysicsMethod('addToScene', Constraint.prototype.methods.addToScene);
+    this.addPhysicsMethod('removeFromScene', Constraint.prototype.methods.removeFromScene);
   },
   //for pendulum-like constraints
   point: function (options) {
@@ -45,7 +45,7 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
-    this.addPhysicsMethod('disable',Constraint.prototype.methods.disable);
+    this.addPhysicsMethod('disable', Constraint.prototype.methods.disable);
   },
   //like robotic servo motors, based on the hinge constraint
   servo: function (options) {
@@ -237,19 +237,19 @@ Constraint.prototype.types = {
 };
 
 Constraint.prototype.methods = {
-  add: function () {
+  addToScene: function (scene) {
     if (!this._added && this.runsPhysics()) {
       this.create();
       if (this.afterCreate) this.afterCreate();
-      this.getScene().ammo.addConstraint(this.ammo);
+      scene.ammo.addConstraint(this.ammo);
       this._added = true;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
     }
   },
-  remove: function () {
+  removeFromScene: function (scene) {
     if (this._added && this.runsPhysics()) {
-      this.getScene().ammo.removeConstraint(this.ammo);
+      scene.ammo.removeConstraint(this.ammo);
       Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();

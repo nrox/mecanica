@@ -20,6 +20,19 @@ module.exports = {
       connector: {c2: {base: {z: -3}}}
     }
   },
+  system: {
+    subsystem: {
+      shape: {
+        shape1: {type: 'cone', dy: 2, r: 2, segments: 32}
+      },
+      material: {
+        m1: {type: 'phong', color: 0x776644}
+      },
+      body: {
+        body2: {shape: 'shape1', material: 'm1', mass: 0, position: {y: 1.8}}
+      }
+    }
+  },
   constraint: {
     cons: {
       connectorA: 'c1', connectorB: 'c2', bodyA: 'id5', bodyB: 'id6'
@@ -32,7 +45,7 @@ module.exports = {
     cam: {camera: 'tracker', lookAt: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
   },
   light: {
-    l1: {type:'directional', color: 0xaaaaaa, position: {x: 5, y: 5, z: 5}}
+    l1: {type: 'directional', color: 0xaaaaaa, position: {x: 5, y: 5, z: 5}}
   }
 };
 

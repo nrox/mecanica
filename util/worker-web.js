@@ -27,14 +27,11 @@ onmessage = function (e) {
   var request = e.data;
   if ((typeof request == 'object') && actions[request.action]) {
     if (request.action != 'result') {
-      //console.log('arguments');
-      //console.log(request.arguments);
       if (factory.getScope()!=request.scope){
         factory.setScope(request.scope);
       }
       var result = actions[request.action].apply(null, request.arguments);
       var response = {};
-      //TODO use _.extend _.pick
       if (request.id) response.id = request.id;
       if (request.comment) response.comment = request.comment;
       response.result = result;
