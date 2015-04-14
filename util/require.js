@@ -22,7 +22,7 @@
   }
 
   function httpRoot() {
-    var locationHref = location.href.split('').reverse().join('');
+    var locationHref = (location.origin + location.pathname).split('').reverse().join('');
     if (locationHref.indexOf('/') === 0) locationHref = locationHref.substr(1);
     var longest = 0;
     for (var i = 0; i < availablePaths.length; i++) {
@@ -43,21 +43,28 @@
     //TODO make this more understandable
     script = script.replace('/../', '/');
     while (script.indexOf('/../') > 0) script = script.replace('/../', '/');
-    if (script.indexOf('./') == 0) script = script.substr(2);
-    if (script.indexOf('../') == 0) script = script.substr(3);
+    while (script.indexOf('./') == 0) script = script.substr(2);
+    while (script.indexOf('../') == 0) script = script.substr(3);
     while (script.indexOf('//') > 0) script = script.replace('//', '/');
     while (script.indexOf('/') == 0) script = script.substr(1);
     var fragments = script.split('/');
+    var ret;
     for (var i = 0; i < availablePaths.length; i++) {
+      if (script == availablePaths[i]) {
+        ret = script;
+        break;
+      }
       var pos = -1;
       for (var j = 0; j < fragments.length; j++) {
         pos = availablePaths[i].indexOf(fragments[j], pos);
+        if (pos < 0) break;
       }
       if (pos > -1) {
-        return availablePaths[i];
+        ret = availablePaths[i];
+        break;
       }
     }
-    return undefined;
+    return ret;
   }
 
   window.availablePaths = function () {

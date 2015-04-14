@@ -1,10 +1,20 @@
 function Mecanica(options) {
   if (!options) options = {};
-  this.construct(options, this, 'main');
+  this.objects = {
+    settings: {}, //preferences
+    scene: {}, //three scene + ammo world
+    system: {}, //high level structure of objects, identified by keys
+    light: {},
+    monitor: {} //set of camera + renderer
+  };
+  this.construct(options, this, 'complete');
 }
 
 Mecanica.prototype.types = {
-  main: function (options) {
+  empty: function (options) {
+    this.include(options, {});
+  },
+  complete: function (options) {
     this.include(options, {
       settings: undefined,
       scene: undefined,
@@ -12,13 +22,6 @@ Mecanica.prototype.types = {
       system: undefined,
       monitor: undefined
     });
-    this.objects = {
-      settings: {}, //preferences
-      scene: {}, //three scene + ammo world
-      system: {}, //high level structure of objects, identified by keys
-      light: {},
-      monitor: {} //set of camera + renderer
-    };
     this.useSettings(this.settings);
     this.useScene(this.scene);
 
@@ -34,7 +37,6 @@ Mecanica.prototype.types = {
     _.each(this.objects.system, function (sys) {
       sys.addToScene(scene);
     });
-
   }
 };
 
@@ -69,14 +71,18 @@ Mecanica.prototype.useLight = function (json) {
 };
 
 Mecanica.prototype.import = function (url, id) {
-  var json = require(url);
+  var json = require(url).getObject();
   this.load(json, id);
 };
 
 Mecanica.prototype.load = function (json, id) {
   try {
-    var sys = this.make('system', 'basic', {id: id});
-    sys.loadJSON(json);
+    if (id) {
+      var sys = this.make('system', 'basic', {id: id});
+      sys.loadJSON(json);
+    } else {
+      this.loadJSON(json);
+    }
   } catch (e) {
     console.error('caught', e);
   }
@@ -150,6 +156,7 @@ Mecanica.prototype.startRender = function () {
   _.each(this.objects.light, function (light) {
     light.addToScene(scene);
   });
+
 
   function render() {
     if (scene._destroyed) return;

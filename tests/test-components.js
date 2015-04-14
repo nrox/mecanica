@@ -195,6 +195,9 @@ var test = {
       function1: function () {
         alert('hello')
       },
+      function2: function(){
+
+      },
       folder1: {
         value1: 3,
         subfolder: {

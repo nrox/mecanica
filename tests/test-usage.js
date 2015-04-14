@@ -80,6 +80,16 @@ var test = {
     editor.setValues(buttons);
     editor.useTemplate(template);
     editor.showEditor('#triggers');
+  },
+  'mec.load(json)': function () {
+    var me = new (require('../mecanica.js').Mecanica)({ type: 'empty'});
+    me.import('../ware/settings/simple.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/simple.js');
+    me.import('../ware/monitor/simple.js');
+    me.import('../ware/basic2.js', 'basic2');
+    me.addToScene();
+    me.start();
   }
 };
 
