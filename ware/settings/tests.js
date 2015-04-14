@@ -2,7 +2,10 @@ var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
   id: 'simple',
-  type: 'global'
+  type: 'global',
+  uiContainer: '#triggers',
+  canvasContainer: '#container',
+  axisHelper: true
 };
 
 function getObject(options) {

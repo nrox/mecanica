@@ -70,24 +70,6 @@ Mecanica.prototype.useLight = function (json) {
   });
 };
 
-Mecanica.prototype.import = function (url, id) {
-  var json = require(url).getObject();
-  this.load(json, id);
-};
-
-Mecanica.prototype.load = function (json, id) {
-  try {
-    if (id) {
-      var sys = this.make('system', 'basic', {id: id});
-      sys.loadJSON(json);
-    } else {
-      this.loadJSON(json);
-    }
-  } catch (e) {
-    console.error('caught', e);
-  }
-};
-
 Mecanica.prototype.startSimulation = function () {
   if (!this.runsPhysics()) return false;
   if (this._simulationRunning) return true;

@@ -1,4 +1,10 @@
-module.exports.getObject = function () {
+var _ = require('../lib/underscore.js');
+
+module.exports.getObject = function (options) {
+  options = _.defaults(options || {}, {
+    coneY: 1.8,
+    coneRadius: 2
+  });
   return {
     settings: {
       over: {
@@ -24,13 +30,13 @@ module.exports.getObject = function () {
     system: {
       subsystem: {
         shape: {
-          shape1: {type: 'cone', dy: 2, r: 2, segments: 32}
+          shape1: {type: 'cone', dy: 2, r: options.coneRadius, segments: 32}
         },
         material: {
           m1: {type: 'phong', color: 0x776644}
         },
         body: {
-          body2: {shape: 'shape1', material: 'm1', mass: 0, position: {y: 1.8}}
+          body2: {shape: 'shape1', material: 'm1', mass: 0, position: {y: options.coneY}}
         }
       }
     },

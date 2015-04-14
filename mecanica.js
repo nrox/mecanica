@@ -224,7 +224,7 @@ System.prototype.types = {
       constraint: {}, //point, slider, hinge ...
       method: {} //methods available to the system
     };
-    this.loadJSON(options);
+    this.load(options);
   }
 };
 
@@ -331,17 +331,18 @@ System.prototype.make = function () {
   return obj;
 };
 
-System.prototype.loadSystem = function (json, id) {
+
+System.prototype.import = function (url, options) {
   try {
-    json = json || {};
-    json.id = id;
-    this.make('system', json);
+    var json = require(url).getObject(options);
+    this.load(json);
   } catch (e) {
-    console.error('caught', e);
+    console.log('System.import: ' + url);
+    console.error(e);
   }
 };
 
-System.prototype.loadJSON = function (json) {
+System.prototype.load = function (json) {
   var _this = this;
   _.each(_this.objects, function (groupObject, groupName) {
     groupObject = json[groupName];
@@ -350,6 +351,38 @@ System.prototype.loadJSON = function (json) {
       _this.make(groupName, objectOptions);
     });
   });
+};
+
+System.prototype.importSystem = function (url, id, options) {
+  try {
+    console.log('System.importSystem: ' + id + ' @ ' + url);
+    var json = require(url).getObject(options);
+    return this.loadSystem(json, id);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+System.prototype.loadSystem = function (json, id) {
+  try {
+    json = json || {};
+    json.id = id;
+    return this.make('system', json);
+  } catch (e) {
+    console.log('System.loadSystem: ' + id);
+    console.error(e);
+  }
+};
+
+System.prototype.destroy = function (scene) {
+  if (!scene) scene = this.getScene();
+  _.each(this.objects, function (groupObjects, groupName) {
+    _.each(groupObjects, function (obj, key) {
+      obj.destroy(scene);
+      delete groupObjects[key];
+    });
+  });
+  delete this.parentSystem.objects['system'][this.id];
 };
 
 System.prototype.addToScene = function (scene) {
@@ -484,24 +517,6 @@ Mecanica.prototype.useLight = function (json) {
     light.id = id;
     _this.make('light', light);
   });
-};
-
-Mecanica.prototype.import = function (url, id) {
-  var json = require(url).getObject();
-  this.load(json, id);
-};
-
-Mecanica.prototype.load = function (json, id) {
-  try {
-    if (id) {
-      var sys = this.make('system', 'basic', {id: id});
-      sys.loadJSON(json);
-    } else {
-      this.loadJSON(json);
-    }
-  } catch (e) {
-    console.error('caught', e);
-  }
 };
 
 Mecanica.prototype.startSimulation = function () {
@@ -910,7 +925,7 @@ Body.prototype.updateMotionState = function () {
   }
 };
 
-Body.prototype.addToScene = function(scene){
+Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
     this.updateMotionState();
@@ -951,10 +966,9 @@ Body.prototype.syncPhysics = function () {
     body.three.quaternion.copy(body.quaternion);
   }
 };
-
 /*
-  get position and rotation to send from worker to window
-  the result is passed by reference in the argument
+ get position and rotation to send from worker to window
+ the result is passed by reference in the argument
  */
 Body.prototype.packPhysics = function (myPhysics) {
   if (!myPhysics.position) myPhysics.position = {};
@@ -966,6 +980,21 @@ Body.prototype.packPhysics = function (myPhysics) {
   myPhysics.quaternion.y = this.quaternion.y;
   myPhysics.quaternion.z = this.quaternion.z;
   myPhysics.quaternion.w = this.quaternion.w;
+};
+
+Body.prototype.destroy = function (scene) {
+  _.each(this.connector, function (c) {
+    c.destroy();
+  });
+  if (this.runsRender()) {
+    scene.three.remove(this.three);
+    this.three.geometry.dispose();
+    this.three.material.dispose();
+  }
+  if (this.runsPhysics()) {
+    scene.ammo.removeRigidBody(this.ammo);
+    Ammo.destroy(this.ammo);
+  }
 };
 
 extend(Body, Component);
@@ -1398,7 +1427,10 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    this.lookAt = this.parentSystem.getObject('body', this.lookAt);
+    if (this.lookAt instanceof Body) {
+    } else {
+      this.lookAt = this.parentSystem.getObject('body', this.lookAt);
+    }
     if (this.runsWebGL()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
@@ -1416,7 +1448,8 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    if (typeof(this.lookAt) == 'string') {
+    if (this.lookAt instanceof Body) {
+    } else if (typeof(this.lookAt) == 'string') {
       this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     } else {
       this.lookAt = new Vector(this.lookAt);
@@ -1483,7 +1516,7 @@ Camera.prototype.methods = {
       camera.three.lookAt(camera.lookAt.three.position);
     }
   },
-  movePerspective: function(){
+  movePerspective: function () {
 
   }
 };
@@ -1598,7 +1631,7 @@ UserInterface.prototype.types = {
       template: {},
       container: this.getSettings().uiContainer
     });
-    this.notifyUndefined(['values']);
+    this.notifyUndefined(['values', 'container']);
     if (this.runsRender) {
       if (typeof $ === 'undefined') {
         $ = jQuery;
@@ -1614,7 +1647,7 @@ UserInterface.prototype.types = {
 UserInterface.prototype.getValues = function () {
   _.each(this.updaters, function (fn) {
     try {
-      fn();
+      if (typeof fn == 'function') fn();
     } catch (e) {
     }
   });
@@ -1668,6 +1701,9 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       if ($value[GET_VALUE]) {
         _this.updaters.push(function () {
           obj[k] = $value[GET_VALUE]();
+          if (!isNaN(obj[k])) {
+            obj[k] = Number(obj[k]);
+          }
         });
       }
       ref[k] = $value;
@@ -1923,7 +1959,7 @@ UserInterface.prototype.css = {
     'border': '0',
     'margin': '2px 3px',
     'min-width': '30px',
-    'font-weight': 'normal',
+    'font-weight': 'bold',
     'border-radius': '0.3em'
   },
   key: {

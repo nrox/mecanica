@@ -80,9 +80,13 @@ availablePaths = [
 "../ware/servo.js",
 "../ware/settings",
 "../ware/world",
+"../ware/light/set3.js",
 "../ware/light/simple.js",
+"../ware/monitor/satellite.js",
 "../ware/monitor/simple.js",
+"../ware/monitor/tracker.js",
 "../ware/scene/simple.js",
 "../ware/settings/simple.js",
+"../ware/settings/tests.js",
 "../ware/world/surface.js",
 ]

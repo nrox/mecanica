@@ -13,7 +13,7 @@ UserInterface.prototype.types = {
       template: {},
       container: this.getSettings().uiContainer
     });
-    this.notifyUndefined(['values']);
+    this.notifyUndefined(['values', 'container']);
     if (this.runsRender) {
       if (typeof $ === 'undefined') {
         $ = jQuery;
@@ -29,7 +29,7 @@ UserInterface.prototype.types = {
 UserInterface.prototype.getValues = function () {
   _.each(this.updaters, function (fn) {
     try {
-      fn();
+      if (typeof fn == 'function') fn();
     } catch (e) {
     }
   });
@@ -83,6 +83,9 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       if ($value[GET_VALUE]) {
         _this.updaters.push(function () {
           obj[k] = $value[GET_VALUE]();
+          if (!isNaN(obj[k])) {
+            obj[k] = Number(obj[k]);
+          }
         });
       }
       ref[k] = $value;
@@ -338,7 +341,7 @@ UserInterface.prototype.css = {
     'border': '0',
     'margin': '2px 3px',
     'min-width': '30px',
-    'font-weight': 'normal',
+    'font-weight': 'bold',
     'border-radius': '0.3em'
   },
   key: {

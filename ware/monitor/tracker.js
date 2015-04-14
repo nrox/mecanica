@@ -1,15 +1,18 @@
 var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
-  id: 'simple',
-  type: 'global'
+  id: 'tracker',
+  camera: 'tracker',
+  lookAt: {},
+  axis: {x: 5, y: 7, z: 10},
+  distance: 15
 };
 
 function getObject(options) {
   options = _.defaults(options || {}, defaultOptions);
-  var settings = {settings: {}};
-  settings.settings[options.id] = options;
-  return settings;
+  var monitors = {monitor: {}};
+  monitors.monitor[options.id] = options;
+  return monitors;
 }
 
 module.exports.getObject = getObject;

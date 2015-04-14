@@ -20,7 +20,7 @@ System.prototype.types = {
       constraint: {}, //point, slider, hinge ...
       method: {} //methods available to the system
     };
-    this.loadJSON(options);
+    this.load(options);
   }
 };
 
@@ -127,17 +127,18 @@ System.prototype.make = function () {
   return obj;
 };
 
-System.prototype.loadSystem = function (json, id) {
+
+System.prototype.import = function (url, options) {
   try {
-    json = json || {};
-    json.id = id;
-    this.make('system', json);
+    var json = require(url).getObject(options);
+    this.load(json);
   } catch (e) {
-    console.error('caught', e);
+    console.log('System.import: ' + url);
+    console.error(e);
   }
 };
 
-System.prototype.loadJSON = function (json) {
+System.prototype.load = function (json) {
   var _this = this;
   _.each(_this.objects, function (groupObject, groupName) {
     groupObject = json[groupName];
@@ -146,6 +147,38 @@ System.prototype.loadJSON = function (json) {
       _this.make(groupName, objectOptions);
     });
   });
+};
+
+System.prototype.importSystem = function (url, id, options) {
+  try {
+    console.log('System.importSystem: ' + id + ' @ ' + url);
+    var json = require(url).getObject(options);
+    return this.loadSystem(json, id);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+System.prototype.loadSystem = function (json, id) {
+  try {
+    json = json || {};
+    json.id = id;
+    return this.make('system', json);
+  } catch (e) {
+    console.log('System.loadSystem: ' + id);
+    console.error(e);
+  }
+};
+
+System.prototype.destroy = function (scene) {
+  if (!scene) scene = this.getScene();
+  _.each(this.objects, function (groupObjects, groupName) {
+    _.each(groupObjects, function (obj, key) {
+      obj.destroy(scene);
+      delete groupObjects[key];
+    });
+  });
+  delete this.parentSystem.objects['system'][this.id];
 };
 
 System.prototype.addToScene = function (scene) {

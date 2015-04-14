@@ -54,10 +54,16 @@ Alpha
 
     var lib = require('mecanica.js');
 
-    var mec = new lib.Mecanica({});
-    
-    //import a system
-    mec.import('ware/basic2.js', 'basic2');
+    var mec = new lib.Mecanica({type: 'empty'});
+
+    //import required components to have it working
+    mec.import('ware/settings/simple.js');
+    mec.import('ware/scene/simple.js');
+    mec.import('ware/light/simple.js');
+    mec.import('ware/monitor/simple.js');
+
+    //import a system, with id sys1
+    mec.importSystem('ware/basic2.js', 'sys1');
 
 ###Control
 
@@ -77,8 +83,11 @@ Alpha
 
 ###Insertion, removal
 
-    mec.insert({...});
-    mec.remove({});
+    var system = mec.importSystem('system/url.js','sys2', {option: ''});
+
+    // var system = mec.getSystem('sys2');
+
+    system.destroy();
 
 ###Saving
 

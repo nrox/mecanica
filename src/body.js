@@ -73,7 +73,7 @@ Body.prototype.updateMotionState = function () {
   }
 };
 
-Body.prototype.addToScene = function(scene){
+Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
     this.updateMotionState();
@@ -116,8 +116,8 @@ Body.prototype.syncPhysics = function () {
 };
 
 /*
-  get position and rotation to send from worker to window
-  the result is passed by reference in the argument
+ get position and rotation to send from worker to window
+ the result is passed by reference in the argument
  */
 Body.prototype.packPhysics = function (myPhysics) {
   if (!myPhysics.position) myPhysics.position = {};
@@ -129,6 +129,21 @@ Body.prototype.packPhysics = function (myPhysics) {
   myPhysics.quaternion.y = this.quaternion.y;
   myPhysics.quaternion.z = this.quaternion.z;
   myPhysics.quaternion.w = this.quaternion.w;
+};
+
+Body.prototype.destroy = function (scene) {
+  _.each(this.connector, function (c) {
+    c.destroy();
+  });
+  if (this.runsRender()) {
+    scene.three.remove(this.three);
+    this.three.geometry.dispose();
+    this.three.material.dispose();
+  }
+  if (this.runsPhysics()) {
+    scene.ammo.removeRigidBody(this.ammo);
+    Ammo.destroy(this.ammo);
+  }
 };
 
 extend(Body, Component);
