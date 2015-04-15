@@ -119,12 +119,21 @@ Constraint.prototype.types = {
     };
     this.afterCreate = function () {
       var c = this;
-      c.ammo.setLowerAngLimit(0);
-      c.ammo.setUpperAngLimit(0);
       c.ammo.setPoweredAngMotor(false);
       c.ammo.setLowerLinLimit(c.lowerLimit);
       c.ammo.setUpperLinLimit(c.upperLimit);
+      c.ammo.setLowerAngLimit(0);
+      c.ammo.setUpperAngLimit(0);
       c.ammo.setMaxLinMotorForce(c.maxForce);
+      c.ammo.setPoweredLinMotor(true);
+      c.setPosition(this.position);
+    };
+    this.beforeStep = function () {
+      var c = this;
+      var pos = c.ammo.getLinearPos();
+      var diff = (this.position - pos) / (this.upperLimit - this.lowerLimit);
+      var vel = this.maxVelocity * diff;
+      c.ammo.setTargetLinMotorVelocity(vel);
     };
     this.addPhysicsMethod('setPosition', Constraint.prototype.methods.setPosition);
   },
@@ -267,10 +276,7 @@ Constraint.prototype.methods = {
   //linear motors only
   setPosition: function (position) {
     if (this.runsPhysics()) {
-      //TODO do this the proper way, with target velocity. This is like forcing position and using brakes          this.position = position;
       this.position = position;
-      this.ammo.setLowerLinLimit(position);
-      this.ammo.setUpperLinLimit(position);
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
     }

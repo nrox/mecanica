@@ -1,4 +1,4 @@
-var utils = require('../util/test.js');
+var testUtils = require('../util/test.js');
 var _ = require('../lib/underscore.js');
 var $ = require('../lib/jquery.js');
 var lib = require('../mecanica.js');
@@ -19,55 +19,10 @@ function makeTest(system, inputOptions) {
     me.loadSystem(system, 'system');
     me.import('../ware/monitor/satellite.js');
     me.addToScene();
-
     if (inputOptions) new lib.UserInterface(inputOptions, me);
-
     me.start();
   };
 }
-
-var inputs = {
-  gear: function (actuator) {
-    actuator = 'motor';
-    var type = 'gear';
-    var template = {
-      servo: {
-        'angle(°)': {type: 'range', min: -180, max: 180, step: 5}
-      },
-      motor: {
-        velocity: {type: 'range', min: -5, max: 5, step: 1},
-        binary: {type: 'range', min: 0, max: 50, step: 1}
-      }
-    };
-    var ui = {
-      add: function () {
-        var c = factory.getObject('constraint', type);
-        c.add();
-      },
-      remove: function () {
-        var c = factory.getObject('constraint', type);
-        c.remove();
-      },
-      motor: {
-        velocity: 1,
-        binary: 1,
-        enable: function () {
-          var c = factory.getObject('constraint', actuator);
-          var values = this.getValues().motor;
-          c.enable(values.velocity, values.binary);
-        },
-        disable: function () {
-          var c = factory.getObject('constraint', actuator);
-          c.disable();
-        }
-      }
-    };
-    var editor = new Editor();
-    editor.useTemplate(template);
-    editor.setValues(ui);
-    editor.showEditor('#triggers');
-  }
-};
 
 function systemTemplate(options) {
   return {
@@ -128,7 +83,7 @@ var defaultOptions = {
 };
 
 function pointTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'point';
   var ui = {
     values: {
@@ -146,7 +101,7 @@ function pointTest() {
 }
 
 function hingeTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'hinge';
   options.cA.base = {x: -1, y: -1, z: -1};
   options.cA.up = {z: 1};
@@ -168,7 +123,7 @@ function hingeTest() {
 }
 
 function motorTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'motor';
   options.cA.base = {x: -1, y: -1, z: -1};
   options.cA.up = {z: 1};
@@ -197,7 +152,7 @@ function motorTest() {
 }
 
 function servoTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'servo';
   options.cA.base = {x: -1, y: -1, z: -1};
   options.cA.up = {z: 1};
@@ -232,7 +187,7 @@ function servoTest() {
 }
 
 function fixedTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'fixed';
 
   options.cA.base = {x: -1, y: -1, z: -1};
@@ -259,7 +214,7 @@ function fixedTest() {
 }
 
 function sliderTest() {
-  var options = utils.deepCopy(defaultOptions);
+  var options = testUtils.deepCopy(defaultOptions);
   options.type = 'slider';
   options.cA.base = {x: 0, y: 0, z: 0};
   options.cA.up = {z: 1};
@@ -282,6 +237,47 @@ function sliderTest() {
     }
   };
   return makeTest(systemTemplate(options), ui);
+}
+
+function linearTest() {
+  var options = testUtils.deepCopy(defaultOptions);
+  options.type = 'linear';
+  options.cA.base = {x: 0, y: 0, z: -2};
+  options.cA.up = {z: 1};
+  options.cA.front = {y: 1};
+
+  options.cB.base = {x: 0, y: 0, z: 2};
+  options.cB.up = {z: 1};
+  options.cB.front = {y: 1};
+
+  var system = systemTemplate(options);
+
+  system.constraint.constraint.lowerLimit = -5;
+  system.constraint.constraint.upperLimit = 1;
+  system.constraint.constraint.maxVelocity = 10;
+  system.constraint.constraint.maxBinary = 10;
+
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.addToScene(this.parentSystem.getScene());
+      },
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.removeFromScene(this.parentSystem.getScene());
+      },
+      position: 0
+    },
+    template: {
+      position: {type: 'range', min: -10, max: 1, step: 0.1, onChange: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        var position = this.getValues().position;
+        c.setPosition(position);
+      }}
+    }
+  };
+  return makeTest(system, ui);
 }
 
 function gearTest() {
@@ -477,7 +473,7 @@ test['servo'] = servoTest();
 test['fixed'] = fixedTest();
 test['slider'] = sliderTest();
 test['gear'] = gearTest();
-
+test['linear'] = linearTest();
 
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;
