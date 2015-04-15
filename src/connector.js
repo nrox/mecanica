@@ -71,8 +71,8 @@ Connector.prototype.normalize = function () {
     v3.x(), v3.y(), v3.z()
   );
   m3 = m3.transpose();
-  utils.copyFromAmmo(up, c.up, ammoHelper);
-  utils.copyFromAmmo(front, c.front, ammoHelper);
+  Vector.prototype.copyFromAmmo.call(c.up, up);
+  Vector.prototype.copyFromAmmo.call(c.front, front);
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
@@ -101,8 +101,8 @@ Connector.prototype.approachConnector = function (fix) {
   moveBodyInvTrans.op_mul(moveConInvTrans);
 
   move.body.ammoTransform.op_mul(moveBodyInvTrans);
-  move.body.position = new Vector(utils.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
-  move.body.quaternion = new Quaternion(utils.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
+  move.body.position = Vector.prototype.fromAmmo(move.body.ammoTransform.getOrigin());
+  move.body.quaternion = Quaternion.prototype.fromAmmo(move.body.ammoTransform.getRotation());
 };
 
 extend(Connector, Component);

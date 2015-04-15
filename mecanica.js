@@ -652,6 +652,20 @@ function Vector(options) {
   if (this.runsWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
 }
 
+Vector.prototype.fromAmmo = function (ammoVector) {
+  var options = {};
+  options.x = ammoVector.x();
+  options.y = ammoVector.y();
+  options.z = ammoVector.z();
+  return new Vector(options);
+};
+
+Vector.prototype.copyFromAmmo = function (ammoVector) {
+  this.x = ammoVector.x();
+  this.y = ammoVector.y();
+  this.z = ammoVector.z();
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -672,6 +686,22 @@ function Quaternion(options) {
     this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
   }
 }
+
+Quaternion.prototype.fromAmmo = function (ammoVector) {
+  var options = {};
+  options.x = ammoVector.x();
+  options.y = ammoVector.y();
+  options.z = ammoVector.z();
+  options.w = ammoVector.w();
+  return new Quaternion(options);
+};
+
+Quaternion.prototype.copyFromAmmo = function (ammoVector) {
+  this.x = ammoVector.x();
+  this.y = ammoVector.y();
+  this.z = ammoVector.z();
+  this.w = ammoVector.w();
+};
 
 extend(Vector, Component);
 extend(Quaternion, Component);
@@ -1082,8 +1112,8 @@ Connector.prototype.normalize = function () {
     v3.x(), v3.y(), v3.z()
   );
   m3 = m3.transpose();
-  utils.copyFromAmmo(up, c.up, ammoHelper);
-  utils.copyFromAmmo(front, c.front, ammoHelper);
+  Vector.prototype.copyFromAmmo.call(c.up, up);
+  Vector.prototype.copyFromAmmo.call(c.front, front);
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
@@ -1112,8 +1142,8 @@ Connector.prototype.approachConnector = function (fix) {
   moveBodyInvTrans.op_mul(moveConInvTrans);
 
   move.body.ammoTransform.op_mul(moveBodyInvTrans);
-  move.body.position = new Vector(utils.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
-  move.body.quaternion = new Quaternion(utils.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
+  move.body.position = Vector.prototype.fromAmmo(move.body.ammoTransform.getOrigin());
+  move.body.quaternion = Quaternion.prototype.fromAmmo(move.body.ammoTransform.getRotation());
 };
 
 extend(Connector, Component);
