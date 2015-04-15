@@ -1,17 +1,23 @@
 var utils = require('../util/test.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
-var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
+var lib = require('../mecanica.js');
 
-factory.addLibrary(ammo);
-factory.addLibrary(three);
+function clearObjects() {
+  $('#container').empty();
+}
+
+var test = {
+};
+
 
 function shape(type) {
   return function () {
-    var obj = {
+    var system = {
       shape: {
         shape0: {
+          type: type,
           segments: 24,
           dx: 3,
           dy: 5,
@@ -57,38 +63,20 @@ function shape(type) {
             type: 'phong', color: 0xf56677, opacity: 0.7, transparent: true
           }
         }
-      },
-      light: {
-        l1: {position: {x: 5, z: -5}},
-        l2: {position: {x:-7, y:6}, color: 0x8899bb},
-        l3: {position: {y: -5, z:1}, color: 0x445566}
-      },
-      monitor: {
-        m1: {
-          camera: 'satellite', inertia: 0.2, lookAt: 'body0'
-        }
       }
     };
-    obj.shape.shape0.type = type;
-    factory.setScope(type);
-    factory.loadScene(obj, {
-      webWorker: false,
-      autoStart: true,
-      wireframe: true,
-      axisHelper: true,
-      canvasContainer: '#container'
-    });
+    var me = new lib.Mecanica();
+    me.import('../ware/settings/tests.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/set3.js');
+    me.loadSystem(system, 'system');
+    me.import('../ware/monitor/satellite.js', {distance: 30});
+    me.addToScene();
+    me.start();
   };
 }
 
-function clearObjects() {
-  factory.destroyAll();
-}
-
-var test = {
-};
-
-_.each(factory.constructor.shape, function (cons, type) {
+_.each(lib.Shape.prototype.types, function (cons, type) {
   test[type] = shape(type);
 });
 

@@ -93,18 +93,6 @@ module.exports = {
     //ammoHelper.destroy(wing);
     return t;
   },
-  MxV: function (m, v) {
-    var b = m.getBasis();
-    var o = m.getOrigin();
-    var r = v.dot3(b.getRow(0), b.getRow(1), b.getRow(2));
-    r.op_add(o);
-    return r;
-  },
-  MxQ: function (m, q) {
-    var r = m.getRotation();
-    r.op_mul(q);
-    return r;
-  },
   logTransform: function (t, title) {
     if (title !== undefined) console.log(title);
     console.log('position:', t.getOrigin().x(), t.getOrigin().y(), t.getOrigin().z());
