@@ -270,7 +270,7 @@ function linearTest() {
       position: 0
     },
     template: {
-      position: {type: 'range', min: -10, max: 1, step: 0.1, onChange: function () {
+      position: {type: 'range', min: -10, max: 1, step: 0.1, round: 0.1, onChange: function () {
         var c = this.parentSystem.getSystem('system').getConstraint('constraint');
         var position = this.getValues().position;
         c.setPosition(position);

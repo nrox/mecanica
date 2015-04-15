@@ -66,7 +66,7 @@ var test = {
   },
   Settings: function () {
     var mecanica = require('../mecanica.js');
-    var obj = new mecanica.Settings({type: 'global', webWorker: true, renderFrequency: 15});
+    var obj = new mecanica.Settings({type: 'global', webWorker: true, renderFrequency: 15}, mecanica);
     testUtils.checkValues(obj.options(), {
       webWorker: true, renderFrequency: 15
     }, 'Settings instance default options');
@@ -85,19 +85,19 @@ var test = {
       dx: 1, dy: 1.2, dz: 3, r: 0.5, segments: 12
     };
     generic.type = 'box';
-    var obj = new mecanica.Shape(generic);
+    var obj = new mecanica.Shape(generic, mecanica);
     testUtils.checkValues(obj.options(), {
       dx: 1, dy: 1.2, dz: 3
     }, 'box shape options');
     testUtils.checkKeys(obj, ['ammo', 'three'], 'box shape options');
   },
   Material: function () {
-    var mecanica = require('../mecanica.js');
+    var lib = require('../mecanica.js');
     var options = {
       type: 'basic',
       color: 0x223344
     };
-    var obj = new mecanica.Material(options, new mecanica.Mecanica());
+    var obj = new lib.Material(options, new lib.Mecanica());
     testUtils.checkValues(obj.options(), {
       color: 0x223344
     }, 'material options');
@@ -195,7 +195,7 @@ var test = {
       function1: function () {
         alert('hello')
       },
-      function2: function(){
+      function2: function () {
 
       },
       folder1: {

@@ -103,6 +103,7 @@ Component.prototype.construct = function (options, system, defaultType) {
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
   this.parentSystem = system;
+  this.rootSystem = system.rootSystem;
   cons.call(this, options, system);
 };
 
@@ -123,11 +124,7 @@ Component.prototype.getSettings = function () {
 };
 
 Component.prototype.getScene = function () {
-  if (this.parentSystem == this) {
-    return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
-  } else if (this.parentSystem) {
-    return this.parentSystem.getScene();
-  }
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
 };
 
 Component.prototype.destroy = function () {

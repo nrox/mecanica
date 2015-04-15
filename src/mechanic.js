@@ -7,6 +7,7 @@ function Mecanica(options) {
     light: {},
     monitor: {} //set of camera + renderer
   };
+  this.rootSystem = this;
   this.construct(options, this, 'complete');
 }
 

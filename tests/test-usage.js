@@ -72,7 +72,7 @@ var test = {
       }
     };
     var template = {
-      speed: {type: 'range', min: 0, max: 20, step: 0.2, onChange: setSpeed}
+      speed: {type: 'range', min: 0, max: 20, step: 0.2, round: 0.1, onChange: setSpeed}
     };
 
     function setSpeed() {

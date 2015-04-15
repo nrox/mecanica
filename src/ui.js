@@ -223,7 +223,8 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'range', step: 1,
       min: undefined, max: undefined, values: undefined,
-      plus: '+', minus: '-', editable: true
+      plus: '+', minus: '-', editable: true,
+      round: undefined
     });
     var _this = this;
     var $wrapper = $('<span />');
@@ -274,6 +275,15 @@ UserInterface.prototype.inputs = {
           }
           if (min !== undefined) {
             next = next > min ? next : min;
+          }
+          if (specs.round) {
+            next = Math.round(next / specs.round) * specs.round;
+            next = String(next);
+            var point = next.indexOf('.');
+            if (point > -1) {
+              var end = point - Math.log10(specs.round) + 1;
+              next = Number(next.substring(0, end));
+            }
           }
         }
         $v.text(next.toString());

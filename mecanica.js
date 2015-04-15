@@ -109,6 +109,7 @@ Component.prototype.construct = function (options, system, defaultType) {
   if (!this.types[options.type]) options.type = defaultType;
   var cons = this.types[options.type];
   this.parentSystem = system;
+  this.rootSystem = system.rootSystem;
   cons.call(this, options, system);
 };
 
@@ -129,11 +130,7 @@ Component.prototype.getSettings = function () {
 };
 
 Component.prototype.getScene = function () {
-  if (this.parentSystem == this) {
-    return this.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
-  } else if (this.parentSystem) {
-    return this.parentSystem.getScene();
-  }
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
 };
 
 Component.prototype.destroy = function () {
@@ -467,6 +464,7 @@ function Mecanica(options) {
     light: {},
     monitor: {} //set of camera + renderer
   };
+  this.rootSystem = this;
   this.construct(options, this, 'complete');
 }
 
@@ -1913,7 +1911,8 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'range', step: 1,
       min: undefined, max: undefined, values: undefined,
-      plus: '+', minus: '-', editable: true
+      plus: '+', minus: '-', editable: true,
+      round: undefined
     });
     var _this = this;
     var $wrapper = $('<span />');
@@ -1964,6 +1963,15 @@ UserInterface.prototype.inputs = {
           }
           if (min !== undefined) {
             next = next > min ? next : min;
+          }
+          if (specs.round) {
+            next = Math.round(next / specs.round) * specs.round;
+            next = String(next);
+            var point = next.indexOf('.');
+            if (point > -1) {
+              var end = point - Math.log10(specs.round) + 1;
+              next = Number(next.substring(0, end));
+            }
           }
         }
         $v.text(next.toString());
