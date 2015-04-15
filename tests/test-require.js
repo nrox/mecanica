@@ -17,9 +17,9 @@ var verify = {
   'underscore.js': ['each', 'map', 'pick', 'pluck'],
   'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
   '../util/test.js': ['run', 'all'],
-  'factory.js': ['addLibrary', 'make', 'structure', 'options'],
-  '../util/utils.js': ['stringify', 'deepCopy','randomLinear'],
-  '/ware/basic.js': ['shape', 'scene']
+  'mecanica.js': ['UserInterface', 'Mecanica', 'System', 'Shape'],
+  '../util/utils.js': ['stringify', 'deepCopy', 'randomLinear'],
+  '/ware/basic2.js': ['getObject']
 };
 
 _.each(verify, function (list, script) {

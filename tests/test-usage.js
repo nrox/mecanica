@@ -28,7 +28,7 @@ var test = {
     ], 'subsystem imported');
   },
   'mec.toJSON()': function () {
-    var me = new (require('../mecanica.js').Mecanica)();
+    var me = new (require('../mecanica.js').Mecanica)({type: 'complete'});
     me.importSystem('../ware/basic2.js', 'basic2');
     //me.useMonitor();
     me.useLight({def: {}});
@@ -50,6 +50,7 @@ var test = {
   'mec.start/stop()': function () {
     var lib = require('../mecanica.js');
     var me = new lib.Mecanica({
+      type: 'complete',
       settings: {canvasContainer: '#container', type: 'global'}
     });
     me.importSystem('../ware/basic2.js', 'basic2', {coneRadius: 1, coneY: 2.5});
@@ -87,9 +88,9 @@ var test = {
 
   },
   'mec.load(json)': function () {
-    console.log("settings, scene, monitor and lights are all imported into a new Mecanica({type: 'empty'})");
+    console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
     console.log("using importSystem, 2 files are imported");
-    var me = new (require('../mecanica.js').Mecanica)({ type: 'empty'});
+    var me = new (require('../mecanica.js').Mecanica)();
     me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/simple.js');
@@ -106,10 +107,10 @@ var test = {
     me.start();
   },
   'import/destroy()': function () {
-    console.log("settings, scene, monitor and lights are all imported into a new Mecanica({type: 'empty'})");
+    console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
     console.log("using importSystem, 2 files are imported");
     var lib = require('../mecanica.js');
-    var me = new lib.Mecanica({ type: 'empty'});
+    var me = new lib.Mecanica();
     me.import('../ware/settings/tests.js');
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/set3.js');

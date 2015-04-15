@@ -12,7 +12,7 @@ function clearObjects() {
 
 function makeTest(system, inputOptions) {
   return function () {
-    var me = new lib.Mecanica({type: 'empty'});
+    var me = new lib.Mecanica();
     me.import('../ware/settings/tests.js');
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/set3.js');

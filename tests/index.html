@@ -29,17 +29,14 @@
     //add new tests here
     var scripts = {
         'require': 'test-require.js',
-        'worker': 'test-worker.js',
         'ammo': 'test-ammo.js',
-        'factory': 'test-factory.js',
-        'collision': 'test-collision.js',
         'transform': 'test-transform.js',
         'shapes': 'test-shapes.js',
-        'json ui': 'test-json.js',
-        'charts': 'test-chart.js',
-        'components' : 'test-components.js',
-        'usage' : 'test-usage.js',
-        'constraint': 'test-constraint.js'
+        'components': 'test-components.js',
+        'usage': 'test-usage.js',
+        'collision': 'test-collision.js',
+        'constraint': 'test-constraint.js',
+        'ui': 'test-ui.js'
     };
 </script>
 
@@ -51,6 +48,7 @@
         clearConsole();
         var title = $(event.target).text();
         $('.title').text('test: ' + title);
+        location.hash = '#' + title;
         var script = $(event.target).attr('script');
         library = require(script, undefined);
         var $verify = $('#verify');
@@ -101,6 +99,10 @@
                 loadTest(e);
             }, 0);
         });
+
+        if (location.hash) {
+            $index.children('.test[group="' + location.hash.substr(1) + '"]').trigger('click');
+        }
     };
 
 

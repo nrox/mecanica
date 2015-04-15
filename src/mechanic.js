@@ -8,7 +8,7 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
-  this.construct(options, this, 'complete');
+  this.construct(options, this, 'empty');
 }
 
 Mecanica.prototype.types = {

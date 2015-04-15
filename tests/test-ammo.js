@@ -28,12 +28,11 @@ var test = {
     var obj = new Ammo.btVector3(x, y, z);
     utils.logKeys(obj, 'btVector3 properties');
     utils.checkKeys(obj, keys, 'checking btVector3 keys');
-    console.warn('the following test will fail because of float precision');
-    utils.checkValues(obj, {
+    utils.checkAproximateValues(obj, {
       x: x,
       y: y,
       z: z
-    }, 'checking btVector3 values');
+    }, 'checking btVector3 approximate values');
   },
   btQuaternion: function () {
     //W = cos (0.5 × α)
@@ -49,13 +48,12 @@ var test = {
     var obj = new Ammo.btQuaternion(x, y, z, w);
     utils.logKeys(obj, 'btQuaternion properties');
     utils.checkKeys(obj, keys, 'checking btQuaternion keys');
-    console.warn('the following test will fail because of float precision');
-    utils.checkValues(obj, {
+    utils.checkAproximateValues(obj, {
       x: x,
       y: y,
       z: z,
       w: w
-    }, 'checking btQuaternion values');
+    }, 'checking btQuaternion approximate values');
   },
   btHingeConstraint: function () {
     var obj = new Ammo.btHingeConstraint();
@@ -84,9 +82,6 @@ var test = {
       ],
       'checking btSliderConstraint keys');
 
-  },
-  'properties list': function () {
-    utils.logKeys(Ammo, 'properties list');
   }
 };
 

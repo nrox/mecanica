@@ -36,6 +36,10 @@ UserInterface.prototype.getValues = function () {
   return this.values;
 };
 
+UserInterface.prototype.getReference = function () {
+  return this.reference;
+};
+
 UserInterface.prototype.showEditor = function () {
   while (this.updaters.pop()) {
   }
@@ -146,7 +150,7 @@ UserInterface.prototype.inputs = {
     return e;
   },
   number: function (k, v, specs) {
-    return this.string(k, v, specs);
+    return this.inputs.string(k, v, specs);
   },
   boolean: function (k, v, specs) {
     _.defaults(specs, {

@@ -156,8 +156,6 @@ Component.prototype.addRenderMethod = function (funName, reference) {
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
-
-
 // src/component.js ends
 
 ;// src/settings.js begins
@@ -465,7 +463,7 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
-  this.construct(options, this, 'complete');
+  this.construct(options, this, 'empty');
 }
 
 Mecanica.prototype.types = {
@@ -1724,6 +1722,10 @@ UserInterface.prototype.getValues = function () {
   return this.values;
 };
 
+UserInterface.prototype.getReference = function () {
+  return this.reference;
+};
+
 UserInterface.prototype.showEditor = function () {
   while (this.updaters.pop()) {
   }
@@ -1834,7 +1836,7 @@ UserInterface.prototype.inputs = {
     return e;
   },
   number: function (k, v, specs) {
-    return this.string(k, v, specs);
+    return this.inputs.string(k, v, specs);
   },
   boolean: function (k, v, specs) {
     _.defaults(specs, {

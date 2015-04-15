@@ -3,50 +3,13 @@ Mecânica
 
 Mechanism simulation with Ammo.js and THREE.js.
 
-[experiments/interactive tests](https://nrox.github.io/mecanica/)
+[experiments/tests](https://nrox.github.io/mecanica/)
 
 #Current state
 
 Alpha
 
-#Supported Features
-
-##Simulation control
-
-* speed
-* step frequency
-
-##Actuators
-
-* Rotational motors
-* Servos, with angle feedback
-* Linear Motors, with position feedback
-
-##Sensors
-
-* ?
-
-##Constraints
-
-* Point
-* Fixed
-* Slider
-* Hinge
-
-##Bodies
-
-* Sphere
-* Box
-* Cylinder
-* Cone
-* Composites
-
-##Materials
-
-* THREE.js supported materials
-
-
-#Usage: How it should work
+#Usage
 
 ##Creating and Saving, Controlling Simulation
 
@@ -172,10 +135,6 @@ In a .js file, or json object.
 
 #TODO
 
-* implement proper usage
-
-* allow joining and removing systems (collections of bodies and constraints)
-
 * properly dispose/destroy objects, check memory leaks
 
 * add heightfield shape for ground shapes
@@ -184,6 +143,3 @@ In a .js file, or json object.
 
 * add convex shapes
 
-* fix worker tests
-
-* make default material and lights look nice

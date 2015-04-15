@@ -5,8 +5,8 @@
  */
 
 (function () {
-  var _ = require('./lib/underscore.js');
-  var utils = require('./util/utils.js');
+  var _ = require('./../lib/underscore.js');
+  var utils = require('./utils.js');
   var Ammo, THREE, jQuery, ammoHelper;
   var controller;
   var worker;
@@ -1373,9 +1373,9 @@
     //override settings
     settings = _.extend(_.find(obj.settings, _.identity), settings);
     //add necessary libraries
-    if (!THREE) addLibrary(require('./lib/three.js'));
-    if (!jQuery) addLibrary(require('./lib/jquery.js'));
-    if (!ammoHelper) ammoHelper = require('./lib/ammo.js');
+    if (!THREE) addLibrary(require('./../lib/three.js'));
+    if (!jQuery) addLibrary(require('./../lib/jquery.js'));
+    if (!ammoHelper) ammoHelper = require('./../lib/ammo.js');
     if (settings.webWorker) {
       createWorker();
     } else {
@@ -1511,7 +1511,7 @@
 
   function startRender() {
     var settings = getSettings();
-    if (!controller) controller = require('./util/controller.js');
+    if (!controller) controller = require('./controller.js');
     var scene = getScene();
     var monitor = getSome('monitor');
 

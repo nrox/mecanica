@@ -2,6 +2,8 @@ var testUtils = require('../util/test.js');
 var utils = require('../util/utils.js');
 var $ = require('../lib/jquery.js');
 var _ = require('../lib/underscore.js');
+var lib = require('../mecanica.js');
+
 var editorConstructor = require('../util/json-ui.js');
 
 function clearObjects() {
@@ -10,11 +12,11 @@ function clearObjects() {
   $('#status').empty();
 }
 
-function makeGetValues(editor) {
+function makeGetValues(ui) {
   var b = $('<button>get values</button>');
   $('#triggers').append(b);
   b.on('click', function () {
-    $('#status').text(utils.stringify(editor.getValues()));
+    $('#status').text(utils.stringify(ui.getValues()));
   });
 }
 
@@ -44,7 +46,7 @@ var test = {
         list: {type: 'list', values: [0, 1, 2, 3, 4, 5, 'a', 'b', 'bananas', true, false]}
       }
     };
-    var obj = {
+    var values = {
       root: {
         number: 3,
         range1: 4,
@@ -96,10 +98,11 @@ var test = {
         list: 'a'
       }
     };
-    var editor = new editorConstructor();
-    editor.useTemplate(template);
-    editor.setValues(obj);
-    editor.showEditor('#container');
+    var editor = new lib.UserInterface({
+      values: values,
+      template: template,
+      container: '#container'
+    }, new lib.Mecanica());
     makeGetValues(editor);
   },
   'factory settings': function () {

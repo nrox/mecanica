@@ -1,35 +1,39 @@
 var utils = require('../util/test.js');
-var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 var $ = require('../lib/jquery.js');
+var lib = require('../mecanica.js');
+
 var test = {
 };
 
 function clearObjects() {
-  factory.destroyAll();
+  $('#container').empty();
 }
 
 function makeTest(bodyOptions, floorOptions, title) {
   return function () {
-    factory.setScope(title);
+    var me = new lib.Mecanica({type: 'empty'});
+    me.import('../ware/settings/tests.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/set3.js');
+
     bodyOptions.rotation.x = 2 * Math.PI * Math.random();
     bodyOptions.rotation.y = 2 * Math.PI * Math.random();
     bodyOptions.rotation.z = 0;
-    var pack = {};
-    factory.updatePack(pack, 'scene', {});
-    factory.updatePack(pack, 'body', 'basic', bodyOptions);
-    factory.updatePack(pack, 'body', 'basic', floorOptions);
-    factory.updatePack(pack, 'monitor', {
-      camera: 'tracker', inertia: 0.2, lookAt: bodyOptions.id
+
+    me.loadSystem({
+      body: {
+        falling: bodyOptions,
+        floor: floorOptions
+      }
+    }, 'system');
+
+    me.import('../ware/monitor/tracker.js', {
+      lookAt: me.getSystem('system').getBody('falling'),
+      distance: 30
     });
-    factory.updatePack(pack, 'light', {});
-    factory.loadScene(pack, {
-      webWorker: true,
-      autoStart: true,
-      wireframe: false,
-      axisHelper: true,
-      canvasContainer: '#container'
-    });
+    me.addToScene();
+    me.start();
   };
 }
 

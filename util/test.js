@@ -87,6 +87,37 @@ module.exports = {
   },
 
   /**
+   * Check if object obj values intersects with values in keyValue object
+   * @param obj the object to check
+   * @param keyValue the reference object
+   * @param title log text
+   * @returns {boolean} true if all values match, false otherwise
+   */
+  checkAproximateValues: function (obj, keyValue, title) {
+    this.logTitle(title);
+    var results = _.map(keyValue, function (value, property) {
+      var objValue;
+      if ((typeof obj[property] == 'function')) {
+        objValue = obj[property]();
+      } else {
+        objValue = obj[property];
+      }
+      if (Math.abs(objValue - value) > 0.000001) {
+        title && console.log('  mismatch: ' + property);
+        title && console.log('      want: ' + value);
+        title && console.log('       got: ' + objValue);
+        return false;
+      } else {
+        title && console.log('        ok: ' + property + ' =~ ' + value);
+        return true;
+      }
+    });
+    var res = _.every(results);
+    this.logStatus(res, title);
+    return res;
+  },
+
+  /**
    * if object is instance of function
    * @param obj the object
    * @param fun the function
