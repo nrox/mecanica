@@ -90,7 +90,7 @@ var test = {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica({type: 'empty'})");
     console.log("using importSystem, 2 files are imported");
     var me = new (require('../mecanica.js').Mecanica)({ type: 'empty'});
-    me.import('../ware/settings/simple.js');
+    me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/simple.js');
     me.importSystem('../ware/basic2.js', 'basic2');

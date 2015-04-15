@@ -1,173 +1,32 @@
 var utils = require('../util/test.js');
-var Ammo = require('../lib/ammo.js');
-var THREE = require('../lib/three.js');
-var factory = require('../factory.js');
 var _ = require('../lib/underscore.js');
 var $ = require('../lib/jquery.js');
-var Editor = require('../util/json-ui.js');
-
+var lib = require('../mecanica.js');
 var test = {
 };
 
 function clearObjects() {
-  factory.destroyAll();
   $('#triggers').empty();
+  $('#container').empty();
 }
 
-function makeTest(bodyA, bodyB, connectorA, connectorB, type, constraint) {
+function makeTest(system, inputOptions) {
   return function () {
-    factory.setScope(type);
-    var pack = {};
-    pack.scene = {s1: {}};
-    pack.body = {};
-    pack.body[bodyA.id] = bodyA;
-    pack.body[bodyB.id] = bodyB;
-    pack.connector = {};
-    pack.connector[connectorA.id] = connectorA;
-    pack.connector[connectorB.id] = connectorB;
-    pack.constraint = {};
-    constraint = utils.deepCopy(constraint);
-    constraint.type = constraint.id = type;
-    pack.constraint[constraint.id] = constraint;
-    pack.monitor = {m1: {camera: 'satellite', lookAt: bodyA.id, distance: 15}};
-    pack.light = {
-      l1: {position: {x: 5, z: -5}},
-      l2: {position: {x: -7, y: 6, z: 5}, color: 0x8899bb},
-      l3: {position: {y: -5, z: 1}, color: 0x445566}
-    };
-    factory.loadScene(pack, {
-      axisHelper: 0,
-      wireframe: false,
-      webWorker: true,
-      autoStart: true,
-      connectorHelper: 0.7,
-      canvasContainer: '#container'
-    });
-    if (inputs[type]) {
-      inputs[type](type);
-    }
+    var me = new lib.Mecanica({type: 'empty'});
+    me.import('../ware/settings/tests.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/set3.js');
+    me.loadSystem(system, 'system');
+    me.import('../ware/monitor/satellite.js');
+    me.addToScene();
+
+    if (inputOptions) new lib.UserInterface(inputOptions, me);
+
+    me.start();
   };
 }
 
 var inputs = {
-  point: function (type) {
-    var ui = {
-      add: function () {
-        var c = factory.getObject('constraint', type);
-        c.add();
-      },
-      remove: function () {
-        var c = factory.getObject('constraint', type);
-        c.remove();
-      }
-    };
-    var editor = new Editor();
-    editor.setValues(ui);
-    editor.showEditor('#triggers');
-  },
-  hinge: function (type) {
-    var template = {
-      servo: {
-        'angle(°)': {type: 'range', min: -180, max: 180, step: 5}
-      },
-      motor: {
-        velocity: {type: 'range', min: -5, max: 5, step: 1},
-        binary: {type: 'range', min: 0, max: 50, step: 1}
-      }
-    };
-    var ui = {
-      add: function () {
-        var c = factory.getObject('constraint', type);
-        c.add();
-      },
-      remove: function () {
-        var c = factory.getObject('constraint', type);
-        c.remove();
-      },
-      servo: {
-        'angle(°)': 0,
-        set: function () {
-          var c = factory.getObject('constraint', type);
-          var angle = this.getValues().servo['angle(°)'];
-          angle = angle * Math.PI / 180;
-          c.setAngle(angle);
-        },
-        relax: function () {
-          var c = factory.getObject('constraint', type);
-          c.relax();
-        }
-      },
-      motor: {
-        velocity: 1,
-        binary: 1,
-        enable: function () {
-          var c = factory.getObject('constraint', type);
-          var values = this.getValues().motor;
-          c.enableMotor(values.velocity, values.binary);
-        },
-        disable: function () {
-          var c = factory.getObject('constraint', type);
-          c.disableMotor();
-        }
-      }
-    };
-    var editor = new Editor();
-    editor.useTemplate(template);
-    editor.setValues(ui);
-    editor.showEditor('#triggers');
-  },
-  servo: function (type) {
-    var editor = new Editor();
-    var template = {
-      'angle(°)': {type: 'range', min: -180, max: 180, step: 5,
-        onChange: function () {
-          var c = factory.getObject('constraint', type);
-          var values = editor.getValues();
-          var angle = values['angle(°)'];
-          angle = angle * Math.PI / 180;
-          c.enable(values.velocity, values.binary);
-          c.setAngle(angle);
-        }
-      },
-      velocity: {type: 'range', min: -5, max: 5, step: 1},
-      binary: {type: 'range', min: 0, max: 50, step: 1}
-    };
-    var ui = {
-      'angle(°)': 0,
-      disable: function () {
-        var c = factory.getObject('constraint', type);
-        c.disable();
-      },
-      velocity: 1,
-      binary: 1
-    };
-    editor.useTemplate(template);
-    editor.setValues(ui);
-    editor.showEditor('#triggers');
-  },
-  motor: function (type) {
-    var template = {
-      velocity: {type: 'range', min: -10, max: 10, step: 1},
-      binary: {type: 'range', min: 0, max: 50, step: 1}
-    };
-    var ui = {
-      velocity: 1,
-      binary: 1,
-      enable: function () {
-        var c = factory.getObject('constraint', type);
-        var values = this.getValues();
-        c.enable(values.velocity, values.binary);
-      },
-      disable: function () {
-        var c = factory.getObject('constraint', type);
-        c.disable();
-      }
-    };
-    var editor = new Editor();
-    editor.useTemplate(template);
-    editor.setValues(ui);
-    editor.showEditor('#triggers');
-  },
   gear: function (actuator) {
     actuator = 'motor';
     var type = 'gear';
@@ -210,76 +69,132 @@ var inputs = {
   }
 };
 
-inputs.fixed = inputs.slider = inputs.point;
-
-function addAllTests() {
-  var bodyA = {
-    id: 'a',
-    group: 'body',
-    type: 'basic',
-    shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
-    position: {  x: 0.5, y: 0.5, z: 0.5 },
-    rotation: { x: 0.5, y: 0.3, z: 0 },
-    material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
-    mass: 0
-  };
-  var bodyB = {
-    id: 'b',
-    group: 'body',
-    type: 'basic',
-    shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
-    position: { x: -2, y: -2, z: -2},
-    rotation: { x: 0, y: 0, z: 0 },
-    material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
-    mass: 1
-  };
-  var connectorA = {
-    id: 'cA',
-    group: 'connector',
-    type: 'relative',
-    body: bodyA.id,
+var defaultOptions = {
+  type: 'point',
+  cA: {
     base: {y: -1.01},
     up: {y: 1},
     front: {x: 1}
-  };
-  var connectorB = {
-    id: 'cB',
-    group: 'connector',
-    type: 'relative',
-    body: bodyB.id,
+  },
+  cB: {
     base: {x: 1, y: 1, z: 1.01},
     up: {y: 1},
     front: {x: 1}
+  },
+  ration: 1,
+  approach: true
+};
+
+function pointTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'point';
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.addToScene(this.parentSystem.getScene());
+      },
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.removeFromScene(this.parentSystem.getScene());
+      }
+    }
   };
-  var constraintOptions = {
-    a: connectorA.id,
-    b: connectorB.id,
-    bodyA: bodyA.id,
-    bodyB: bodyB.id,
-    ratio: 1,
-    approach: true
+  return makeTest(systemTemplate(options), ui);
+}
+
+
+function hingeTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'hinge';
+  options.cA.base = {x: -1, y: -1, z: -1};
+  options.cA.up = {z: 1};
+  options.cB.base = {x: 1, y: 1, z: 1};
+  options.cB.up = {z: 1};
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.addToScene(this.parentSystem.getScene());
+      },
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.removeFromScene(this.parentSystem.getScene());
+      }
+    }
   };
+  return makeTest(systemTemplate(options), ui);
+}
+
+function motorTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'motor';
+  options.cA.base = {x: -1, y: -1, z: -1};
+  options.cA.up = {z: 1};
+  options.cB.base = {x: 1, y: 1, z: 1};
+  options.cB.up = {z: 1};
+  var ui = {
+    template: {
+      velocity: {type: 'range', min: -10, max: 10, step: 1},
+      binary: {type: 'range', min: 0, max: 50, step: 1}
+    },
+    values: {
+      velocity: 1,
+      binary: 1,
+      enable: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        var values = this.getValues();
+        c.enable(values.velocity, values.binary);
+      },
+      disable: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.disable();
+      }
+    }
+  };
+  return makeTest(systemTemplate(options), ui);
+}
+
+function servoTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'servo';
+  options.cA.base = {x: -1, y: -1, z: -1};
+  options.cA.up = {z: 1};
+  options.cB.base = {x: 1, y: 1, z: 1};
+  options.cB.up = {z: 1};
+  var ui = {
+    template: {
+      'angle(°)': {type: 'range', min: -180, max: 180, step: 5,
+        onChange: function () {
+          var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+          var values = this.getValues();
+          var angle = values['angle(°)'];
+          angle = angle * Math.PI / 180;
+          c.enable(values.velocity, values.binary);
+          c.setAngle(angle);
+        }
+      },
+      velocity: {type: 'range', min: -5, max: 5, step: 1},
+      binary: {type: 'range', min: 0, max: 50, step: 1}
+    },
+    values: {
+      velocity: 1,
+      binary: 1,
+      'angle(°)': 0,
+      disable: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.disable();
+      }
+    }
+  };
+  return makeTest(systemTemplate(options), ui);
+}
+
+function addAllTests() {
+
   var type;
   var ca, cb;
   var bodyBCopy;
-  //point
-  type = 'point';
-  test[type] = makeTest(bodyA, bodyB, connectorA, connectorB, type, constraintOptions);
-
-  type = 'hinge';
-  ca = utils.deepCopy(connectorA);
-  cb = utils.deepCopy(connectorB);
-  ca.base = {x: -1, y: -1, z: -1};
-  ca.up = {z: 1};
-  cb.base = {x: 1, y: 1, z: 1};
-  cb.up = {z: 1};
-  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
-
-  type = 'motor';
-  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
-
-  type = 'servo';
-  test[type] = makeTest(bodyA, bodyB, ca, cb, type, constraintOptions);
 
   type = 'fixed';
   ca = utils.deepCopy(connectorA);
@@ -309,10 +224,51 @@ function addAllTests() {
 
 }
 
+function systemTemplate(options) {
+  return {
+    body: {
+      'a': {
+        group: 'body',
+        type: 'basic',
+        shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
+        position: {  x: 0.5, y: 0.5, z: 0.5 },
+        rotation: { x: 0.5, y: 0.3, z: 0 },
+        material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
+        mass: 0,
+        connector: {
+          'cA': options.cA
+        }
+      },
+      'b': {
+        group: 'body',
+        type: 'basic',
+        shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
+        position: { x: -2, y: -2, z: -2},
+        rotation: { x: 0, y: 0, z: 0 },
+        material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
+        mass: 1,
+        connector: {
+          'cB': options.cB
+        }
+      }
+    },
+    constraint: {
+      constraint: {
+        type: options.type,
+        connectorA: 'cA',
+        connectorB: 'cB',
+        bodyA: 'a',
+        bodyB: 'b',
+        ratio: options.ratio,
+        approach: options.approach
+      }
+    }
+  };
+}
+
 function gearTest() {
-  var type = 'gear';
-  factory.setScope(type);
-  var pack = {
+  //type = 'gear';
+  return {
     body: {
       wall: {
         type: 'basic',
@@ -453,33 +409,15 @@ function gearTest() {
         bodyB: 'weight',
         approach: true
       }
-    },
-    scene: {s1: {}},
-    monitor: {m1: {camera: 'satellite', lookAt: 'wall', distance: 15}},
-    light: {
-      l1: {position: {x: 5, z: -5}},
-      l2: {position: {x: -7, y: 6, z: 5}, color: 0x8899bb},
-      l3: {position: {y: -5, z: 1}, color: 0x445566}
     }
   };
-
-  factory.loadScene(pack, {
-    axisHelper: 2,
-    wireframe: false,
-    webWorker: true,
-    autoStart: true,
-    connectorHelper: 0.7,
-    canvasContainer: '#container'
-  });
-
-  if (inputs[type]) {
-    inputs[type](type);
-  }
 }
 
-addAllTests();
-test['gear'] = gearTest;
+test['point'] = pointTest();
+test['hinge'] = hingeTest();
+test['motor'] = motorTest();
+test['servo'] = servoTest();
 
-//test.all = utils.all(test, 1);
+
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

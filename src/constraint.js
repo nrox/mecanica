@@ -20,7 +20,7 @@ Constraint.prototype.types = {
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
+        this.connectorB.approachConnector(this.connectorA);
       }
     }
     this.addPhysicsMethod('addToScene', Constraint.prototype.methods.addToScene);
@@ -62,12 +62,11 @@ Constraint.prototype.types = {
     };
     this.beforeStep = function () {
       if (this.runsPhysics()) {
-        var c = this;
         //FIXME
         //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
         //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
         //var dt = Math.abs(c.ammo.getHingeAngle() - c.angle) / c.maxVelocity;
-        c.ammo.setMotorTarget(c.angle, 0.1);
+        this.ammo.setMotorTarget(this.angle, 0.1);
       }
     };
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);

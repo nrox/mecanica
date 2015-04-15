@@ -91,9 +91,7 @@ Mecanica.prototype.startSimulation = function () {
     var dt = curTime - _this._lastTime;
     _this._lastTime = curTime;
     //callbacks beforeStep
-    //_.each(this.objects.constraint, function (c) {
-    //  if (c.beforeStep) c.beforeStep.call(c);
-    //});
+    _this.callBeforeStep();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'beforeStep') m.beforeStep.execute();
     //});

@@ -92,7 +92,11 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       $value.css(_this.css.value);
       $value.css(_this.css[type] || {});
     }
-    if (specs.onChange) $value.on('change', specs.onChange);
+    if (typeof(specs.onChange) == 'function') {
+      $value.on('change', function () {
+        specs.onChange.call(_this);
+      });
+    }
     //extend css from specs
     $key.css(specs.keyCSS || {});
     $value.css(specs.valueCSS || {});

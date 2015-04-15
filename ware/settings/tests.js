@@ -5,7 +5,8 @@ var defaultOptions = {
   type: 'global',
   uiContainer: '#triggers',
   canvasContainer: '#container',
-  axisHelper: true
+  axisHelper: true,
+  connectorHelper: 0.5
 };
 
 function getObject(options) {

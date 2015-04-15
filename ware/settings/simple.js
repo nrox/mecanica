@@ -2,7 +2,8 @@ var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
   id: 'simple',
-  type: 'global'
+  type: 'global',
+  canvasContainer: 'body'
 };
 
 function getObject(options) {

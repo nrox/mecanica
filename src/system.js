@@ -237,5 +237,16 @@ System.prototype.packPhysics = function (myPack) {
   });
 };
 
+System.prototype.callBeforeStep = function () {
+  _.each(this.objects.constraint, function (c) {
+    if (c.beforeStep) {
+      c.beforeStep();
+    }
+  });
+  _.each(this.objects.system, function (s) {
+    s.callBeforeStep();
+  })
+};
+
 extend(System, Component);
 Component.prototype.maker.system = System;

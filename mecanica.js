@@ -441,6 +441,17 @@ System.prototype.packPhysics = function (myPack) {
   });
 };
 
+System.prototype.callBeforeStep = function () {
+  _.each(this.objects.constraint, function (c) {
+    if (c.beforeStep) {
+      c.beforeStep();
+    }
+  });
+  _.each(this.objects.system, function (s) {
+    s.callBeforeStep();
+  })
+};
+
 extend(System, Component);
 Component.prototype.maker.system = System;
 // src/system.js ends
@@ -540,9 +551,7 @@ Mecanica.prototype.startSimulation = function () {
     var dt = curTime - _this._lastTime;
     _this._lastTime = curTime;
     //callbacks beforeStep
-    //_.each(this.objects.constraint, function (c) {
-    //  if (c.beforeStep) c.beforeStep.call(c);
-    //});
+    _this.callBeforeStep();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'beforeStep') m.beforeStep.execute();
     //});
@@ -966,6 +975,7 @@ Body.prototype.syncPhysics = function () {
     body.three.quaternion.copy(body.quaternion);
   }
 };
+
 /*
  get position and rotation to send from worker to window
  the result is passed by reference in the argument
@@ -1003,7 +1013,7 @@ Component.prototype.maker.body = Body;
 
 ;// src/connector.js begins
 
-function Connector(options, system){
+function Connector(options, system) {
   this.construct(options, system, 'relative');
 }
 
@@ -1021,7 +1031,7 @@ Connector.prototype.types = {
     if (body) {
       body.connector[this.id] = this;
       this.body = body;
-      this.ammoTransform = utils.normalizeConnector(this, ammoHelper);
+      this.ammoTransform = this.normalize();
       this.base = new Vector(this.base);
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
@@ -1053,6 +1063,63 @@ Connector.prototype.types = {
   }
 };
 
+Connector.prototype.normalize = function () {
+  var ammoHelper = Ammo;
+  var c = this;
+  if (!ammoHelper) return undefined;
+  var up = new ammoHelper.btVector3(c.up.x || 0, c.up.y || 0, c.up.z || 0);
+  up.normalize();
+  var front = new ammoHelper.btVector3(c.front.x || 0, c.front.y || 0, c.front.z || 0);
+  var wing = up.cross(front);
+  wing = new ammoHelper.btVector3(wing.x(), wing.y(), wing.z());
+  wing.normalize();
+  front = wing.cross(up);
+  front = new ammoHelper.btVector3(front.x(), front.y(), front.z());
+  front.normalize();
+  var base = new ammoHelper.btVector3(c.base.x || 0, c.base.y || 0, c.base.z || 0);
+  var v1 = wing;
+  var v2 = up;
+  var v3 = front;
+  var m3 = new ammoHelper.btMatrix3x3(
+    v1.x(), v1.y(), v1.z(),
+    v2.x(), v2.y(), v2.z(),
+    v3.x(), v3.y(), v3.z()
+  );
+  m3 = m3.transpose();
+  utils.copyFromAmmo(up, c.up, ammoHelper);
+  utils.copyFromAmmo(front, c.front, ammoHelper);
+  var t = new ammoHelper.btTransform();
+  t.setBasis(m3);
+  t.setOrigin(base);
+  //ammoHelper.destroy(up);
+  //ammoHelper.destroy(front);
+  //ammoHelper.destroy(wing);
+  return t;
+};
+
+
+Connector.prototype.approachConnector = function (fix) {
+  //move bodies to match connectors, which are already normalized, with computed transforms
+  if (!ammoHelper) return;
+  var move = this;
+  //body to move
+  var moveConInvTrans = new ammoHelper.btTransform(new ammoHelper.btTransform(move.ammoTransform).inverse());
+  var moveBodyInvTrans = new ammoHelper.btTransform(move.body.ammoTransform);
+  moveBodyInvTrans = new ammoHelper.btTransform(moveBodyInvTrans.inverse());
+
+  //fixed body
+  var fixConTrans = new ammoHelper.btTransform(fix.ammoTransform);
+  var fixBodyTrans = new ammoHelper.btTransform(fix.body.ammoTransform);
+
+  moveBodyInvTrans.op_mul(fixBodyTrans);
+  moveBodyInvTrans.op_mul(fixConTrans);
+  moveBodyInvTrans.op_mul(moveConInvTrans);
+
+  move.body.ammoTransform.op_mul(moveBodyInvTrans);
+  move.body.position = new Vector(utils.copyFromAmmo(move.body.ammoTransform.getOrigin(), {}, ammoHelper));
+  move.body.quaternion = new Quaternion(utils.copyFromAmmo(move.body.ammoTransform.getRotation(), {}, ammoHelper));
+};
+
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
 // src/connector.js ends
@@ -1081,7 +1148,7 @@ Constraint.prototype.types = {
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
-        utils.approachConnectors(this.connectorA, this.connectorB, this.parentSystem.make, Ammo);
+        this.connectorB.approachConnector(this.connectorA);
       }
     }
     this.addPhysicsMethod('addToScene', Constraint.prototype.methods.addToScene);
@@ -1123,12 +1190,11 @@ Constraint.prototype.types = {
     };
     this.beforeStep = function () {
       if (this.runsPhysics()) {
-        var c = this;
         //FIXME
         //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
         //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
         //var dt = Math.abs(c.ammo.getHingeAngle() - c.angle) / c.maxVelocity;
-        c.ammo.setMotorTarget(c.angle, 0.1);
+        this.ammo.setMotorTarget(this.angle, 0.1);
       }
     };
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
@@ -1710,7 +1776,11 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       $value.css(_this.css.value);
       $value.css(_this.css[type] || {});
     }
-    if (specs.onChange) $value.on('change', specs.onChange);
+    if (typeof(specs.onChange) == 'function') {
+      $value.on('change', function () {
+        specs.onChange.call(_this);
+      });
+    }
     //extend css from specs
     $key.css(specs.keyCSS || {});
     $value.css(specs.valueCSS || {});
