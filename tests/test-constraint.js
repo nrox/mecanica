@@ -69,8 +69,50 @@ var inputs = {
   }
 };
 
+function systemTemplate(options) {
+  return {
+    body: {
+      'a': {
+        group: 'body',
+        type: 'basic',
+        shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
+        position: {  x: 0.5, y: 0.5, z: 0.5 },
+        rotation: { x: 0.5, y: 0.3, z: 0 },
+        material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
+        mass: 0,
+        connector: {
+          'cA': options.cA
+        }
+      },
+      'b': {
+        group: 'body',
+        type: 'basic',
+        shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
+        position: { x: -2, y: -2, z: -2},
+        rotation: { x: 0, y: 0, z: 0 },
+        material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
+        mass: 1,
+        connector: {
+          'cB': options.cB
+        }
+      }
+    },
+    constraint: {
+      constraint: {
+        type: options.type,
+        connectorA: 'cA',
+        connectorB: 'cB',
+        bodyA: 'a',
+        bodyB: 'b',
+        ratio: options.ratio,
+        approach: options.approach
+      }
+    }
+  };
+}
+
 var defaultOptions = {
-  type: 'point',
+  type: undefined,
   cA: {
     base: {y: -1.01},
     up: {y: 1},
@@ -102,7 +144,6 @@ function pointTest() {
   };
   return makeTest(systemTemplate(options), ui);
 }
-
 
 function hingeTest() {
   var options = utils.deepCopy(defaultOptions);
@@ -190,85 +231,61 @@ function servoTest() {
   return makeTest(systemTemplate(options), ui);
 }
 
-function addAllTests() {
+function fixedTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'fixed';
 
-  var type;
-  var ca, cb;
-  var bodyBCopy;
+  options.cA.base = {x: -1, y: -1, z: -1};
+  options.cA.up = {z: 1};
+  options.cA.front = {y: 1};
 
-  type = 'fixed';
-  ca = utils.deepCopy(connectorA);
-  cb = utils.deepCopy(connectorB);
-  ca.base = {x: -1, y: -1, z: -1};
-  ca.up = {z: 1};
-  ca.front = {y: 1};
-  cb.base = {x: 1, y: 1, z: 1};
-  cb.up = {z: 1};
-  cb.front = {y: 1};
-  bodyBCopy = utils.deepCopy(bodyB);
-  bodyBCopy.mass = 1;
-  test[type] = makeTest(bodyA, bodyBCopy, ca, cb, type, _.extend({}, constraintOptions, {approach: false}));
+  options.cB.base = {x: 1, y: 1, z: 1};
+  options.cB.up = {z: 1};
+  options.cB.front = {y: 1};
 
-  type = 'slider';
-  ca = utils.deepCopy(connectorA);
-  cb = utils.deepCopy(connectorB);
-  ca.base = {x: 0, y: 0, z: 0};
-  ca.up = {z: 1};
-  ca.front = {y: 1};
-  cb.base = {x: 0, y: 0, z: 5};
-  cb.up = {z: 1};
-  cb.front = {y: 1};
-  bodyBCopy = utils.deepCopy(bodyB);
-  bodyBCopy.position = {z: -5, x: 4, y: 5};
-  test[type] = makeTest(bodyA, bodyBCopy, ca, cb, type, constraintOptions);
-
-}
-
-function systemTemplate(options) {
-  return {
-    body: {
-      'a': {
-        group: 'body',
-        type: 'basic',
-        shape: { type: 'box', dx: 2, dz: 2, dy: 2, segments: 2 },
-        position: {  x: 0.5, y: 0.5, z: 0.5 },
-        rotation: { x: 0.5, y: 0.3, z: 0 },
-        material: {type: 'phong', color: 0x338855, opacity: 0.5, transparent: true},
-        mass: 0,
-        connector: {
-          'cA': options.cA
-        }
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.addToScene(this.parentSystem.getScene());
       },
-      'b': {
-        group: 'body',
-        type: 'basic',
-        shape: { type: 'box', dx: 2, dy: 2, dz: 2, segments: 2 },
-        position: { x: -2, y: -2, z: -2},
-        rotation: { x: 0, y: 0, z: 0 },
-        material: {type: 'phong', color: 0x991122, opacity: 0.9, transparent: true},
-        mass: 1,
-        connector: {
-          'cB': options.cB
-        }
-      }
-    },
-    constraint: {
-      constraint: {
-        type: options.type,
-        connectorA: 'cA',
-        connectorB: 'cB',
-        bodyA: 'a',
-        bodyB: 'b',
-        ratio: options.ratio,
-        approach: options.approach
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.removeFromScene(this.parentSystem.getScene());
       }
     }
   };
+  return makeTest(systemTemplate(options), ui);
+}
+
+function sliderTest() {
+  var options = utils.deepCopy(defaultOptions);
+  options.type = 'slider';
+  options.cA.base = {x: 0, y: 0, z: 0};
+  options.cA.up = {z: 1};
+  options.cA.front = {y: 1};
+
+  options.cB.base = {x: 0, y: 0, z: 5};
+  options.cB.up = {z: 1};
+  options.cB.front = {y: 1};
+
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.addToScene(this.parentSystem.getScene());
+      },
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('constraint');
+        c.removeFromScene(this.parentSystem.getScene());
+      }
+    }
+  };
+  return makeTest(systemTemplate(options), ui);
 }
 
 function gearTest() {
-  //type = 'gear';
-  return {
+  var system = {
     body: {
       wall: {
         type: 'basic',
@@ -361,32 +378,32 @@ function gearTest() {
     constraint: {
       motor: {
         type: 'motor',
-        a: 'wA',
-        b: 'cA',
+        connectorA: 'wA',
+        connectorB: 'cA',
         bodyA: 'wall',
         bodyB: 'a',
         approach: true
       },
       wb: {
         type: 'hinge',
-        a: 'wB',
-        b: 'cB',
+        connectorA: 'wB',
+        connectorB: 'cB',
         bodyA: 'wall',
         bodyB: 'b',
         approach: true
       },
       wc: {
         type: 'hinge',
-        a: 'wC',
-        b: 'cC',
+        connectorA: 'wC',
+        connectorB: 'cC',
         bodyA: 'wall',
         bodyB: 'c',
         approach: true
       },
       gear: {
         type: 'gear',
-        a: 'cA',
-        b: 'cB',
+        connectorA: 'cA',
+        connectorB: 'cB',
         bodyA: 'a',
         bodyB: 'b',
         ratio: 0.25,
@@ -394,8 +411,8 @@ function gearTest() {
       },
       gear2: {
         type: 'gear',
-        a: 'cB',
-        b: 'cC',
+        connectorA: 'cB',
+        connectorB: 'cC',
         bodyA: 'b',
         bodyB: 'c',
         ratio: 1.5,
@@ -403,20 +420,63 @@ function gearTest() {
       },
       wcons: {
         type: 'fixed',
-        a: 'cwa',
-        b: 'cww',
+        connectorA: 'cwa',
+        connectorB: 'cww',
         bodyA: 'a',
         bodyB: 'weight',
         approach: true
       }
     }
   };
+  var ui = {
+    values: {
+      add: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('gear');
+        c.addToScene(this.parentSystem.getScene());
+      },
+      remove: function () {
+        var c = this.parentSystem.getSystem('system').getConstraint('gear');
+        c.removeFromScene(this.parentSystem.getScene());
+      },
+      motor: {
+        velocity: 1,
+        binary: 1,
+        enable: function () {
+          var c = this.parentSystem.getSystem('system').getConstraint('motor');
+          var values = this.getValues().motor;
+          c.enable(values.velocity, values.binary);
+        },
+        disable: function () {
+          var c = this.parentSystem.getSystem('system').getConstraint('motor');
+          c.disable();
+        }
+      }
+    },
+    template: {
+      motor: {
+        velocity: {type: 'range', min: -5, max: 5, step: 1, onChange: function () {
+          var c = this.parentSystem.getSystem('system').getConstraint('motor');
+          var values = this.getValues().motor;
+          c.enable(values.velocity, values.binary);
+        }},
+        binary: {type: 'range', min: 0, max: 50, step: 1, onChange: function () {
+          var c = this.parentSystem.getSystem('system').getConstraint('motor');
+          var values = this.getValues().motor;
+          c.enable(values.velocity, values.binary);
+        }}
+      }
+    }
+  };
+  return makeTest(system, ui);
 }
 
 test['point'] = pointTest();
 test['hinge'] = hingeTest();
 test['motor'] = motorTest();
 test['servo'] = servoTest();
+test['fixed'] = fixedTest();
+test['slider'] = sliderTest();
+test['gear'] = gearTest();
 
 
 module.exports.test = test;

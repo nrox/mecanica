@@ -139,7 +139,7 @@ Constraint.prototype.types = {
     Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
       var transformA = new Ammo.btTransform();
-      transformA.setOrigin(this.a.base.ammo);
+      transformA.setOrigin(this.connectorA.base.ammo);
 
       var yAxis = this.connectorA.up.ammo;
       var zAxis = this.connectorA.front.ammo;
@@ -156,7 +156,7 @@ Constraint.prototype.types = {
       transformA.setBasis(basis);
 
       var transformB = new Ammo.btTransform();
-      transformB.setOrigin(this.b.base.ammo);
+      transformB.setOrigin(this.connectorB.base.ammo);
 
       yAxis = this.connectorB.up.ammo;
       zAxis = this.connectorB.front.ammo;
