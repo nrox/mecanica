@@ -1,7 +1,3 @@
-/**
- * system.js
- *
- */
 
 function System(options, system) {
   this.construct(options, system, 'basic');
@@ -171,7 +167,7 @@ System.prototype.loadSystem = function (json, id) {
 };
 
 System.prototype.destroy = function (scene) {
-  if (!scene) scene = this.getScene();
+  if (!scene) scene = this.rootSystem.getScene();
   _.each(this.objects, function (groupObjects, groupName) {
     _.each(groupObjects, function (obj, key) {
       obj.destroy(scene);
@@ -182,7 +178,7 @@ System.prototype.destroy = function (scene) {
 };
 
 System.prototype.addToScene = function (scene) {
-  if (!scene) scene = this.getScene();
+  if (!scene) scene = this.rootSystem.getScene();
   _.each(this.objects.system, function (sys) {
     sys.addToScene(scene);
   });

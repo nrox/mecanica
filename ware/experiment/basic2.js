@@ -1,10 +1,12 @@
-var _ = require('../lib/underscore.js');
+var _ = require('../../lib/underscore.js');
+var defaultOptions = {
+  coneY: 1.8,
+  coneRadius: 2
+};
 
+module.exports.defaultOptions = defaultOptions;
 module.exports.getObject = function (options) {
-  options = _.defaults(options || {}, {
-    coneY: 1.8,
-    coneRadius: 2
-  });
+  options = _.defaults(options || {}, defaultOptions);
   return {
     settings: {
       over: {

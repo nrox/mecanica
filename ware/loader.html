@@ -19,7 +19,14 @@
     <select id='list'>
     </select>
     <button onclick='loadFile();'>load</button>
+    <button onclick='removeFile();'>remove</button>
 </p>
+
+<div id='container'></div>
+<div id='triggers'></div>
+<pre id='status'></pre>
+<div class='console'></div>
+
 <script>
     function reload() {
         location.href = '';
@@ -58,21 +65,43 @@
             var o = new Option(file, file, undefined, undefined);
             $list.append(o);
         });
+        $list.on('change', function (e) {
+            var file = $(e.target).val();
+            var obj = require(file).defaultOptions;
+            ui.reuseWith({values: obj, container: '#triggers'});
+        });
+        $list.trigger('change');
     }
     function loadFile() {
-        factory.destroyAll();
+        removeFile();
         var file = $('#list').val();
-        console.info(file);
-        var json = require('../' + file);
-        factory.setScope(file);
-        factory.loadScene(json, {webWorker: true, axisHelper: 5});
-        factory.startSimulation();
-        factory.startRender();
+        if (mecanica.getSystem(file)) {
+            console.warn('system ' + file + ' already loaded');
+        } else {
+            mecanica.importSystem(file, file, ui.getValues());
+            mecanica.addToScene();
+        }
+    }
+    function removeFile() {
+        var file = $('#list').val();
+        var system = mecanica.getSystem(file);
+        if (system) system.destroy();
     }
 </script>
 <script>
-    var factory = require('../factory.js');
-    var utils = require('./utils.js');
+    var utils = require('../util/utils.js');
+    var lib = require('../mecanica.js');
+    var mecanica = new lib.Mecanica();
+    mecanica.import('../ware/settings/tests.js');
+    mecanica.import('../ware/scene/simple.js');
+    mecanica.import('../ware/light/set3.js');
+    mecanica.import('../ware/monitor/satellite.js', {distance: 10});
+    mecanica.addToScene();
+    mecanica.start();
+    var ui = new lib.UserInterface({
+        values: {},
+        container: '#triggers'
+    }, mecanica);
     makeList(loadList());
 </script>
 </body>

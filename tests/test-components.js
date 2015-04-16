@@ -18,7 +18,8 @@ var test = {
   },
   Mecanica: function () {
     var mecanica = require('../mecanica.js');
-    var world = new mecanica.Mecanica({settings: {simSpeed: 5 }});
+    var world = new mecanica.Mecanica();
+    world.load({settings: {use: {simSpeed: 5 }}});
     testUtils.checkValues(world.getSettings(), {
       simSpeed: 5
     }, 'settings options');
@@ -195,8 +196,8 @@ var test = {
       function1: function () {
         alert('hello')
       },
-      function2: function () {
-
+      destroy: function () {
+        this.destroy();
       },
       folder1: {
         value1: 3,
@@ -208,7 +209,8 @@ var test = {
       }
     };
     var ui = new lib.UserInterface({
-      values: values
+      values: values,
+      container: '#container'
     }, mec);
   }
 };

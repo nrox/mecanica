@@ -25,6 +25,10 @@ UserInterface.prototype.types = {
   }
 };
 
+UserInterface.prototype.reuseWith = function (options) {
+  this.destroy();
+  this.construct(options, this.parentSystem, this.options().type);
+};
 
 UserInterface.prototype.getValues = function () {
   _.each(this.updaters, function (fn) {
@@ -41,14 +45,19 @@ UserInterface.prototype.getReference = function () {
 };
 
 UserInterface.prototype.showEditor = function () {
-  while (this.updaters.pop()) {
-  }
-  this.reference = {};
+  this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
-  //$(this.container).empty();
+  $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
   $(this.container).append(domElements);
 };
 
+UserInterface.prototype.destroy = function () {
+  this.reference = {};
+  while (this.updaters.pop()) {
+  }
+  if (this.domId) $('#' + this.domId).remove();
+  delete this.domId;
+};
 
 UserInterface.prototype.build = function (obj, temp, ref, $parent) {
   var _this = this;

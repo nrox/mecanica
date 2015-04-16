@@ -1,5 +1,5 @@
 function Settings(options, system) {
-  this.construct(options, system, 'local');
+  this.construct(options, system, 'global');
 }
 
 Settings.prototype.types = {

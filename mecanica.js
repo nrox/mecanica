@@ -130,7 +130,7 @@ Component.prototype.getSettings = function () {
 };
 
 Component.prototype.getScene = function () {
-  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
 };
 
 Component.prototype.destroy = function () {
@@ -161,7 +161,7 @@ Component.prototype.toJSON = function () {
 ;// src/settings.js begins
 
 function Settings(options, system) {
-  this.construct(options, system, 'local');
+  this.construct(options, system, 'global');
 }
 
 Settings.prototype.types = {
@@ -197,10 +197,6 @@ Component.prototype.maker.settings = Settings;
 
 ;// src/system.js begins
 
-/**
- * system.js
- *
- */
 
 function System(options, system) {
   this.construct(options, system, 'basic');
@@ -370,7 +366,7 @@ System.prototype.loadSystem = function (json, id) {
 };
 
 System.prototype.destroy = function (scene) {
-  if (!scene) scene = this.getScene();
+  if (!scene) scene = this.rootSystem.getScene();
   _.each(this.objects, function (groupObjects, groupName) {
     _.each(groupObjects, function (obj, key) {
       obj.destroy(scene);
@@ -381,7 +377,7 @@ System.prototype.destroy = function (scene) {
 };
 
 System.prototype.addToScene = function (scene) {
-  if (!scene) scene = this.getScene();
+  if (!scene) scene = this.rootSystem.getScene();
   _.each(this.objects.system, function (sys) {
     sys.addToScene(scene);
   });
@@ -1741,6 +1737,10 @@ UserInterface.prototype.types = {
   }
 };
 
+UserInterface.prototype.reuseWith = function (options) {
+  this.destroy();
+  this.construct(options, this.parentSystem, this.options().type);
+};
 
 UserInterface.prototype.getValues = function () {
   _.each(this.updaters, function (fn) {
@@ -1757,14 +1757,19 @@ UserInterface.prototype.getReference = function () {
 };
 
 UserInterface.prototype.showEditor = function () {
-  while (this.updaters.pop()) {
-  }
-  this.reference = {};
+  this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
-  //$(this.container).empty();
+  $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
   $(this.container).append(domElements);
 };
 
+UserInterface.prototype.destroy = function () {
+  this.reference = {};
+  while (this.updaters.pop()) {
+  }
+  if (this.domId) $('#' + this.domId).remove();
+  delete this.domId;
+};
 
 UserInterface.prototype.build = function (obj, temp, ref, $parent) {
   var _this = this;

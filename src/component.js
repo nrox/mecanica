@@ -124,7 +124,7 @@ Component.prototype.getSettings = function () {
 };
 
 Component.prototype.getScene = function () {
-  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]) || {};
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
 };
 
 Component.prototype.destroy = function () {

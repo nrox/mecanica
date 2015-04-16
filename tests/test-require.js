@@ -19,7 +19,7 @@ var verify = {
   '../util/test.js': ['run', 'all'],
   'mecanica.js': ['UserInterface', 'Mecanica', 'System', 'Shape'],
   '../util/utils.js': ['stringify', 'deepCopy', 'randomLinear'],
-  '/ware/basic2.js': ['getObject']
+  '/ware/experiment/basic2.js': ['getObject']
 };
 
 _.each(verify, function (list, script) {

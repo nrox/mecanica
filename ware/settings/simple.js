@@ -14,4 +14,4 @@ function getObject(options) {
 }
 
 module.exports.getObject = getObject;
-module.exports.getDefaultOptions = defaultOptions;
+module.exports.defaultOptions = defaultOptions;
