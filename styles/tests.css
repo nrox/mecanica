@@ -90,7 +90,7 @@ table.results td, table.results th {
     color: #ee8;
 }
 
-#container, #triggers {
+#container, #triggers, #controls {
     float: left;
 }
 

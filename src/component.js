@@ -150,3 +150,4 @@ Component.prototype.addRenderMethod = function (funName, reference) {
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
+

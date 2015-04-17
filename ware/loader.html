@@ -78,8 +78,18 @@
         if (mecanica.getSystem(file)) {
             console.warn('system ' + file + ' already loaded');
         } else {
-            mecanica.importSystem(file, file, ui.getValues());
+            var sys = mecanica.importSystem(file, file, ui.getValues());
             mecanica.addToScene();
+            var controlsOptions = require(file).userInterface;
+            if (controlsOptions) {
+                controlsOptions = controlsOptions({
+                    system: sys.options().id,
+                    container: '#triggers'
+                });
+                controls.reuseWith(controlsOptions);
+            } else {
+                controls.destroy();
+            }
         }
     }
     function removeFile() {
@@ -99,6 +109,10 @@
     mecanica.addToScene();
     mecanica.start();
     var ui = new lib.UserInterface({
+        values: {},
+        container: '#triggers'
+    }, mecanica);
+    var controls = new lib.UserInterface({
         values: {},
         container: '#triggers'
     }, mecanica);

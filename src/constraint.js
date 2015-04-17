@@ -271,6 +271,7 @@ Constraint.prototype.methods = {
       this.angle = angle;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
+      this.enable(this.maxVelocity, this.maxBinary);
     }
   },
   //linear motors only

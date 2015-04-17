@@ -29,7 +29,7 @@ module.exports = function (grunt) {
         separator: '\n',
         banner: '(function(){\n\'use strict\';\n\n',
         footer: '\n})();',
-        process: function(src, filePath){
+        process: function (src, filePath) {
           return "\n;// " + filePath + ' begins\n\n' + src + "\n// " + filePath + " ends";
         }
       }
@@ -48,8 +48,14 @@ module.exports = function (grunt) {
       }
     },
     watch: {
-      files: ['<%= concat.basic.src %>'],
-      tasks: ['concat','shell:listDir']
+      scripts: {
+        files: ['<%= concat.basic.src %>'],
+        tasks: ['concat', 'shell:listDir']
+      },
+      ware: {
+        files: ['./ware/**/*.js'],
+        tasks: ['shell:listDir']
+      }
     }
   });
 
@@ -58,6 +64,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('default', ['connect','watch']);
+  grunt.registerTask('default', ['connect', 'watch']);
 
 };

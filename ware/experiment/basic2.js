@@ -4,8 +4,7 @@ var defaultOptions = {
   coneRadius: 2
 };
 
-module.exports.defaultOptions = defaultOptions;
-module.exports.getObject = function (options) {
+function getObject(options) {
   options = _.defaults(options || {}, defaultOptions);
   return {
     settings: {
@@ -57,6 +56,9 @@ module.exports.getObject = function (options) {
       l1: {type: 'directional', color: 0xaaaaaa, position: {x: 5, y: 5, z: 5}}
     }
   }
-};
+}
+
+module.exports.defaultOptions = defaultOptions;
+module.exports.getObject = getObject;
 
 

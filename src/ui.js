@@ -236,7 +236,7 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'range', step: 1,
       min: undefined, max: undefined, values: undefined,
-      plus: '+', minus: '-', editable: true,
+      plus: '+', minus: '-', editable: true, velocity: 1,
       round: undefined
     });
     var _this = this;
@@ -269,7 +269,7 @@ UserInterface.prototype.inputs = {
     function update(sign) {
       function u() {
         if (!time) time = utils.time();
-        timeoutId = setTimeout(u, utils.time(time) < 1000 ? 150 : 30);
+        timeoutId = setTimeout(u, (utils.time(time) < 1000 ? 150 : 30) / specs.velocity);
         var val = $v.text();
         var next;
         if (values instanceof Array) {
