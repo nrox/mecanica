@@ -57,6 +57,7 @@ Body.prototype.types = {
  * updates ammo and three position and rotation from the objects position and rotation
  */
 Body.prototype.updateMotionState = function () {
+  this.applySystemTransform();
   if (this.runsWebGL()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
@@ -70,6 +71,12 @@ Body.prototype.updateMotionState = function () {
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+Body.prototype.applySystemTransform = function () {
+  if (this.parentSystem.position) {
+    this.position.add(this.parentSystem.position);
   }
 };
 

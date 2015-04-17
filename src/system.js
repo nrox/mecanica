@@ -1,5 +1,12 @@
-
 function System(options, system) {
+  this.objects = {
+    shape: {}, //sphere, box, cylinder, cone ...
+    material: {}, //basic, phong, lambert ? ...
+    body: {}, //shape + mesh
+    system: {}, //high level structure of objects, identified by keys
+    constraint: {}, //point, slider, hinge ...
+    method: {} //methods available to the system
+  };
   this.construct(options, system, 'basic');
 }
 
@@ -7,16 +14,19 @@ System.prototype.types = {
   //base and axis are specified in local coordinates
   basic: function (options) {
     this.include(options, {});
-    this.objects = {
-      shape: {}, //sphere, box, cylinder, cone ...
-      material: {}, //basic, phong, lambert ? ...
-      body: {}, //shape + mesh
-      connector: {}, //this should not be here! it should be accessed and destroyed within the body
-      system: {}, //high level structure of objects, identified by keys
-      constraint: {}, //point, slider, hinge ...
-      method: {} //methods available to the system
-    };
     this.load(options);
+  },
+  imported: function (options) {
+    this.include(options, {
+      url: undefined,
+      position: {},
+      rotation: {},
+      importOptions: {}
+    });
+    this.notifyUndefined(['url']);
+    this.position = new Vector(options.position);
+    this.quaternion = new Quaternion(options.rotation);
+    this.import(this.url, this.importOptions);
   }
 };
 

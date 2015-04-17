@@ -13,14 +13,14 @@ UserInterface.prototype.types = {
       template: {},
       container: this.getSettings().uiContainer
     });
-    this.notifyUndefined(['values', 'container']);
+    this.notifyUndefined(['container']);
     if (this.runsRender) {
       if (typeof $ === 'undefined') {
         $ = jQuery;
       }
       this.updaters = [];
       this.reference = {};
-      this.showEditor();
+      if (this.values) this.showEditor();
     }
   }
 };
@@ -48,6 +48,7 @@ UserInterface.prototype.showEditor = function () {
   this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
   $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
+  $(domElements).css(this.css.top);
   $(this.container).append(domElements);
 };
 
@@ -314,6 +315,11 @@ UserInterface.prototype.inputs = {
 };
 
 UserInterface.prototype.css = {
+  top: {
+    'border': '1px solid white',
+    'margin': '1em',
+    'padding': '1em 1em 2em 1em'
+  },
   level: {
     'border': '1px dashed transparent',
     'margin': '0 1em'

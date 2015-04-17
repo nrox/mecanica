@@ -20,6 +20,11 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   this.z = ammoVector.z();
 };
 
+Vector.prototype.add = function (v) {
+  if (this.ammo && v.ammo) this.ammo.op_add(v.ammo);
+  if (this.three && v.three) this.three.add(v.three);
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined

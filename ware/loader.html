@@ -105,7 +105,7 @@
     mecanica.import('../ware/settings/tests.js');
     mecanica.import('../ware/scene/simple.js');
     mecanica.import('../ware/light/set3.js');
-    mecanica.import('../ware/monitor/satellite.js', {distance: 10});
+    mecanica.import('../ware/monitor/satellite.js', {distance: 20});
     mecanica.addToScene();
     mecanica.start();
     var ui = new lib.UserInterface({
@@ -113,7 +113,6 @@
         container: '#triggers'
     }, mecanica);
     var controls = new lib.UserInterface({
-        values: {},
         container: '#triggers'
     }, mecanica);
     makeList(loadList());

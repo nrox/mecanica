@@ -199,8 +199,15 @@ Component.prototype.maker.settings = Settings;
 
 ;// src/system.js begins
 
-
 function System(options, system) {
+  this.objects = {
+    shape: {}, //sphere, box, cylinder, cone ...
+    material: {}, //basic, phong, lambert ? ...
+    body: {}, //shape + mesh
+    system: {}, //high level structure of objects, identified by keys
+    constraint: {}, //point, slider, hinge ...
+    method: {} //methods available to the system
+  };
   this.construct(options, system, 'basic');
 }
 
@@ -208,16 +215,19 @@ System.prototype.types = {
   //base and axis are specified in local coordinates
   basic: function (options) {
     this.include(options, {});
-    this.objects = {
-      shape: {}, //sphere, box, cylinder, cone ...
-      material: {}, //basic, phong, lambert ? ...
-      body: {}, //shape + mesh
-      connector: {}, //this should not be here! it should be accessed and destroyed within the body
-      system: {}, //high level structure of objects, identified by keys
-      constraint: {}, //point, slider, hinge ...
-      method: {} //methods available to the system
-    };
     this.load(options);
+  },
+  imported: function (options) {
+    this.include(options, {
+      url: undefined,
+      position: {},
+      rotation: {},
+      importOptions: {}
+    });
+    this.notifyUndefined(['url']);
+    this.position = new Vector(options.position);
+    this.quaternion = new Quaternion(options.rotation);
+    this.import(this.url, this.importOptions);
   }
 };
 
@@ -664,6 +674,11 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   this.z = ammoVector.z();
 };
 
+Vector.prototype.add = function (v) {
+  if (this.ammo && v.ammo) this.ammo.op_add(v.ammo);
+  if (this.three && v.three) this.three.add(v.three);
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -942,6 +957,7 @@ Body.prototype.types = {
  * updates ammo and three position and rotation from the objects position and rotation
  */
 Body.prototype.updateMotionState = function () {
+  this.applySystemTransform();
   if (this.runsWebGL()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
@@ -955,6 +971,12 @@ Body.prototype.updateMotionState = function () {
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     this.ammo = new Ammo.btRigidBody(rbInfo);
+  }
+};
+
+Body.prototype.applySystemTransform = function () {
+  if (this.parentSystem.position) {
+    this.position.add(this.parentSystem.position);
   }
 };
 
@@ -1728,14 +1750,14 @@ UserInterface.prototype.types = {
       template: {},
       container: this.getSettings().uiContainer
     });
-    this.notifyUndefined(['values', 'container']);
+    this.notifyUndefined(['container']);
     if (this.runsRender) {
       if (typeof $ === 'undefined') {
         $ = jQuery;
       }
       this.updaters = [];
       this.reference = {};
-      this.showEditor();
+      if (this.values) this.showEditor();
     }
   }
 };
@@ -1763,6 +1785,7 @@ UserInterface.prototype.showEditor = function () {
   this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
   $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
+  $(domElements).css(this.css.top);
   $(this.container).append(domElements);
 };
 
@@ -2029,6 +2052,11 @@ UserInterface.prototype.inputs = {
 };
 
 UserInterface.prototype.css = {
+  top: {
+    'border': '1px solid white',
+    'margin': '1em',
+    'padding': '1em 1em 2em 1em'
+  },
   level: {
     'border': '1px dashed transparent',
     'margin': '0 1em'
