@@ -175,6 +175,20 @@ var test = {
     }, 'constraint default type');
     testUtils.checkKeys(obj, ['addToScene', 'removeFromScene', 'create'], 'constraint basic methods');
   },
+  Method: function () {
+    var mecanica = require('../mecanica.js');
+    var me = new mecanica.Mecanica();
+    var system = me.make({group: 'system', type: 'basic', id: 'top'});
+    system.make('method', {
+      id: 'fun',
+      method: function () {
+        return this;
+      }
+    });
+    testUtils.checkValues(me.getSystem('top')['fun'](), {
+      id: system.id
+    }, 'inside methods, this is the parent system');
+  },
   Monitor: function () {
     console.warn('TODO');
   },

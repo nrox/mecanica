@@ -17,6 +17,7 @@ module.exports = {
   Camera: Camera,
   Monitor: Monitor,
   Renderer: Renderer,
+  Method: Method,
   UserInterface: UserInterface
 };
 

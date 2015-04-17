@@ -87,6 +87,13 @@ function getObject(o) {
         connectorA: 'c', connectorB: 'c',
         bodyA: 'base', bodyB: 'tip'
       }
+    },
+    method: {
+      setAngle: {
+        method: function(angle){
+          this.getConstraint('tilt').setAngle(angle);
+        }
+      }
     }
   }
 }
@@ -103,8 +110,7 @@ function userInterface(options) {
     template: {
       angle: {type: 'range', min: -90, max: 90, step: 1, velocity: 5, onChange: function () {
         var angle = this.getValues().angle;
-        var tilt = this.rootSystem.getSystem(options.system).getConstraint('tilt');
-        tilt.setAngle(angle * Math.PI / 180);
+        this.rootSystem.getSystem(options.system).setAngle(angle * Math.PI / 180);
       }}
     },
     container: options.container
