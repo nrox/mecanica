@@ -70,7 +70,14 @@ System.prototype.getSystem = function (id) {
 };
 
 System.prototype.getBody = function (id) {
-  return this.getObject('body', id);
+  var sys = this;
+  if ((typeof id == 'object') && id.system && id.body) {
+    for (var i = 0; i < id.system.length; i++) {
+      sys = sys.getSystem(id.system[i]);
+    }
+    id = id.body;
+  }
+  return sys.getObject('body', id);
 };
 
 System.prototype.getConstraint = function (id) {

@@ -441,6 +441,17 @@ interface btSequentialImpulseConstraintSolver {
   void btSequentialImpulseConstraintSolver();
 };
 
+interface btMLCPSolverInterface {
+};
+
+interface btMLCPSolver {
+  void btMLCPSolver(btMLCPSolverInterface mlcp);
+};
+
+interface btDantzigSolver {
+  void btDantzigSolver();
+};
+
 interface btConeTwistConstraint {
   void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame);
   void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame);

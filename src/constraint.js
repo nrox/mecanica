@@ -15,8 +15,8 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = this.parentSystem.getObject('body', this.bodyA);
-      this.bodyB = this.parentSystem.getObject('body', this.bodyB);
+      this.bodyA = this.parentSystem.getBody(this.bodyA);
+      this.bodyB = this.parentSystem.getBody(this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {

@@ -62,5 +62,10 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   this.w = ammoVector.w();
 };
 
+Quaternion.prototype.multiply = function (v) {
+  if (this.ammo && v.ammo) this.ammo.op_mul(v.ammo);
+  if (this.three && v.three) this.three.multiply(v.three);
+};
+
 extend(Vector, Component);
 extend(Quaternion, Component);

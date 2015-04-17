@@ -271,7 +271,14 @@ System.prototype.getSystem = function (id) {
 };
 
 System.prototype.getBody = function (id) {
-  return this.getObject('body', id);
+  var sys = this;
+  if ((typeof id == 'object') && id.system && id.body) {
+    for (var i = 0; i < id.system.length; i++) {
+      sys = sys.getSystem(id.system[i]);
+    }
+    id = id.body;
+  }
+  return sys.getObject('body', id);
 };
 
 System.prototype.getConstraint = function (id) {
@@ -668,6 +675,7 @@ Method.prototype.types = {
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;
+
 // src/method.js ends
 
 ;// src/vector.js begins
@@ -734,6 +742,11 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   this.y = ammoVector.y();
   this.z = ammoVector.z();
   this.w = ammoVector.w();
+};
+
+Quaternion.prototype.multiply = function (v) {
+  if (this.ammo && v.ammo) this.ammo.op_mul(v.ammo);
+  if (this.three && v.three) this.three.multiply(v.three);
 };
 
 extend(Vector, Component);
@@ -997,6 +1010,8 @@ Body.prototype.updateMotionState = function () {
 Body.prototype.applySystemTransform = function () {
   if (this.parentSystem.position) {
     this.position.add(this.parentSystem.position);
+    //console.log(this.parentSystem.quaternion.x, this.parentSystem.quaternion.y, this.parentSystem.quaternion.z, this.parentSystem.quaternion.w);
+    this.quaternion.multiply(this.parentSystem.quaternion);
   }
 };
 
@@ -1209,8 +1224,8 @@ Constraint.prototype.types = {
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
     if (this.runsPhysics()) {
-      this.bodyA = this.parentSystem.getObject('body', this.bodyA);
-      this.bodyB = this.parentSystem.getObject('body', this.bodyB);
+      this.bodyA = this.parentSystem.getBody(this.bodyA);
+      this.bodyB = this.parentSystem.getBody(this.bodyB);
       this.connectorA = this.bodyA.connector[this.connectorA];
       this.connectorB = this.bodyB.connector[this.connectorB];
       if (this.approach) {
@@ -1518,11 +1533,36 @@ Scene.prototype.types = {
       this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
       this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
       this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
-      this.btSequentialImpulseConstraintSolver = new Ammo.btSequentialImpulseConstraintSolver();
+      this.constraintSolver = new Ammo.btSequentialImpulseConstraintSolver();
       this.ammo = new Ammo.btDiscreteDynamicsWorld(
         this.btCollisionDispatcher,
         this.btDbvtBroadphase,
-        this.btSequentialImpulseConstraintSolver,
+        this.constraintSolver,
+        this.btDefaultCollisionConfiguration
+      );
+      this.ammo.setGravity(new Vector(this.gravity).ammo);
+    }
+  },
+  mlcp: function (options) {
+    this.include(options, {
+      gravity: {y: -9.81}
+    });
+    var settings = this.getSettings();
+    if (this.runsWebGL()) {
+      this.three = new THREE.Scene();
+      if (settings.axisHelper) {
+        if (this.runsWebGL()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
+      }
+    }
+    if (this.runsPhysics()) {
+      this.btDefaultCollisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+      this.btCollisionDispatcher = new Ammo.btCollisionDispatcher(this.btDefaultCollisionConfiguration);
+      this.btDbvtBroadphase = new Ammo.btDbvtBroadphase();
+      this.constraintSolver = new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
+      this.ammo = new Ammo.btDiscreteDynamicsWorld(
+        this.btCollisionDispatcher,
+        this.btDbvtBroadphase,
+        this.constraintSolver,
         this.btDefaultCollisionConfiguration
       );
       this.ammo.setGravity(new Vector(this.gravity).ammo);

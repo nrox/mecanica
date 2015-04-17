@@ -77,6 +77,8 @@ Body.prototype.updateMotionState = function () {
 Body.prototype.applySystemTransform = function () {
   if (this.parentSystem.position) {
     this.position.add(this.parentSystem.position);
+    //console.log(this.parentSystem.quaternion.x, this.parentSystem.quaternion.y, this.parentSystem.quaternion.z, this.parentSystem.quaternion.w);
+    this.quaternion.multiply(this.parentSystem.quaternion);
   }
 };
 
