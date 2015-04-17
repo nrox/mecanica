@@ -1955,13 +1955,14 @@ UserInterface.prototype.inputs = {
     });
     var _this = this;
     var $wrapper = $('<div />');
-    var $v = $('<div>' + v + '</div>');
+    var $v = $('<span>' + v + '</span>');
     if (specs.editable) $v.attr('contenteditable', 'true');
     $v.css(_this.css.rangeValue);
     var values = specs.values;
     var step = Number(specs.step);
     var max = specs.max;
     var min = specs.min;
+    $wrapper.append($v);
     _.each(['minus', 'plus'], function (d, i) {
       var $d = $('<span />');
       $d.text(specs[d]);
@@ -1971,7 +1972,6 @@ UserInterface.prototype.inputs = {
       $d.on('mouseup', cancel);
       $d.on('mouseout', cancel);
     });
-    $wrapper.append($v);
     var timeoutId;
     var time = 0;
 
@@ -2063,9 +2063,14 @@ UserInterface.prototype.css = {
     'font-weight': 'bold',
     'user-select': 'none'
   },
+  range: {
+    'white-space': 'nowrap',
+    'cursor': 'auto',
+    'background-color': 'transparent',
+    'padding': '0px 2px'
+  },
   rangeValue: {
-    'float': 'left',
-    'width': '5em',
+    'min-width': '5em',
     'margin-left': '1em',
     'background-color': '#999',
     'padding': '1px 10px',
@@ -2073,10 +2078,16 @@ UserInterface.prototype.css = {
     'border-radius': '3px',
     'border': '0px solid transparent'
   },
-  range: {
-    'cursor': 'auto',
-    'background-color': 'transparent',
-    'padding': '0px 2px'
+  pm: {
+    'cursor': 'pointer',
+    'color': '#311',
+    'margin': '0 2px',
+    'border': '1 px solid transparent',
+    'border-radius': '10px',
+    'padding': '0 5px',
+    'background-color': '#777',
+    'font-weight': 'normal',
+    'user-select': 'none'
   },
   'function': {
     'cursor': 'pointer',
@@ -2109,17 +2120,6 @@ UserInterface.prototype.css = {
   },
   folded: {
     'color': '#777'
-  },
-  pm: {
-    'cursor': 'pointer',
-    'color': '#311',
-    'margin': '0 2px',
-    'border': '1 px solid transparent',
-    'border-radius': '10px',
-    'padding': '0 5px',
-    'background-color': '#777',
-    'font-weight': 'normal',
-    'user-select': 'none'
   }
 };
 

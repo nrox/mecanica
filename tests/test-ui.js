@@ -4,8 +4,6 @@ var $ = require('../lib/jquery.js');
 var _ = require('../lib/underscore.js');
 var lib = require('../mecanica.js');
 
-var editorConstructor = require('../util/json-ui.js');
-
 function clearObjects() {
   $('#container').empty();
   $('#triggers').empty();
@@ -129,22 +127,24 @@ var test = {
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024 //shadow map width and height
     };
-    var editor = new editorConstructor();
-    editor.useTemplate(template);
-    editor.setValues(defaultSettings);
-    editor.showEditor('#container');
+    var editor = new lib.UserInterface({
+      values: defaultSettings,
+      template: template,
+      container: '#container'
+    }, new lib.Mecanica());
     makeGetValues(editor);
   },
   'ware object': function () {
-    var obj = require('../ware/experiments/random-shapes.js').getObject();
+    var obj = require('../ware/experiment/random-shapes.js').getObject();
     var template = {};
     _.each(obj, function (o, k) {
       template[k] = {folded: true};
     });
-    var editor = new editorConstructor();
-    editor.useTemplate(template);
-    editor.setValues(obj);
-    editor.showEditor('#container');
+    var editor = new lib.UserInterface({
+      values: obj,
+      template: template,
+      container: '#container'
+    }, new lib.Mecanica());
     makeGetValues(editor);
   }
 };
