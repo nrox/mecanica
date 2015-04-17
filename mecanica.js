@@ -1951,12 +1951,11 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'range', step: 1,
       min: undefined, max: undefined, values: undefined,
-      plus: '+', minus: '-', editable: true, velocity: 1,
-      round: undefined
+      plus: '+', minus: '-', editable: true, velocity: 1
     });
     var _this = this;
-    var $wrapper = $('<span />');
-    var $v = $('<span>' + v + '</span>');
+    var $wrapper = $('<div />');
+    var $v = $('<div>' + v + '</div>');
     if (specs.editable) $v.attr('contenteditable', 'true');
     $v.css(_this.css.rangeValue);
     var values = specs.values;
@@ -2004,14 +2003,12 @@ UserInterface.prototype.inputs = {
           if (min !== undefined) {
             next = next > min ? next : min;
           }
-          if (specs.round) {
-            next = Math.round(next / specs.round) * specs.round;
-            next = String(next);
-            var point = next.indexOf('.');
-            if (point > -1) {
-              var end = point - Math.log10(specs.round) + 1;
-              next = Number(next.substring(0, end));
-            }
+          next = Math.round(next / specs.step) * specs.step;
+          next = String(next);
+          var point = next.indexOf('.');
+          if (point > -1) {
+            var end = point - Math.log10(specs.step) + 1;
+            next = Number(next.substring(0, end));
           }
         }
         $v.text(next.toString());
@@ -2062,15 +2059,17 @@ UserInterface.prototype.css = {
     'font-style': 'italic'
   },
   boolean: {
+    'cursor': 'pointer',
     'font-weight': 'bold',
     'user-select': 'none'
   },
   rangeValue: {
+    'float': 'left',
+    'width': '5em',
     'margin-left': '1em',
     'background-color': '#999',
     'padding': '1px 10px',
     'margin': '0px 3px',
-    'cursor': 'pointer',
     'border-radius': '3px',
     'border': '0px solid transparent'
   },
@@ -2080,6 +2079,7 @@ UserInterface.prototype.css = {
     'padding': '0px 2px'
   },
   'function': {
+    'cursor': 'pointer',
     'border': '0',
     'margin': '2px 3px',
     'min-width': '30px',
@@ -2095,7 +2095,7 @@ UserInterface.prototype.css = {
     'color': '#111',
     'padding': '1px 10px',
     'margin': '1px 3px',
-    'cursor': 'pointer',
+    'cursor': 'text',
     'border-radius': '3px',
     'border': '0px solid transparent'
   },
