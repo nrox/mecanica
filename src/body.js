@@ -84,10 +84,13 @@ Body.prototype.applySystemTransform = function () {
 
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
+    //console.log(this.id + ' adding to scene');
     this._added = true;
     this.updateMotionState();
     if (this.runsWebGL()) scene.three.add(this.three);
     if (this.runsPhysics()) scene.ammo.addRigidBody(this.ammo);
+  } else {
+    //console.log(this.id + ' already added to scene');
   }
 };
 

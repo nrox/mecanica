@@ -129,16 +129,15 @@ Mecanica.prototype.startRender = function () {
   if (this._renderRunning) return true;
 
   var settings = this.getSettings();
-  var controller = require('./util/controller.js');
   var scene = this.getScene();
-  this.useMonitor(this.monitor);
+  //this.useMonitor(this.monitor);
   var monitor = this.getSome('monitor');
   var _this = this;
   _.each(this.objects.light, function (light) {
     light.addToScene(scene);
   });
 
-
+  console.log(scene.three.children);
   function render() {
     if (scene._destroyed) return;
     if (!_this._renderRunning) return;

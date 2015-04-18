@@ -82,6 +82,7 @@ availablePaths = [
 "../ware/monitor/satellite.js",
 "../ware/monitor/simple.js",
 "../ware/monitor/tracker.js",
+"../ware/scene/mlcp.js",
 "../ware/scene/simple.js",
 "../ware/settings/simple.js",
 "../ware/settings/tests.js",
