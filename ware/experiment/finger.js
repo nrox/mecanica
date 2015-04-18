@@ -8,7 +8,7 @@ var defaultOptions = {
   colorBase: 0x443377,
   tipMass: 0.1,
   baseMass: 0,
-  gap: 0.001 //small gap to avoid friction
+  gap: 0.01 //small gap to avoid friction
 };
 
 function getObject(o) {
@@ -58,7 +58,10 @@ function getObject(o) {
     },
     body: {
       tip: {
-        position: {y: o.base + o.r + o.gap + tipCylinderHeight / 2}, mass: o.tipMass, shape: 'tip', material: 'tip',
+        position: {y: o.base + o.r + o.gap + tipCylinderHeight / 2},
+        mass: o.tipMass,
+        shape: 'tip',
+        material: 'tip',
         connector: {
           c: {
             base: {y: jointPosition},
@@ -68,7 +71,10 @@ function getObject(o) {
         }
       },
       base: {
-        position: {y: baseCylinderHeight / 2}, mass: o.baseMass, shape: 'base', material: 'base',
+        position: {y: baseCylinderHeight / 2},
+        mass: o.baseMass,
+        shape: 'base',
+        material: 'base',
         connector: {
           c: {
             base: {y: baseCylinderHeight / 2 + o.r + o.gap},

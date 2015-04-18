@@ -328,6 +328,7 @@ System.prototype.make = function () {
     if (!options.id) options.id = this.nextId(type);
     options.group = group;
     options.type = type;
+    //console.log('make ', group, type, options.id);
     obj = new cons(options, this);
     if (!options._dontSave && this.objects[group]) {
       if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
@@ -379,7 +380,7 @@ System.prototype.loadSystem = function (json, id) {
     json.id = id;
     return this.make('system', json);
   } catch (e) {
-    console.log('System.loadSystem: ' + id);
+    console.log('in System.loadSystem: ' + id);
     console.error(e);
   }
 };
@@ -700,7 +701,7 @@ function Vector(options) {
     x: 0, y: 0, z: 0
   });
   if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-  if (this.runsWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {
@@ -1068,17 +1069,8 @@ Body.prototype.syncPhysics = function () {
   //copy physics from .ammo object
   if (this.runsPhysics()) {
     body.ammo.getMotionState().getWorldTransform(trans);
-    var position = trans.getOrigin();
-    body.position.copyFromAmmo(position);
-    //body.position.x = position.x();
-    //body.position.y = position.y();
-    //body.position.z = position.z();
-    var quaternion = trans.getRotation();
-    body.quaternion.copyFromAmmo(quaternion);
-    //body.quaternion.x = quaternion.x();
-    //body.quaternion.y = quaternion.y();
-    //body.quaternion.z = quaternion.z();
-    //body.quaternion.w = quaternion.w();
+    body.position.copyFromAmmo(trans.getOrigin());
+    body.quaternion.copyFromAmmo(trans.getRotation());
   }
   //copy physics to .three object
   if (this.runsRender()) {
@@ -1207,9 +1199,9 @@ Connector.prototype.normalize = function () {
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
-  ammoHelper.destroy(up);
-  ammoHelper.destroy(front);
-  ammoHelper.destroy(wing);
+  //ammoHelper.destroy(up);
+  //ammoHelper.destroy(front);
+  //ammoHelper.destroy(wing);
   return t;
 };
 

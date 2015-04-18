@@ -127,6 +127,7 @@ System.prototype.make = function () {
     if (!options.id) options.id = this.nextId(type);
     options.group = group;
     options.type = type;
+    //console.log('make ', group, type, options.id);
     obj = new cons(options, this);
     if (!options._dontSave && this.objects[group]) {
       if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
@@ -178,7 +179,7 @@ System.prototype.loadSystem = function (json, id) {
     json.id = id;
     return this.make('system', json);
   } catch (e) {
-    console.log('System.loadSystem: ' + id);
+    console.log('in System.loadSystem: ' + id);
     console.error(e);
   }
 };

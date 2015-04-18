@@ -108,17 +108,8 @@ Body.prototype.syncPhysics = function () {
   //copy physics from .ammo object
   if (this.runsPhysics()) {
     body.ammo.getMotionState().getWorldTransform(trans);
-    var position = trans.getOrigin();
-    body.position.copyFromAmmo(position);
-    //body.position.x = position.x();
-    //body.position.y = position.y();
-    //body.position.z = position.z();
-    var quaternion = trans.getRotation();
-    body.quaternion.copyFromAmmo(quaternion);
-    //body.quaternion.x = quaternion.x();
-    //body.quaternion.y = quaternion.y();
-    //body.quaternion.z = quaternion.z();
-    //body.quaternion.w = quaternion.w();
+    body.position.copyFromAmmo(trans.getOrigin());
+    body.quaternion.copyFromAmmo(trans.getRotation());
   }
   //copy physics to .three object
   if (this.runsRender()) {

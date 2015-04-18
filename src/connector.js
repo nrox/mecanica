@@ -71,8 +71,12 @@ Connector.prototype.normalize = function () {
     v3.x(), v3.y(), v3.z()
   );
   m3 = m3.transpose();
-  Vector.prototype.copyFromAmmo.call(c.up, up);
-  Vector.prototype.copyFromAmmo.call(c.front, front);
+  c.up = {
+    x: up.x(), y: up.y(), z: up.z()
+  };
+  c.front = {
+    x: front.x(), y: front.y(), z: front.z()
+  };
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);

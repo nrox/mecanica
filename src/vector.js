@@ -3,7 +3,7 @@ function Vector(options) {
     x: 0, y: 0, z: 0
   });
   if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-  if (this.runsWebGL()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {

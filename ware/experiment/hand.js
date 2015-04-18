@@ -59,7 +59,7 @@ function getObject(options) {
     },
     constraint: {
       leftPan: {
-        type: 'servo', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
+        type: 'point', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
         bodyA: 'hand', bodyB: {system: ['left'], body: 'base'},
         connectorA: 'left', connectorB: 'bottom'
       },
