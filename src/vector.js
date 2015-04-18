@@ -18,6 +18,12 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   this.x = ammoVector.x();
   this.y = ammoVector.y();
   this.z = ammoVector.z();
+  if (this.runsPhysics()) {
+    this.ammo.setValue(this.x, this.y, this.z);
+  }
+  if (this.runsRender()) {
+    this.three.set(this.x, this.y, this.z);
+  }
 };
 
 Vector.prototype.add = function (v) {
@@ -60,6 +66,12 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   this.y = ammoVector.y();
   this.z = ammoVector.z();
   this.w = ammoVector.w();
+  if (this.runsPhysics()) {
+    this.ammo.setValue(this.x, this.y, this.z, this.w);
+  }
+  if (this.runsRender()) {
+    this.three.set(this.x, this.y, this.z, this.w);
+  }
 };
 
 Quaternion.prototype.multiply = function (v) {

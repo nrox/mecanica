@@ -8,6 +8,7 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
+  if (this.runsPhysics) this.ammoTransform = new Ammo.btTransform;
   this.construct(options, this, 'empty');
 }
 
@@ -93,14 +94,12 @@ Mecanica.prototype.startSimulation = function () {
     _this._lastTime = curTime;
     //callbacks beforeStep
     _this.callBeforeStep();
-    //_.each(objects.method, function (m) {
-    //  if (m.type == 'beforeStep') m.beforeStep.execute();
-    //});
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
     _this.syncPhysics();
+    _this.callAfterStep();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
@@ -130,14 +129,13 @@ Mecanica.prototype.startRender = function () {
 
   var settings = this.getSettings();
   var scene = this.getScene();
-  //this.useMonitor(this.monitor);
+  this.useMonitor(this.monitor);
   var monitor = this.getSome('monitor');
   var _this = this;
   _.each(this.objects.light, function (light) {
     light.addToScene(scene);
   });
 
-  console.log(scene.three.children);
   function render() {
     if (scene._destroyed) return;
     if (!_this._renderRunning) return;
@@ -156,6 +154,7 @@ Mecanica.prototype.startRender = function () {
 
 Mecanica.prototype.stopRender = function () {
   clearTimeout(this._rstid);
+  cancelAnimationFrame(this._rafid);
   this._renderRunning = false;
 };
 

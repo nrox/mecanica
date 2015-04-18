@@ -84,11 +84,15 @@ Body.prototype.applySystemTransform = function () {
 
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
-    //console.log(this.id + ' adding to scene');
     this._added = true;
     this.updateMotionState();
     if (this.runsWebGL()) scene.three.add(this.three);
-    if (this.runsPhysics()) scene.ammo.addRigidBody(this.ammo);
+    if (this.runsPhysics()) {
+      scene.ammo.addRigidBody(this.ammo);
+      if (!this.ammo.isInWorld()) {
+        console.error(this.id + ' failed to be added to world');
+      }
+    }
   } else {
     //console.log(this.id + ' already added to scene');
   }
@@ -100,28 +104,24 @@ Body.prototype.addToScene = function (scene) {
  */
 Body.prototype.syncPhysics = function () {
   var body = this;
-  var trans;
+  var trans = this.rootSystem.ammoTransform;
   //copy physics from .ammo object
   if (this.runsPhysics()) {
-    trans = this._trans;
-    //keep the transform instead of creating all the time
-    if (!trans) {
-      trans = new Ammo.btTransform();
-      this._trans = trans;
-    }
     body.ammo.getMotionState().getWorldTransform(trans);
     var position = trans.getOrigin();
-    body.position.x = position.x();
-    body.position.y = position.y();
-    body.position.z = position.z();
+    body.position.copyFromAmmo(position);
+    //body.position.x = position.x();
+    //body.position.y = position.y();
+    //body.position.z = position.z();
     var quaternion = trans.getRotation();
-    body.quaternion.x = quaternion.x();
-    body.quaternion.y = quaternion.y();
-    body.quaternion.z = quaternion.z();
-    body.quaternion.w = quaternion.w();
+    body.quaternion.copyFromAmmo(quaternion);
+    //body.quaternion.x = quaternion.x();
+    //body.quaternion.y = quaternion.y();
+    //body.quaternion.z = quaternion.z();
+    //body.quaternion.w = quaternion.w();
   }
   //copy physics to .three object
-  if (!this.runsInWorker()) {
+  if (this.runsRender()) {
     body.three.position.copy(body.position);
     body.three.quaternion.copy(body.quaternion);
   }
@@ -155,6 +155,7 @@ Body.prototype.destroy = function (scene) {
   if (this.runsPhysics()) {
     scene.ammo.removeRigidBody(this.ammo);
     Ammo.destroy(this.ammo);
+    Ammo.destroy(this.ammoTransform);
   }
 };
 

@@ -390,6 +390,7 @@ interface btRigidBody {
   btMotionState getMotionState();
   void setAngularFactor([Const, Ref] btVector3 angularFactor);
   btRigidBody upcast([Const] btCollisionObject colObj);
+  [Const] boolean isInWorld();
 };
 btRigidBody implements btCollisionObject;
 

@@ -244,6 +244,15 @@ Constraint.prototype.types = {
   }
 };
 
+Constraint.prototype.destroy = function (scene) {
+  if (this.runsPhysics()) {
+    this.removeFromScene(scene);
+    Ammo.destroy(this.ammo);
+    if (this.transformA) Ammo.destroy(this.transformA);
+    if (this.transformA) Ammo.destroy(this.transformB);
+  }
+};
+
 Constraint.prototype.methods = {
   addToScene: function (scene) {
     if (!this._added && this.runsPhysics()) {
@@ -258,7 +267,6 @@ Constraint.prototype.methods = {
   removeFromScene: function (scene) {
     if (this._added && this.runsPhysics()) {
       scene.ammo.removeConstraint(this.ammo);
-      Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();

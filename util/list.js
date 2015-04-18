@@ -36,7 +36,6 @@ availablePaths = [
 "../src/scene.js",
 "../src/settings.js",
 "../src/shape.js",
-"../src/simulation.js",
 "../src/system.js",
 "../src/ui.js",
 "../src/vector.js",

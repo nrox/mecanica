@@ -49,7 +49,7 @@ function getObject(options) {
           base: {
             mass: 1,
             shape: {type: 'cylinder', r: 2, dy: 1, segments: 5},
-            material: {type: 'phong', color: 0x332288},
+            material: {type: 'phong', color: 0x44aa88},
             position: {x: o.distance / 2, y: 1.001},
             connector: {
               bottom: {base: {y: -0.5}, up: {y: 1}, front: {x: 1}}
@@ -79,6 +79,15 @@ function getObject(options) {
       rightPan: {
         method: function (angle) {
           this.getConstraint('rightPan').setAngle(angle);
+        }
+      },
+      afterStep: {
+        method: function () {
+          if (this._done == undefined) this._done = 0;
+          if (this._done++ == 0) {
+            var position = this.getSystem('left').getBody('tip');
+            console.log(position);
+          }
         }
       }
     }

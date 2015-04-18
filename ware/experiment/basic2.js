@@ -13,7 +13,7 @@ function getObject(options) {
       }
     },
     shape: {
-      fixed: { type: 'sphere', r: 2, segments: 32 },
+      fixed: { type: 'sphere', r: 1.5, segments: 32 },
       satellite: { type: 'sphere', r: 1, segments: 16 }
     },
     material: {
@@ -45,15 +45,6 @@ function getObject(options) {
       cons: {
         connectorA: 'c1', connectorB: 'c2', bodyA: 'id5', bodyB: 'id6'
       }
-    },
-    scene: {
-      s1: {}
-    },
-    monitor: {
-      cam: {camera: 'tracker', lookAt: 'id6', axis: {x: 1, y: 0.5, z: 0.3}, distance: 20, inertia: 5}
-    },
-    light: {
-      l1: {type: 'directional', color: 0xaaaaaa, position: {x: 5, y: 5, z: 5}}
     }
   }
 }

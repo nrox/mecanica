@@ -452,14 +452,31 @@ System.prototype.packPhysics = function (myPack) {
 };
 
 System.prototype.callBeforeStep = function () {
+  _.each(this.objects.system, function (s) {
+    s.callBeforeStep();
+  });
   _.each(this.objects.constraint, function (c) {
     if (c.beforeStep) {
       c.beforeStep();
     }
   });
+  if (this.beforeStep) {
+    this.beforeStep();
+  }
+};
+
+System.prototype.callAfterStep = function () {
   _.each(this.objects.system, function (s) {
-    s.callBeforeStep();
-  })
+    s.callAfterStep();
+  });
+  _.each(this.objects.constraint, function (c) {
+    if (c.afterStep) {
+      c.afterStep();
+    }
+  });
+  if (this.afterStep) {
+    this.afterStep();
+  }
 };
 
 extend(System, Component);
@@ -478,6 +495,7 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
+  if (this.runsPhysics) this.ammoTransform = new Ammo.btTransform;
   this.construct(options, this, 'empty');
 }
 
@@ -563,14 +581,12 @@ Mecanica.prototype.startSimulation = function () {
     _this._lastTime = curTime;
     //callbacks beforeStep
     _this.callBeforeStep();
-    //_.each(objects.method, function (m) {
-    //  if (m.type == 'beforeStep') m.beforeStep.execute();
-    //});
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
     _this.syncPhysics();
+    _this.callAfterStep();
     //_.each(objects.method, function (m) {
     //  if (m.type == 'afterStep') m.afterStep.execute();
     //});
@@ -600,14 +616,13 @@ Mecanica.prototype.startRender = function () {
 
   var settings = this.getSettings();
   var scene = this.getScene();
-  //this.useMonitor(this.monitor);
+  this.useMonitor(this.monitor);
   var monitor = this.getSome('monitor');
   var _this = this;
   _.each(this.objects.light, function (light) {
     light.addToScene(scene);
   });
 
-  console.log(scene.three.children);
   function render() {
     if (scene._destroyed) return;
     if (!_this._renderRunning) return;
@@ -626,6 +641,7 @@ Mecanica.prototype.startRender = function () {
 
 Mecanica.prototype.stopRender = function () {
   clearTimeout(this._rstid);
+  cancelAnimationFrame(this._rafid);
   this._renderRunning = false;
 };
 
@@ -699,6 +715,12 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   this.x = ammoVector.x();
   this.y = ammoVector.y();
   this.z = ammoVector.z();
+  if (this.runsPhysics()) {
+    this.ammo.setValue(this.x, this.y, this.z);
+  }
+  if (this.runsRender()) {
+    this.three.set(this.x, this.y, this.z);
+  }
 };
 
 Vector.prototype.add = function (v) {
@@ -741,6 +763,12 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   this.y = ammoVector.y();
   this.z = ammoVector.z();
   this.w = ammoVector.w();
+  if (this.runsPhysics()) {
+    this.ammo.setValue(this.x, this.y, this.z, this.w);
+  }
+  if (this.runsRender()) {
+    this.three.set(this.x, this.y, this.z, this.w);
+  }
 };
 
 Quaternion.prototype.multiply = function (v) {
@@ -1016,11 +1044,15 @@ Body.prototype.applySystemTransform = function () {
 
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
-    //console.log(this.id + ' adding to scene');
     this._added = true;
     this.updateMotionState();
     if (this.runsWebGL()) scene.three.add(this.three);
-    if (this.runsPhysics()) scene.ammo.addRigidBody(this.ammo);
+    if (this.runsPhysics()) {
+      scene.ammo.addRigidBody(this.ammo);
+      if (!this.ammo.isInWorld()) {
+        console.error(this.id + ' failed to be added to world');
+      }
+    }
   } else {
     //console.log(this.id + ' already added to scene');
   }
@@ -1032,28 +1064,24 @@ Body.prototype.addToScene = function (scene) {
  */
 Body.prototype.syncPhysics = function () {
   var body = this;
-  var trans;
+  var trans = this.rootSystem.ammoTransform;
   //copy physics from .ammo object
   if (this.runsPhysics()) {
-    trans = this._trans;
-    //keep the transform instead of creating all the time
-    if (!trans) {
-      trans = new Ammo.btTransform();
-      this._trans = trans;
-    }
     body.ammo.getMotionState().getWorldTransform(trans);
     var position = trans.getOrigin();
-    body.position.x = position.x();
-    body.position.y = position.y();
-    body.position.z = position.z();
+    body.position.copyFromAmmo(position);
+    //body.position.x = position.x();
+    //body.position.y = position.y();
+    //body.position.z = position.z();
     var quaternion = trans.getRotation();
-    body.quaternion.x = quaternion.x();
-    body.quaternion.y = quaternion.y();
-    body.quaternion.z = quaternion.z();
-    body.quaternion.w = quaternion.w();
+    body.quaternion.copyFromAmmo(quaternion);
+    //body.quaternion.x = quaternion.x();
+    //body.quaternion.y = quaternion.y();
+    //body.quaternion.z = quaternion.z();
+    //body.quaternion.w = quaternion.w();
   }
   //copy physics to .three object
-  if (!this.runsInWorker()) {
+  if (this.runsRender()) {
     body.three.position.copy(body.position);
     body.three.quaternion.copy(body.quaternion);
   }
@@ -1087,6 +1115,7 @@ Body.prototype.destroy = function (scene) {
   if (this.runsPhysics()) {
     scene.ammo.removeRigidBody(this.ammo);
     Ammo.destroy(this.ammo);
+    Ammo.destroy(this.ammoTransform);
   }
 };
 
@@ -1169,14 +1198,18 @@ Connector.prototype.normalize = function () {
     v3.x(), v3.y(), v3.z()
   );
   m3 = m3.transpose();
-  Vector.prototype.copyFromAmmo.call(c.up, up);
-  Vector.prototype.copyFromAmmo.call(c.front, front);
+  c.up = {
+    x: up.x(), y: up.y(), z: up.z()
+  };
+  c.front = {
+    x: front.x(), y: front.y(), z: front.z()
+  };
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
-  //ammoHelper.destroy(up);
-  //ammoHelper.destroy(front);
-  //ammoHelper.destroy(wing);
+  ammoHelper.destroy(up);
+  ammoHelper.destroy(front);
+  ammoHelper.destroy(wing);
   return t;
 };
 
@@ -1201,6 +1234,10 @@ Connector.prototype.approachConnector = function (fix) {
   move.body.ammoTransform.op_mul(moveBodyInvTrans);
   move.body.position = Vector.prototype.fromAmmo(move.body.ammoTransform.getOrigin());
   move.body.quaternion = Quaternion.prototype.fromAmmo(move.body.ammoTransform.getRotation());
+  Ammo.destroy(moveConInvTrans);
+  Ammo.destroy(moveBodyInvTrans);
+  Ammo.destroy(fixConTrans);
+  Ammo.destroy(fixBodyTrans);
 };
 
 extend(Connector, Component);
@@ -1455,6 +1492,15 @@ Constraint.prototype.types = {
   }
 };
 
+Constraint.prototype.destroy = function (scene) {
+  if (this.runsPhysics()) {
+    this.removeFromScene(scene);
+    Ammo.destroy(this.ammo);
+    if (this.transformA) Ammo.destroy(this.transformA);
+    if (this.transformA) Ammo.destroy(this.transformB);
+  }
+};
+
 Constraint.prototype.methods = {
   addToScene: function (scene) {
     if (!this._added && this.runsPhysics()) {
@@ -1469,7 +1515,6 @@ Constraint.prototype.methods = {
   removeFromScene: function (scene) {
     if (this._added && this.runsPhysics()) {
       scene.ammo.removeConstraint(this.ammo);
-      Ammo.destroy(this.ammo);
       this._added = false;
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
