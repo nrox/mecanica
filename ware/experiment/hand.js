@@ -11,17 +11,37 @@ var defaultOptions = {
 };
 
 function getObject(options) {
-  console.warn('some issues here: bodies disappear...');
+  console.warn('some issues here!');
   var o = _.defaults(options || {}, defaultOptions);
-  var finger = {
-    type: 'imported',
-    url: '../../ware/experiment/finger.js',
-    position: {x: -o.distance / 2},
-    rotation: {y: Math.PI / 2},
-    importOptions: {
-      r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
-      baseMass: o.fingerMass / 3, tipMass: 2 * o.fingerMass / 3
-    }
+  var finger = function (x) {
+    return {
+      type: 'imported',
+      url: '../../ware/experiment/finger.js',
+      position: {x: x},
+      rotation: {y: Math.PI / 2},
+      importOptions: {
+        r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
+        baseMass: o.fingerMass / 3, tipMass: 2 * o.fingerMass / 3
+      }
+    };
+  };
+  var constraint = function (system) {
+    return {
+      type: 'point', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
+      bodyA: 'hand', bodyB: {system: [system], body: 'base'},
+      connectorA: system, connectorB: 'bottom',
+      approach: false
+    };
+  };
+  var pan = function (system) {
+    return {
+      method: function (angle) {
+        this.getConstraint(system + 'Pan').setAngle(angle);
+      }
+    };
+  };
+  var connector = function (x) {
+    return {base: {x: x, y: o.handHeight / 2}, up: {y: 1}, front: {x: 1}};
   };
   var objects = {
     shape: {
@@ -33,54 +53,27 @@ function getObject(options) {
     body: {
       hand: {position: {y: -o.handHeight / 2}, mass: 0, shape: 'hand', material: 'hand',
         connector: {
-          left: {base: {x: -o.distance / 2, y: o.handHeight / 2}, up: {y: 1}, front: {x: 1}},
-          center: {base: {x: 0, y: o.handHeight / 2}, up: {y: 1}, front: {x: 1}},
-          right: {base: {x: o.distance / 2, y: o.handHeight / 2}, up: {y: 1}, front: {x: 1}}
+          left: connector(-o.distance / 2),
+          center: connector(0),
+          right: connector(o.distance / 2)
         }
       }
 
     },
     system: {
-      left: _.extend(utils.deepCopy(finger), {position: {x: -o.distance / 2}}),
-      //center: _.extend(utils.deepCopy(finger), {position: {x: 0}}),
-      //right: _.extend(utils.deepCopy(finger), {position: {x: o.distance / 2}})
-      right: {
-        body: {
-          base: {
-            mass: 1,
-            shape: {type: 'cylinder', r: 2, dy: 1, segments: 5},
-            material: {type: 'phong', color: 0x44aa88},
-            position: {x: o.distance / 2, y: 1.001},
-            connector: {
-              bottom: {base: {y: -0.5}, up: {y: 1}, front: {x: 1}}
-            }
-          }}
-      }
+      left: finger(-o.distance / 2),
+      center: finger(0),
+      right: finger(o.distance / 2)
     },
     constraint: {
-      leftPan: {
-        type: 'servo', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
-        bodyA: 'hand', bodyB: {system: ['left'], body: 'base'},
-        connectorA: 'left', connectorB: 'bottom'
-      },
-      rightPan: {
-        type: 'servo', maxBinary: 10, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
-        bodyA: 'hand',
-        bodyB: {system: ['right'], body: 'base'},
-        connectorA: 'right', connectorB: 'bottom'
-      }
+      leftPan: constraint('left'),
+      centerPan: constraint('center'),
+      rightPan: constraint('right')
     },
     method: {
-      leftPan: {
-        method: function (angle) {
-          this.getConstraint('leftPan').setAngle(angle);
-        }
-      },
-      rightPan: {
-        method: function (angle) {
-          this.getConstraint('rightPan').setAngle(angle);
-        }
-      },
+      leftPan: pan('left'),
+      centerPan: pan('center'),
+      rightPan: pan('right'),
       afterStep: {
         method: function () {
           if (this._done == undefined) this._done = 0;
@@ -131,7 +124,7 @@ function userInterface(options) {
   }
 
   addTemplateForFinger('left', uiOptions);
-  //addTemplateForFinger('center', uiOptions);
+  addTemplateForFinger('center', uiOptions);
   addTemplateForFinger('right', uiOptions);
   return uiOptions;
 }

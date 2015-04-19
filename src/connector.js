@@ -80,9 +80,9 @@ Connector.prototype.normalize = function () {
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
-  //ammoHelper.destroy(up);
-  //ammoHelper.destroy(front);
-  //ammoHelper.destroy(wing);
+  ammoHelper.destroy(up);
+  ammoHelper.destroy(front);
+  ammoHelper.destroy(wing);
   return t;
 };
 

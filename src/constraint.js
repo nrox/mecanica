@@ -240,6 +240,8 @@ Constraint.prototype.types = {
           this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
         );
       };
+      this.transformA = transformA;
+      this.transformB = transformB;
     }
   }
 };

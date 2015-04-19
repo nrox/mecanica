@@ -119,7 +119,6 @@ System.prototype.make = function () {
     console.error('group is not defined');
     return undefined;
   }
-  //type = type || '_default';
   var cons = this.maker[group];
   var obj;
   if (typeof cons == 'function') {
@@ -128,12 +127,17 @@ System.prototype.make = function () {
     options.group = group;
     options.type = type;
     //console.log('make ', group, type, options.id);
-    obj = new cons(options, this);
-    if (!options._dontSave && this.objects[group]) {
-      if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
-      this.objects[group][obj.id] = obj;
+    try {
+      obj = new cons(options, this);
+      if (!options._dontSave && this.objects[group]) {
+        if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
+        this.objects[group][obj.id] = obj;
+      }
+    } catch (e) {
+      console.log('failed make ' + group + '.' + options.id);
+      console.log(obj.options());
+      console.error(e);
     }
-    this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
     console.warn('incapable of making object:');
     console.log(JSON.stringify(arguments));

@@ -125,7 +125,6 @@ Body.prototype.warnInvalidTranform = function (transform) {
   if (isNaN(transform.getOrigin().x()) && !this._warned){
     this._warned = this.parentSystem.id + '.' + this.id + ': invalid transform';
     console.warn(this._warned);
-    console.log(this.ammo.getLinearVelocity().x(),this.ammo.getAngularVelocity().x());
   }
 };
 /*

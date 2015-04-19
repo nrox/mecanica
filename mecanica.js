@@ -320,7 +320,6 @@ System.prototype.make = function () {
     console.error('group is not defined');
     return undefined;
   }
-  //type = type || '_default';
   var cons = this.maker[group];
   var obj;
   if (typeof cons == 'function') {
@@ -329,12 +328,17 @@ System.prototype.make = function () {
     options.group = group;
     options.type = type;
     //console.log('make ', group, type, options.id);
-    obj = new cons(options, this);
-    if (!options._dontSave && this.objects[group]) {
-      if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
-      this.objects[group][obj.id] = obj;
+    try {
+      obj = new cons(options, this);
+      if (!options._dontSave && this.objects[group]) {
+        if (this.objects[group][obj.id]) throw group + '.' + obj.id + ' already exists';
+        this.objects[group][obj.id] = obj;
+      }
+    } catch (e) {
+      console.log('failed make ' + group + '.' + options.id);
+      console.log(obj.options());
+      console.error(e);
     }
-    this.debug() && console.log('make ' + group + '.' + type + ' ' + JSON.stringify(obj.options()));
   } else {
     console.warn('incapable of making object:');
     console.log(JSON.stringify(arguments));
@@ -1086,7 +1090,6 @@ Body.prototype.warnInvalidTranform = function (transform) {
   if (isNaN(transform.getOrigin().x()) && !this._warned){
     this._warned = this.parentSystem.id + '.' + this.id + ': invalid transform';
     console.warn(this._warned);
-    console.log(this.ammo.getLinearVelocity().x(),this.ammo.getAngularVelocity().x());
   }
 };
 /*
@@ -1209,9 +1212,9 @@ Connector.prototype.normalize = function () {
   var t = new ammoHelper.btTransform();
   t.setBasis(m3);
   t.setOrigin(base);
-  //ammoHelper.destroy(up);
-  //ammoHelper.destroy(front);
-  //ammoHelper.destroy(wing);
+  ammoHelper.destroy(up);
+  ammoHelper.destroy(front);
+  ammoHelper.destroy(wing);
   return t;
 };
 
@@ -1490,6 +1493,8 @@ Constraint.prototype.types = {
           this.bodyA.ammo, this.bodyB.ammo, transformA, transformB, true
         );
       };
+      this.transformA = transformA;
+      this.transformB = transformB;
     }
   }
 };
