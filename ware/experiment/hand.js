@@ -27,7 +27,7 @@ function getObject(options) {
   };
   var constraint = function (system) {
     return {
-      type: 'point', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
+      type: 'servo', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
       bodyA: 'hand', bodyB: {system: [system], body: 'base'},
       connectorA: system, connectorB: 'bottom',
       approach: false
@@ -76,17 +76,18 @@ function getObject(options) {
       rightPan: pan('right'),
       afterStep: {
         method: function () {
-          if (this._done == undefined) this._done = 0;
-          if (this._done++ % 30 == 1) {
-            var position = this.getSystem('left').getBody('base').position;
-            //console.log('base after', position.x);
+          if (this._done === undefined) this._done = 0;
+          if (this._done++ == 1) {
+            console.log('base connector', this.getSystem('left').getBody('base').connector.c);
+            console.log('tip  connector', this.getSystem('left').getBody('tip').connector.c);
+
           }
         }
       },
       beforeStep: {
         method: function () {
-          if (this._done == undefined) this._done = 0;
-          if (this._done++ % 30 == 0) {
+          if (this._done === undefined) this._done = 0;
+          if (this._done++ == 0) {
             var position = this.getSystem('left').getBody('base').position;
             //console.log('base before', position.x);
           }

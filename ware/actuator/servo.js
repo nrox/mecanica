@@ -73,9 +73,36 @@ function getObject(options) {
         maxBinary: options.maxBinary,
         maxVelocity: options.maxVelocity
       }
+    },
+    method: {
+      setAngle: {
+        method: function (angle) {
+          this.getConstraint('servo').setAngle(angle);
+        }
+      }
     }
   };
 }
 
+function userInterface(options) {
+  options = _.defaults(options || {}, {
+    system: undefined,
+    container: 'body'
+  });
+  return {
+    values: {
+      angle: 0
+    },
+    template: {
+      angle: {type: 'range', min: 0, max: Math.PI, step: 0.02, velocity: 5, onChange: function () {
+        var angle = this.getValues().angle;
+        this.rootSystem.getSystem(options.system).setAngle(angle);
+      }}
+    },
+    container: options.container
+  };
+}
+
+module.exports.userInterface = userInterface;
 module.exports.defaultOptions = defaultOptions;
 module.exports.getObject = getObject;
