@@ -1047,6 +1047,7 @@ Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
     this.updateMotionState();
+    this.syncPhysics();
     if (this.runsWebGL()) scene.three.add(this.three);
     if (this.runsPhysics()) {
       scene.ammo.addRigidBody(this.ammo);
@@ -1068,7 +1069,9 @@ Body.prototype.syncPhysics = function () {
   var trans = this.rootSystem.ammoTransform;
   //copy physics from .ammo object
   if (this.runsPhysics()) {
+    trans.setIdentity();
     body.ammo.getMotionState().getWorldTransform(trans);
+    body.warnInvalidTranform(trans);
     body.position.copyFromAmmo(trans.getOrigin());
     body.quaternion.copyFromAmmo(trans.getRotation());
   }
@@ -1079,6 +1082,13 @@ Body.prototype.syncPhysics = function () {
   }
 };
 
+Body.prototype.warnInvalidTranform = function (transform) {
+  if (isNaN(transform.getOrigin().x()) && !this._warned){
+    this._warned = this.parentSystem.id + '.' + this.id + ': invalid transform';
+    console.warn(this._warned);
+    console.log(this.ammo.getLinearVelocity().x(),this.ammo.getAngularVelocity().x());
+  }
+};
 /*
  get position and rotation to send from worker to window
  the result is passed by reference in the argument
