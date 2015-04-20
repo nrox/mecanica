@@ -70,6 +70,14 @@ Body.prototype.updateMotionState = function () {
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
+
+    /*
+     rbInfo.m_friction = 0.5;
+     rbInfo.m_restitution = 0.5;
+     rbInfo.m_linearDamping = 0.5;
+     rbInfo.m_angularDamping = 0.5;
+     */
+
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }
 };
@@ -122,7 +130,7 @@ Body.prototype.syncPhysics = function () {
 };
 
 Body.prototype.warnInvalidTranform = function (transform) {
-  if (isNaN(transform.getOrigin().x()) && !this._warned){
+  if (isNaN(transform.getOrigin().x()) && !this._warned) {
     this._warned = this.parentSystem.id + '.' + this.id + ': invalid transform';
     console.warn(this._warned);
   }

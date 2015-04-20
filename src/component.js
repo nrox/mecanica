@@ -53,7 +53,8 @@ Component.prototype.include = function (options, defaults) {
     'id', 'group', 'type', 'comment'
   ]));
   _.extend(target, options);
-  target._options = options;
+  if (!target._options) target._options = {};
+  _.defaults(target._options, options);
   return options;
 };
 

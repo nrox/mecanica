@@ -11,12 +11,12 @@ var defaultOptions = {
   caseLength: 1.3,
   caseMass: 0,
   caseColor: 0x333333,
-  shaftDiameter: 0.8,
+  shaftDiameter: 1.2,
   shaftHeight: 0.1,
-  shaftMass: 0,
+  shaftMass: 0.1,
   shaftColor: 0x999999,
   shaftMargin: 0.15,
-  tolerance: 0.001 //to avoid friction between shaft and case
+  tolerance: 0.01 //to avoid friction between shaft and case
 };
 
 function getObject(options) {
@@ -45,7 +45,8 @@ function getObject(options) {
         mass: options.caseMass, shape: 'case', material: 'case',
         connector: {
           toShaft: {
-            base: {y: options.caseHeight / 2, x: options.caseLength / 2 - options.shaftMargin}
+            base: {y: options.caseHeight / 2, x: options.caseLength / 2 - options.shaftMargin},
+            up: {y: 1}, front: {z: 1}
           }
         }
       },
@@ -57,7 +58,8 @@ function getObject(options) {
         },
         connector: {
           toCase: {
-            base: {y: -(options.shaftHeight / 2 + options.tolerance)}
+            base: {y: -(options.shaftHeight / 2 + options.tolerance)},
+            up: {y: 1}, front: {z: 1}
           }
         }
       }
@@ -94,7 +96,7 @@ function userInterface(options) {
       angle: 0
     },
     template: {
-      angle: {type: 'range', min: 0, max: Math.PI, step: 0.02, velocity: 5, onChange: function () {
+      angle: {type: 'range', min: 0, max: Math.PI, step: 0.01, velocity: 5, onChange: function () {
         var angle = this.getValues().angle;
         this.rootSystem.getSystem(options.system).setAngle(angle);
       }}

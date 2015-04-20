@@ -59,7 +59,8 @@ Component.prototype.include = function (options, defaults) {
     'id', 'group', 'type', 'comment'
   ]));
   _.extend(target, options);
-  target._options = options;
+  if (!target._options) target._options = {};
+  _.defaults(target._options, options);
   return options;
 };
 
@@ -1035,6 +1036,14 @@ Body.prototype.updateMotionState = function () {
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
+
+    /*
+     rbInfo.m_friction = 0.5;
+     rbInfo.m_restitution = 0.5;
+     rbInfo.m_linearDamping = 0.5;
+     rbInfo.m_angularDamping = 0.5;
+     */
+
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }
 };
@@ -1087,7 +1096,7 @@ Body.prototype.syncPhysics = function () {
 };
 
 Body.prototype.warnInvalidTranform = function (transform) {
-  if (isNaN(transform.getOrigin().x()) && !this._warned){
+  if (isNaN(transform.getOrigin().x()) && !this._warned) {
     this._warned = this.parentSystem.id + '.' + this.id + ': invalid transform';
     console.warn(this._warned);
   }
@@ -1140,8 +1149,8 @@ Connector.prototype.types = {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
-      up: {x: 0, y: 0, z: 0}, //axis of rotation or direction of movement, normalized
-      front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
+      up: {y: 1}, //axis of rotation or direction of movement, normalized
+      front: {z: 1} //defines the angle, should be perpendicular to 'up', normalized
     });
     this.notifyUndefined(['body', 'base', 'up', 'front']);
     var body = options.bodyObject || this.parentSystem.getObject('body', this.body);
@@ -1263,7 +1272,6 @@ Constraint.prototype.types = {
       bodyB: undefined, //bodyB id
       connectorA: undefined, //connector id, in body A
       connectorB: undefined, //connector id, in body B
-      ratio: undefined,
       approach: false //move bodyB towards bodyA to match connectors
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
@@ -1337,12 +1345,15 @@ Constraint.prototype.types = {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
-          this.connectorA.up.ammo, this.connectorB.up.ammo
+          this.connectorA.up.ammo, this.connectorB.up.ammo, true
         );
       };
     }
   },
   gear: function (options) {
+    this.include(options, {
+      ratio: undefined
+    });
     Constraint.prototype.types._abstract.call(this, options);
     this.notifyUndefined(['ratio']);
     if (this.runsPhysics()) {

@@ -7,7 +7,7 @@ var defaultOptions = {
   canvasContainer: '#container',
   axisHelper: 100,
   connectorHelper: 0.75,
-  wireframe: true
+  wireframe: false
 };
 
 function getObject(options) {

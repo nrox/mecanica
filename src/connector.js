@@ -8,8 +8,8 @@ Connector.prototype.types = {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
-      up: {x: 0, y: 0, z: 0}, //axis of rotation or direction of movement, normalized
-      front: {x: 0, y: 0, z: 0} //defines the angle, should be perpendicular to 'up', normalized
+      up: {y: 1}, //axis of rotation or direction of movement, normalized
+      front: {z: 1} //defines the angle, should be perpendicular to 'up', normalized
     });
     this.notifyUndefined(['body', 'base', 'up', 'front']);
     var body = options.bodyObject || this.parentSystem.getObject('body', this.body);

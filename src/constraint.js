@@ -10,7 +10,6 @@ Constraint.prototype.types = {
       bodyB: undefined, //bodyB id
       connectorA: undefined, //connector id, in body A
       connectorB: undefined, //connector id, in body B
-      ratio: undefined,
       approach: false //move bodyB towards bodyA to match connectors
     });
     this.notifyUndefined(['connectorA', 'connectorB', 'bodyA', 'bodyB']);
@@ -84,12 +83,15 @@ Constraint.prototype.types = {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
-          this.connectorA.up.ammo, this.connectorB.up.ammo
+          this.connectorA.up.ammo, this.connectorB.up.ammo, true
         );
       };
     }
   },
   gear: function (options) {
+    this.include(options, {
+      ratio: undefined
+    });
     Constraint.prototype.types._abstract.call(this, options);
     this.notifyUndefined(['ratio']);
     if (this.runsPhysics()) {
