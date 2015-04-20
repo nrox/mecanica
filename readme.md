@@ -28,6 +28,10 @@ Alpha
     //import a system, with id sys1
     mec.importSystem('ware/basic2.js', 'sys1');
 
+    me.addToScene();
+
+    me.start();
+
 ###Control
 
     // start stop simulation and rendering
@@ -94,7 +98,7 @@ In a .js file, or json object.
 
     mec.import(json, systemID);//or mec.require(.js);
 
-###Lights, camera
+###Lights, camera, scene
 
     module.exports = json = {
       scene: {
@@ -108,10 +112,8 @@ In a .js file, or json object.
       }
     };
 
-    mec.import(json);//or mec.require(.js);
-    mec.useScene('s1'); //just 1 scene
-    mec.useMonitor('s1'); //just 1 monitor at each time, previous id disabled
-    mec.useLight('l1'); //several lights possible
+    mec.import(json);
+
 
 ###Settings
 
@@ -128,18 +130,7 @@ In a .js file, or json object.
       }
     };
 
-    //applying to the mec
     mec.import(json); //or mec.require(.js);
-    mec.useSettings('debug'); //override current settings with the new ones
 
 
-#TODO
-
-* properly dispose/destroy objects, check memory leaks
-
-* add heightfield shape for ground shapes
-
-* experiment with soft bodies
-
-* add convex shapes
 

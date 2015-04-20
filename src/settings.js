@@ -8,6 +8,7 @@ Settings.prototype.types = {
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
+      connectorColor: 0x888822,
       canvasContainer: 'body', //container for renderer,
       uiContainer: 'body',
       reuseCanvas: true,

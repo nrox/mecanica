@@ -173,6 +173,7 @@ Settings.prototype.types = {
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
+      connectorColor: 0x888822,
       canvasContainer: 'body', //container for renderer,
       uiContainer: 'body',
       reuseCanvas: true,
@@ -1164,11 +1165,12 @@ Connector.prototype.types = {
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
-      var helper = this.getSettings().connectorHelper;
+      var settings = this.getSettings();
+      var helper = settings.connectorHelper;
       if (THREE && helper) {
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
-          color: 0x555555,
+          color: settings.connectorColor,
           transparent: true,
           opacity: 0.5
         });
@@ -1324,7 +1326,7 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
-      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 0.1);
+      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
       if (this.angle !== undefined) {
         this.enable(this.maxVelocity, this.maxBinary);
       }
@@ -1668,6 +1670,7 @@ Scene.prototype.makeConstraintsSolver = function () {
         return new Ammo.btMLCPSolver(new Ammo.btSolveProjectedGaussSeidel());
       }
     }[this.solver]();
+    console.log('using solver: ' + this.solver);
   } catch (e) {
     console.log('solver type' + this.solver);
     console.error(e);

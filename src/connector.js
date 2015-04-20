@@ -21,11 +21,12 @@ Connector.prototype.types = {
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
-      var helper = this.getSettings().connectorHelper;
+      var settings = this.getSettings();
+      var helper = settings.connectorHelper;
       if (THREE && helper) {
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
-          color: 0x555555,
+          color: settings.connectorColor,
           transparent: true,
           opacity: 0.5
         });

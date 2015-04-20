@@ -42,6 +42,7 @@ Scene.prototype.makeConstraintsSolver = function () {
         return new Ammo.btMLCPSolver(new Ammo.btSolveProjectedGaussSeidel());
       }
     }[this.solver]();
+    console.log('using solver: ' + this.solver);
   } catch (e) {
     console.log('solver type' + this.solver);
     console.error(e);

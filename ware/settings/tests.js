@@ -5,7 +5,7 @@ var defaultOptions = {
   type: 'global',
   uiContainer: '#triggers',
   canvasContainer: '#container',
-  axisHelper: 0,
+  axisHelper: 100,
   connectorHelper: 0.75,
   wireframe: false
 };

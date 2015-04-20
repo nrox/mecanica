@@ -57,7 +57,7 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
-      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 0.1);
+      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
       if (this.angle !== undefined) {
         this.enable(this.maxVelocity, this.maxBinary);
       }

@@ -7,7 +7,7 @@ var defaultOptions = {
   fingerMass: 0.1,
   handHeight: 1,
   handDepth: 2,
-  handRadius: 2.5
+  handRadius: 1.8
 };
 
 function getObject(options) {
@@ -22,7 +22,7 @@ function getObject(options) {
       rotation: {y: angle + Math.PI / 2},
       importOptions: {
         r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
-        baseMass: o.fingerMass / 3, tipMass: 2 * o.fingerMass / 3
+        baseMass: 2 * o.fingerMass / 3, tipMass: o.fingerMass / 3
       }
     };
   };
@@ -109,10 +109,16 @@ function userInterface(options) {
           }
         };
         var sys = this.rootSystem.getSystem(options.system);
+        var _this = this;
         this._timeout = setInterval(function () {
           var time = utils.time() / 1000.0;
           _.each(['left', 'center', 'right'], function (finger) {
-            sys.getSystem(finger).setAngle(Math.sin(2 * Math.PI * time / par[finger].tilt));
+            var fin = sys.getSystem(finger);
+            if (!fin) {
+              clearTimeout(_this._timeout);
+              return;
+            }
+            fin.setAngle(Math.sin(2 * Math.PI * time / par[finger].tilt));
             sys[finger + 'Pan'](Math.sin(Math.PI * time / par[finger].pan));
           });
         }, 100);
