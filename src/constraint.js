@@ -49,7 +49,7 @@ Constraint.prototype.types = {
   //like robotic servo motors, based on the hinge constraint
   servo: function (options) {
     this.include(options, {
-      angle: 0,
+      angle: undefined,
       lowerLimit: 0,
       upperLimit: Math.PI,
       maxBinary: 1,
@@ -58,6 +58,9 @@ Constraint.prototype.types = {
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
       this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
+      if (this.angle !== undefined) {
+        this.enable(this.maxVelocity, this.maxBinary);
+      }
     };
     this.beforeStep = function () {
       if (this.runsPhysics()) {
@@ -65,7 +68,7 @@ Constraint.prototype.types = {
         //https://llvm.org/svn/llvm-project/test-suite/trunk/MultiSource/Benchmarks/Bullet/include/BulletDynamics/ConstraintSolver/btHingeConstraint.h
         //"setMotorTarget sets angular velocity under the hood, so you must call it every tick to  maintain a given angular target."
         //var dt = Math.abs(c.ammo.getHingeAngle() - c.angle) / c.maxVelocity;
-        this.ammo.setMotorTarget(this.angle, 0.1);
+        if (this.angle !== undefined) this.ammo.setMotorTarget(this.angle, 0.1);
       }
     };
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
@@ -80,10 +83,52 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
+
+      var transformA = new Ammo.btTransform();
+      transformA.setOrigin(this.connectorA.base.ammo);
+
+      var zAxis = this.connectorA.up.ammo;
+      var yAxis = this.connectorA.front.ammo;
+      var xAxis = yAxis.cross(zAxis).normalize();
+
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      var basis = transformA.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        xAxis.x(), yAxis.x(), zAxis.x(),
+        xAxis.y(), yAxis.y(), zAxis.y(),
+        xAxis.z(), yAxis.z(), zAxis.z()
+      );
+      transformA.setBasis(basis);
+
+      var transformB = new Ammo.btTransform();
+      transformB.setOrigin(this.connectorB.base.ammo);
+
+      zAxis = this.connectorB.up.ammo;
+      yAxis = this.connectorB.front.ammo;
+      xAxis = yAxis.cross(zAxis).normalize();
+      //http://math.stackexchange.com/questions/53368/rotation-matrices-using-a-change-of-basis-approach
+      basis = transformB.getBasis();
+      //set the new coordinate system and swap x, y
+      basis.setValue(
+        xAxis.x(), yAxis.x(), zAxis.x(),
+        xAxis.y(), yAxis.y(), zAxis.y(),
+        xAxis.z(), yAxis.z(), zAxis.z()
+      );
+      transformB.setBasis(basis);
+
+      this.transformA = transformA;
+      this.transformB = transformB;
+
       this.create = function () {
+        /*
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
           this.connectorA.up.ammo, this.connectorB.up.ammo
+        );
+        */
+        this.ammo = new Ammo.btHingeConstraint(
+          this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
         );
       };
     }

@@ -7,17 +7,19 @@ var defaultOptions = {
   fingerMass: 0.1,
   handHeight: 1,
   handDepth: 2,
-  distance: 5
+  handRadius: 2
 };
 
 function getObject(options) {
   var o = _.defaults(options || {}, defaultOptions);
-  var finger = function (x) {
+  var finger = function (angle) {
+    var x = Math.sin(angle);
+    var z = Math.cos(angle);
     return {
       type: 'imported',
       url: '../../ware/experiment/finger.js',
-      position: {x: x},
-      rotation: {y: Math.PI / 2},
+      position: {x: x * o.handRadius, z: z * o.handRadius},
+      rotation: {y: angle},
       importOptions: {
         r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
         baseMass: o.fingerMass / 3, tipMass: 2 * o.fingerMass / 3
@@ -29,7 +31,7 @@ function getObject(options) {
       type: 'servo', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
       bodyA: 'hand', bodyB: {system: [system], body: 'base'},
       connectorA: system, connectorB: 'bottom',
-      approach: false
+      angle: 0
     };
   };
   var pan = function (system) {
@@ -39,12 +41,18 @@ function getObject(options) {
       }
     };
   };
-  var connector = function (x) {
-    return {base: {x: x, y: o.handHeight / 2}, up: {y: 1}, front: {x: 1}};
+  var connector = function (angle) {
+    var x = Math.sin(angle);
+    var z = Math.cos(angle);
+    return {
+      base: {x: x * o.handRadius, z: z * o.handRadius, y: o.handHeight / 2},
+      up: {y: 1},
+      front: {x: x, z: z}
+    };
   };
   var objects = {
     shape: {
-      hand: { type: 'box', dx: o.distance + 2 * o.fingerRadius, dy: 0.99 * o.handHeight, dz: o.handDepth, segments: 2}
+      hand: { type: 'cylinder', dy: o.handHeight, r: o.handRadius + o.fingerRadius, segments: 16}
     },
     material: {
       hand: {type: 'phong', color: 0x337722 }
@@ -52,17 +60,17 @@ function getObject(options) {
     body: {
       hand: {position: {y: -o.handHeight / 2}, mass: 0, shape: 'hand', material: 'hand',
         connector: {
-          left: connector(-o.distance / 2),
+          left: connector(-2 * Math.PI / 3),
           center: connector(0),
-          right: connector(o.distance / 2)
+          right: connector(2 * Math.PI / 3)
         }
       }
 
     },
     system: {
-      left: finger(-o.distance / 2),
+      left: finger(-2 * Math.PI / 3),
       center: finger(0),
-      right: finger(o.distance / 2)
+      right: finger(2 * Math.PI / 3)
     },
     constraint: {
       leftPan: constraint('left'),
