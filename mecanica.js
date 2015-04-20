@@ -975,7 +975,7 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0, position: {}, quaternion: undefined, rotation: undefined,
-      connector: {}, axisHelper: this.getSettings().axisHelper
+      connector: {}
     });
     this.notifyUndefined(['shape', 'material']);
 
@@ -999,10 +999,10 @@ Body.prototype.types = {
     this.position = new Vector(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
-
     if (this.runsWebGL()) {
       this.three = new THREE.Mesh(shape.three, material.three);
-      if (this.axisHelper) {
+      var axisHelper = this.getSettings().axisHelper;
+      if (axisHelper) {
         shape.three.computeBoundingSphere();
         var r = shape.three.boundingSphere.radius * 1.5;
         this.three.add(new THREE.AxisHelper(r));

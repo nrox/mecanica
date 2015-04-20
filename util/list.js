@@ -75,6 +75,7 @@ availablePaths = [
 "../ware/experiment/basic2.js",
 "../ware/experiment/finger.js",
 "../ware/experiment/hand.js",
+"../ware/experiment/long-arm.js",
 "../ware/experiment/random-shapes.js",
 "../ware/light/set3.js",
 "../ware/light/simple.js",
