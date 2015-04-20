@@ -83,7 +83,7 @@ Constraint.prototype.types = {
       this.create = function () {
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
-          this.connectorA.up.ammo, this.connectorB.up.ammo, true
+          this.connectorA.up.ammo, this.connectorB.up.ammo
         );
       };
     }

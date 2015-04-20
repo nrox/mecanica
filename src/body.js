@@ -44,12 +44,15 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
+    this.updateMotionState();
+    this.syncPhysics();
     _.each(this.connector, function (c, id) {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
       new Connector(c, _this.parentSystem);
     });
+    this.syncPhysics();
   }
 };
 
@@ -58,7 +61,7 @@ Body.prototype.types = {
  */
 Body.prototype.updateMotionState = function () {
   this.applySystemTransform();
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
   }
@@ -85,7 +88,8 @@ Body.prototype.updateMotionState = function () {
 Body.prototype.applySystemTransform = function () {
   if (this.parentSystem.position) {
     this.position.add(this.parentSystem.position);
-    //console.log(this.parentSystem.quaternion.x, this.parentSystem.quaternion.y, this.parentSystem.quaternion.z, this.parentSystem.quaternion.w);
+  }
+  if (this.parentSystem.quaternion) {
     this.quaternion.multiply(this.parentSystem.quaternion);
   }
 };
@@ -93,8 +97,6 @@ Body.prototype.applySystemTransform = function () {
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
-    this.updateMotionState();
-    this.syncPhysics();
     if (this.runsWebGL()) scene.three.add(this.three);
     if (this.runsPhysics()) {
       scene.ammo.addRigidBody(this.ammo);

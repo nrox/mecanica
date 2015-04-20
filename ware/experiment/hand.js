@@ -11,7 +11,6 @@ var defaultOptions = {
 };
 
 function getObject(options) {
-  console.warn('some issues here!');
   var o = _.defaults(options || {}, defaultOptions);
   var finger = function (x) {
     return {
@@ -45,7 +44,7 @@ function getObject(options) {
   };
   var objects = {
     shape: {
-      hand: { type: 'box', dx: o.distance + 2 * o.fingerRadius, dy: 0.99 * o.handHeight, dz: o.handDepth}
+      hand: { type: 'box', dx: o.distance + 2 * o.fingerRadius, dy: 0.99 * o.handHeight, dz: o.handDepth, segments: 2}
     },
     material: {
       hand: {type: 'phong', color: 0x337722 }
