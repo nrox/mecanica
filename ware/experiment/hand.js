@@ -112,8 +112,8 @@ function userInterface(options) {
         this._timeout = setInterval(function () {
           var time = utils.time() / 1000.0;
           _.each(['left', 'center', 'right'], function (finger) {
-            sys.getSystem(finger).setAngle(3 * Math.sin(2 * Math.PI * time / par[finger].tilt));
-            sys[finger + 'Pan'](Math.sin(2 * Math.PI * time / par[finger].pan));
+            sys.getSystem(finger).setAngle(Math.sin(2 * Math.PI * time / par[finger].tilt));
+            sys[finger + 'Pan'](Math.sin(Math.PI * time / par[finger].pan));
           });
         }, 100);
       },

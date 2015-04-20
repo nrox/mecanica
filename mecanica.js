@@ -1324,7 +1324,7 @@ Constraint.prototype.types = {
     });
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
-      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
+      this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 0.1);
       if (this.angle !== undefined) {
         this.enable(this.maxVelocity, this.maxBinary);
       }
@@ -1632,7 +1632,7 @@ Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
       gravity: {y: -9.81},
-      solver: 'sequential'
+      solver: 'sequential' //pgs, dantzig
     });
     this.showAxisHelper();
     this.createWorld();
@@ -1663,6 +1663,9 @@ Scene.prototype.makeConstraintsSolver = function () {
       },
       dantzig: function () {
         return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
+      },
+      pgs: function () {
+        return new Ammo.btMLCPSolver(new Ammo.btSolveProjectedGaussSeidel());
       }
     }[this.solver]();
   } catch (e) {

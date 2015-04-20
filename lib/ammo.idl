@@ -453,6 +453,10 @@ interface btDantzigSolver {
   void btDantzigSolver();
 };
 
+interface btSolveProjectedGaussSeidel {
+  void btSolveProjectedGaussSeidel();
+};
+
 interface btConeTwistConstraint {
   void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Ref] btTransform rbAFrame, [Ref] btTransform rbBFrame);
   void btConeTwistConstraint([Ref] btRigidBody rbA, [Ref] btTransform rbAFrame);

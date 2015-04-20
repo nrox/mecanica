@@ -6,7 +6,7 @@ Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
       gravity: {y: -9.81},
-      solver: 'sequential'
+      solver: 'sequential' //pgs, dantzig
     });
     this.showAxisHelper();
     this.createWorld();
@@ -37,6 +37,9 @@ Scene.prototype.makeConstraintsSolver = function () {
       },
       dantzig: function () {
         return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
+      },
+      pgs: function () {
+        return new Ammo.btMLCPSolver(new Ammo.btSolveProjectedGaussSeidel());
       }
     }[this.solver]();
   } catch (e) {

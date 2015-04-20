@@ -8,7 +8,7 @@ var test = {
       'btBoxShape', 'btCompoundShape', 'btCylinderShape', 'btGeneric6DofConstraint',
       'btCollisionDispatcher', 'btDbvtBroadphase', 'btHingeConstraint', 'btPoint2PointConstraint',
       'btQuaternion', 'btRigidBody', 'btSliderConstraint', 'btGearConstraint', 'btSphereShape', 'btTransform',
-      'btVector3', 'btVector4', 'btDiscreteDynamicsWorld', 'btConeShape', 'btMLCPSolver', 'btDantzigSolver'
+      'btVector3', 'btVector4', 'btDiscreteDynamicsWorld', 'btConeShape', 'btMLCPSolver', 'btDantzigSolver', 'btSolveProjectedGaussSeidel'
     ], 'important constructors');
   },
   btTransform: function () {
