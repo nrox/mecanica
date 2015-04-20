@@ -61,12 +61,18 @@
     }
     function makeList(list) {
         var $list = $('#list');
+        var hash = location.hash;
+        if (hash) {
+            hash = hash.substr(1);
+            hash = decodeURIComponent(hash);
+        }
         _.each(list, function (file) {
-            var o = new Option(file, file, undefined, undefined);
+            var o = new Option(file, file, undefined, file === hash);
             $list.append(o);
         });
         $list.on('change', function (e) {
             var file = $(e.target).val();
+            location.hash = encodeURIComponent(file);
             var obj = require(file).defaultOptions;
             ui.reuseWith({values: obj, container: '#triggers'});
         });
