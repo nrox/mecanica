@@ -3,18 +3,13 @@ function Scene(options, system) {
 }
 
 Scene.prototype.types = {
-  _generic: function (options) {
+  basic: function (options) {
     this.include(options, {
-      gravity: {y: -9.81}
+      gravity: {y: -9.81},
+      solver: 'sequential'
     });
     this.showAxisHelper();
     this.createWorld();
-  },
-  basic: function (options) {
-    Scene.prototype.types._generic.call(this, options);
-  },
-  mlcp: function (options) {
-    Scene.prototype.types._generic.call(this, options);
   }
 };
 
@@ -35,14 +30,19 @@ Scene.prototype.createWorld = function () {
 };
 
 Scene.prototype.makeConstraintsSolver = function () {
-  this.constraintSolver = {
-    basic: function () {
-      return new Ammo.btSequentialImpulseConstraintSolver();
-    },
-    mlcp: function () {
-      return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
-    }
-  }[this.type]();
+  try {
+    this.constraintSolver = {
+      sequential: function () {
+        return new Ammo.btSequentialImpulseConstraintSolver();
+      },
+      dantzig: function () {
+        return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
+      }
+    }[this.solver]();
+  } catch (e) {
+    console.log('solver type' + this.solver);
+    console.error(e);
+  }
 };
 
 Scene.prototype.showAxisHelper = function () {

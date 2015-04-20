@@ -44,6 +44,7 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
+    this.applySystemTransform();
     this.updateMotionState();
     this.syncPhysics();
     _.each(this.connector, function (c, id) {
@@ -60,7 +61,6 @@ Body.prototype.types = {
  * updates ammo and three position and rotation from the objects position and rotation
  */
 Body.prototype.updateMotionState = function () {
-  this.applySystemTransform();
   if (this.runsRender()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);

@@ -1,7 +1,8 @@
 var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
-  id: 'simple'
+  id: 'simple',
+  type: 'simple'
 };
 
 function getObject(options) {

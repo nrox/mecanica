@@ -7,7 +7,7 @@ var defaultOptions = {
   fingerMass: 0.1,
   handHeight: 1,
   handDepth: 2,
-  handRadius: 2
+  handRadius: 2.5
 };
 
 function getObject(options) {
@@ -19,7 +19,7 @@ function getObject(options) {
       type: 'imported',
       url: '../../ware/experiment/finger.js',
       position: {x: x * o.handRadius, z: z * o.handRadius},
-      rotation: {y: angle},
+      rotation: {y: angle + Math.PI / 2},
       importOptions: {
         r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
         baseMass: o.fingerMass / 3, tipMass: 2 * o.fingerMass / 3
@@ -47,7 +47,7 @@ function getObject(options) {
     return {
       base: {x: x * o.handRadius, z: z * o.handRadius, y: o.handHeight / 2},
       up: {y: 1},
-      front: {x: x, z: z}
+      front: {x: Math.sin(angle + Math.PI / 2), z: Math.cos(angle + Math.PI / 2)}
     };
   };
   var objects = {
@@ -80,26 +80,7 @@ function getObject(options) {
     method: {
       leftPan: pan('left'),
       centerPan: pan('center'),
-      rightPan: pan('right'),
-      afterStep: {
-        method: function () {
-          if (this._done === undefined) this._done = 0;
-          if (this._done++ == 1) {
-            console.log('base connector', this.getSystem('left').getBody('base').connector.c);
-            console.log('tip  connector', this.getSystem('left').getBody('tip').connector.c);
-
-          }
-        }
-      },
-      beforeStep: {
-        method: function () {
-          if (this._done === undefined) this._done = 0;
-          if (this._done++ == 0) {
-            var position = this.getSystem('left').getBody('base').position;
-            //console.log('base before', position.x);
-          }
-        }
-      }
+      rightPan: pan('right')
     }
   };
   return objects;
@@ -111,7 +92,35 @@ function userInterface(options) {
     container: 'body'
   });
   var uiOptions = {
-    values: {},
+    values: {
+      'start demo': function () {
+        var par = {
+          left: {
+            tilt: 3.65,
+            pan: 1
+          },
+          right: {
+            tilt: 2.2,
+            pan: 2
+          },
+          center: {
+            tilt: 2.5,
+            pan: 2.1
+          }
+        };
+        var sys = this.rootSystem.getSystem(options.system);
+        this._timeout = setInterval(function () {
+          var time = utils.time() / 1000.0;
+          _.each(['left', 'center', 'right'], function (finger) {
+            sys.getSystem(finger).setAngle(3 * Math.sin(2 * Math.PI * time / par[finger].tilt));
+            sys[finger + 'Pan'](Math.sin(2 * Math.PI * time / par[finger].pan));
+          });
+        }, 100);
+      },
+      'stop demo': function () {
+        clearTimeout(this._timeout);
+      }
+    },
     template: {},
     container: options.container
   };

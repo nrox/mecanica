@@ -89,7 +89,7 @@ function getObject(o) {
     },
     constraint: {
       tilt: {
-        type: 'servo', lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2, maxBinary: 10, maxVelocity: 1,
+        type: 'servo', lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2, maxBinary: 1, maxVelocity: 1,
         connectorA: 'c', connectorB: 'c',
         bodyA: 'base', bodyB: 'tip'
       }

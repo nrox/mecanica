@@ -107,6 +107,9 @@ Connector.prototype.approachConnector = function (fix) {
   move.body.ammoTransform.op_mul(moveBodyInvTrans);
   move.body.position = Vector.prototype.fromAmmo(move.body.ammoTransform.getOrigin());
   move.body.quaternion = Quaternion.prototype.fromAmmo(move.body.ammoTransform.getRotation());
+
+  move.body.updateMotionState();
+
   Ammo.destroy(moveConInvTrans);
   Ammo.destroy(moveBodyInvTrans);
   Ammo.destroy(fixConTrans);

@@ -1010,6 +1010,7 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
+    this.applySystemTransform();
     this.updateMotionState();
     this.syncPhysics();
     _.each(this.connector, function (c, id) {
@@ -1026,7 +1027,6 @@ Body.prototype.types = {
  * updates ammo and three position and rotation from the objects position and rotation
  */
 Body.prototype.updateMotionState = function () {
-  this.applySystemTransform();
   if (this.runsRender()) {
     this.three.quaternion.copy(this.quaternion.three);
     this.three.position.copy(this.position.three);
@@ -1250,6 +1250,9 @@ Connector.prototype.approachConnector = function (fix) {
   move.body.ammoTransform.op_mul(moveBodyInvTrans);
   move.body.position = Vector.prototype.fromAmmo(move.body.ammoTransform.getOrigin());
   move.body.quaternion = Quaternion.prototype.fromAmmo(move.body.ammoTransform.getRotation());
+
+  move.body.updateMotionState();
+
   Ammo.destroy(moveConInvTrans);
   Ammo.destroy(moveBodyInvTrans);
   Ammo.destroy(fixConTrans);
@@ -1385,15 +1388,11 @@ Constraint.prototype.types = {
       this.transformB = transformB;
 
       this.create = function () {
-        /*
-        this.ammo = new Ammo.btHingeConstraint(
-          this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
-          this.connectorA.up.ammo, this.connectorB.up.ammo
-        );
-        */
+
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
         );
+        this.ammo.setBreakingImpulseThreshold(1000);
       };
     }
   },
@@ -1630,18 +1629,13 @@ function Scene(options, system) {
 }
 
 Scene.prototype.types = {
-  _generic: function (options) {
+  basic: function (options) {
     this.include(options, {
-      gravity: {y: -9.81}
+      gravity: {y: -9.81},
+      solver: 'sequential'
     });
     this.showAxisHelper();
     this.createWorld();
-  },
-  basic: function (options) {
-    Scene.prototype.types._generic.call(this, options);
-  },
-  mlcp: function (options) {
-    Scene.prototype.types._generic.call(this, options);
   }
 };
 
@@ -1662,14 +1656,19 @@ Scene.prototype.createWorld = function () {
 };
 
 Scene.prototype.makeConstraintsSolver = function () {
-  this.constraintSolver = {
-    basic: function () {
-      return new Ammo.btSequentialImpulseConstraintSolver();
-    },
-    mlcp: function () {
-      return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
-    }
-  }[this.type]();
+  try {
+    this.constraintSolver = {
+      sequential: function () {
+        return new Ammo.btSequentialImpulseConstraintSolver();
+      },
+      dantzig: function () {
+        return new Ammo.btMLCPSolver(new Ammo.btDantzigSolver());
+      }
+    }[this.solver]();
+  } catch (e) {
+    console.log('solver type' + this.solver);
+    console.error(e);
+  }
 };
 
 Scene.prototype.showAxisHelper = function () {

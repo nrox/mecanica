@@ -121,15 +121,11 @@ Constraint.prototype.types = {
       this.transformB = transformB;
 
       this.create = function () {
-        /*
-        this.ammo = new Ammo.btHingeConstraint(
-          this.bodyA.ammo, this.bodyB.ammo, this.connectorA.base.ammo, this.connectorB.base.ammo,
-          this.connectorA.up.ammo, this.connectorB.up.ammo
-        );
-        */
+
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
         );
+        this.ammo.setBreakingImpulseThreshold(1000);
       };
     }
   },
