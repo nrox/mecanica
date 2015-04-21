@@ -9,14 +9,23 @@
     <script src='lib/jquery.js'></script>
     <script src='lib/underscore.js'></script>
     <script src='require.js'></script>
+    <style>
+        #triggers, #container, #code {
+            clear: both;
+            margin: 1em;
+        }
+    </style>
 </head>
 
 <body>
 
-<div id='container'></div>
-<div id='triggers'></div>
 
-<script>
+<div id='triggers'></div>
+<div id='container'></div>
+<pre id='code'></pre>
+
+
+<script id="script">
     //we use a synchronous, customized version of require
     var file = 'ware/experiment/hand.js';
     var utils = require('../dist/utils.js');
@@ -34,7 +43,7 @@
     var system = mecanica.loadSystem(object.getObject(), file);
     mecanica.addToScene();
 
-    //add user inputs if they are specified in the object
+    //optional: add user inputs if they are specified in the object
     var controlsOptionsGenerator = object.userInterface;
     if (controlsOptionsGenerator) {
         var controlsOptions = controlsOptionsGenerator({
@@ -46,6 +55,9 @@
 
     mecanica.start();
 
+</script>
+<script>
+    $('#code').text($('#script').text());
 </script>
 </body>
 </html>
