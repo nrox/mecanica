@@ -1,5 +1,5 @@
 var _ = require('../../lib/underscore.js');
-var utils = require('../../util/utils.js');
+var utils = require('../../utils.js');
 
 var defaultOptions = {
   fingerRadius: 0.5,

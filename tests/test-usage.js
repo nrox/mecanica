@@ -1,7 +1,7 @@
 var testUtils = require('test-utils.js');
-var ammo = require('../lib/ammo.js');
-var three = require('../lib/three.js');
-var _ = require('../lib/underscore.js');
+var ammo = require('../dist/lib/ammo.js');
+var three = require('../dist/lib/three.js');
+var _ = require('../dist/lib/underscore.js');
 
 function clearObjects() {
   $("canvas").remove();
@@ -12,13 +12,13 @@ function clearObjects() {
 
 var test = {
   'mec = new Mecanica()': function () {
-    var me = new (require('../mecanica.js').Mecanica)();
+    var me = new (require('../dist/mecanica.js').Mecanica)();
     testUtils.checkKeys(me, [
       'import', 'destroy', 'make'
     ], 'methods');
   },
   'mec.import(url)': function () {
-    var me = new (require('../mecanica.js').Mecanica)();
+    var me = new (require('../dist/mecanica.js').Mecanica)();
     me.importSystem('../ware/experiment/basic2.js', 'basic2');
     testUtils.checkKeys(me.getObject().system, [
       'basic2'
@@ -28,7 +28,7 @@ var test = {
     ], 'subsystem imported');
   },
   'mec.toJSON()': function () {
-    var me = new (require('../mecanica.js').Mecanica)({type: 'complete'});
+    var me = new (require('../dist/mecanica.js').Mecanica)({type: 'complete'});
     me.importSystem('../ware/experiment/basic2.js', 'basic2');
     //me.useMonitor();
     me.useLight({def: {}});
@@ -48,7 +48,7 @@ var test = {
     ], 'subsystem included');
   },
   'mec.start/stop()': function () {
-    var lib = require('../mecanica.js');
+    var lib = require('../dist/mecanica.js');
     var me = new lib.Mecanica({
       type: 'complete',
       settings: {canvasContainer: '#container', type: 'global'}
@@ -90,7 +90,7 @@ var test = {
   'mec.load(json)': function () {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
     console.log("using importSystem, 2 files are imported");
-    var me = new (require('../mecanica.js').Mecanica)();
+    var me = new (require('../dist/mecanica.js').Mecanica)();
     me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/simple.js');
@@ -109,7 +109,7 @@ var test = {
   'import/destroy()': function () {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
     console.log("using importSystem, 2 files are imported");
-    var lib = require('../mecanica.js');
+    var lib = require('../dist/mecanica.js');
     var me = new lib.Mecanica();
     me.import('../ware/settings/tests.js');
     me.import('../ware/scene/simple.js');

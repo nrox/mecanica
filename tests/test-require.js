@@ -1,5 +1,5 @@
 var utils = require('test-utils.js');
-var _ = require('../lib/underscore.js');
+var _ = require('../dist/lib/underscore.js');
 
 var test = {
   console: function () {
@@ -12,14 +12,14 @@ var test = {
 };
 
 var verify = {
-  'three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
-  'ammo.js': ['btVector3'],
-  'underscore.js': ['each', 'map', 'pick', 'pluck'],
-  'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
+  '../dist/lib/three.js': ['BoxGeometry', 'Vector3', 'Mesh'],
+  '../dist/lib/ammo.js': ['btVector3'],
+  '../dist/lib/underscore.js': ['each', 'map', 'pick', 'pluck'],
+  '../dist/lib/jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
   '../tests/test-utils.js': ['run', 'all'],
-  'mecanica.js': ['UserInterface', 'Mecanica', 'System', 'Shape'],
-  '../util/utils.js': ['stringify', 'deepCopy', 'randomLinear'],
-  '/ware/experiment/basic2.js': ['getObject']
+  '../dist/mecanica.js': ['UserInterface', 'Mecanica', 'System', 'Shape'],
+  '../dist/utils.js': ['stringify', 'deepCopy', 'randomLinear'],
+  '../dist/ware/experiment/basic2.js': ['getObject']
 };
 
 _.each(verify, function (list, script) {

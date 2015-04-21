@@ -1,8 +1,8 @@
 var utils = require('test-utils.js');
-var ammo = require('../lib/ammo.js');
-var three = require('../lib/three.js');
-var _ = require('../lib/underscore.js');
-var lib = require('../mecanica.js');
+var ammo = require('../dist/lib/ammo.js');
+var three = require('../dist/lib/three.js');
+var _ = require('../dist/lib/underscore.js');
+var lib = require('../dist/mecanica.js');
 
 function clearObjects() {
   $('#container').empty();

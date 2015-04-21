@@ -1,4 +1,4 @@
-var _ = require('../../lib/underscore.js');
+var _ = require('../lib/underscore.js');
 
 var defaultOptions = {
   mass: 1,

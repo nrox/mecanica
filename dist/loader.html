@@ -3,12 +3,12 @@
 
 <head>
     <title class='title'>ware loader</title>
-    <link rel='stylesheet' type='text/css' href='../styles/tests.css'/>
-    <link rel='stylesheet' type='text/css' href='../styles/ui.css'/>
-    <link rel='icon' type='image/png' href='../images/gear2.png'>
-    <script src='../lib/jquery.js'></script>
-    <script src='../lib/underscore.js'></script>
-    <script src='../util/require.js'></script>
+    <link rel='stylesheet' type='text/css' href='styles/tests.css'/>
+    <link rel='stylesheet' type='text/css' href='styles/ui.css'/>
+    <link rel='icon' type='image/png' href='images/gear2.png'>
+    <script src='lib/jquery.js'></script>
+    <script src='lib/underscore.js'></script>
+    <script src='require.js'></script>
 </head>
 
 <body>
@@ -33,31 +33,11 @@
         location.href = '';
     }
     function loadList() {
-        var url = requireURL('ware/');
-        var list = [];
-        $.ajax(url, {
-            async: false,
-            dataType: 'text',
-            success: function (data) {
-                //console.log(data);
-                var nodes = $.parseHTML(data);
-                $.map($(nodes).filter('table').find('a'), function (a) {
-                    var someChars = "asdasd56ghZujdd";
-                    var name = $(a).text();
-                    var check = name + someChars;
-                    if (check.lastIndexOf('.js' + someChars) > -1) {
-                        list.push('ware/' + name);
-                    }
-                });
+        var list = _.filter(availablePaths(), function (p) {
+            if ((p.indexOf('dist/ware/') == 0) && p.indexOf('.js') > 0) {
+                return p;
             }
         });
-        if (!list.length) {
-            list = _.filter(availablePaths(), function (p) {
-                if ((p.indexOf('ware/') == 0) && p.indexOf('.js') > 0) {
-                    return p;
-                }
-            });
-        }
         return list.sort();
     }
     function makeList(list) {
@@ -107,8 +87,8 @@
 </script>
 <script>
     setConsole('.console');
-    var utils = require('../util/utils.js');
-    var lib = require('../mecanica.js');
+    var utils = require('../dist/utils.js');
+    var lib = require('mecanica.js');
     var mecanica = new lib.Mecanica();
     mecanica.import('../ware/settings/tests.js');
     mecanica.import('../ware/scene/simple.js', {solver: 'pgs'});

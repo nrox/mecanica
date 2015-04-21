@@ -1,7 +1,7 @@
 var testUtils = require('test-utils.js');
-var ammo = require('../lib/ammo.js');
-var three = require('../lib/three.js');
-var _ = require('../lib/underscore.js');
+var ammo = require('../dist/lib/ammo.js');
+var three = require('../dist/lib/three.js');
+var _ = require('../dist/lib/underscore.js');
 
 function clearObjects() {
   $('#container').empty();
@@ -9,7 +9,7 @@ function clearObjects() {
 
 var test = {
   Component: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var obj = new mecanica.Component();
     testUtils.checkKeys(obj, [
       'include', 'options', 'maker', 'nextId',
@@ -17,7 +17,7 @@ var test = {
     ], 'Component methods');
   },
   Mecanica: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var world = new mecanica.Mecanica();
     world.load({settings: {use: {simSpeed: 5 }}});
     testUtils.checkValues(world.getSettings(), {
@@ -31,7 +31,7 @@ var test = {
     ], 'inherited methods from System');
   },
   System: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var obj = new mecanica.System({}, new mecanica.Mecanica());
     testUtils.checkKeys(obj, [ 'objects' ], 'System has objects property');
     testUtils.checkKeys(obj.objects, ['system', 'shape', 'body', 'constraint'], 'System: objects have their slots defined');
@@ -40,7 +40,7 @@ var test = {
     ], 'System instance methods');
   },
   Vector: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var vector = new mecanica.Vector({x: 1});
     testUtils.checkValues(vector.options(), {
       x: 1, y: 0, z: 0
@@ -53,7 +53,7 @@ var test = {
     ], 'Vector instance assigned options');
   },
   Quaternion: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var quaternion = new mecanica.Quaternion({x: 1, w: 0.2});
     testUtils.checkValues(quaternion.options(), {
       x: 1, y: 0, z: 0, w: 0.2
@@ -66,7 +66,7 @@ var test = {
     ], 'Quaternion instance assigned options');
   },
   Settings: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var obj = new mecanica.Settings({type: 'global', webWorker: true, renderFrequency: 15}, mecanica);
     testUtils.checkValues(obj.options(), {
       webWorker: true, renderFrequency: 15
@@ -80,7 +80,7 @@ var test = {
     testUtils.logKeys(obj, 'Settings instance keys');
   },
   Shape: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var generic = {
       type: undefined,
       dx: 1, dy: 1.2, dz: 3, r: 0.5, segments: 12
@@ -93,7 +93,7 @@ var test = {
     testUtils.checkKeys(obj, ['ammo', 'three'], 'box shape options');
   },
   Material: function () {
-    var lib = require('../mecanica.js');
+    var lib = require('../dist/mecanica.js');
     var options = {
       type: 'basic',
       color: 0x223344
@@ -105,7 +105,7 @@ var test = {
     testUtils.checkKeys(obj, ['three'], 'material three property');
   },
   Body: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var options = {
       shape: {type: 'box'},
       material: {color: 0x112233},
@@ -119,7 +119,7 @@ var test = {
     testUtils.checkKeys(obj, ['three', 'ammoTransform', 'ammo'], 'body three, ammo properties');
   },
   Connector: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var system = new mecanica.Mecanica();
     var body = new mecanica.Body({
       shape: {type: 'box'},
@@ -139,7 +139,7 @@ var test = {
     testUtils.checkKeys(obj, ['body', 'base', 'up', 'front'], 'connector properties');
   },
   Constraint: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var me = new mecanica.Mecanica();
     var system = me.make({group: 'system', type: 'basic', id: 'top'});
     system.make('body', {
@@ -175,7 +175,7 @@ var test = {
     testUtils.checkKeys(obj, ['addToScene', 'removeFromScene', 'create'], 'constraint basic methods');
   },
   Method: function () {
-    var mecanica = require('../mecanica.js');
+    var mecanica = require('../dist/mecanica.js');
     var me = new mecanica.Mecanica();
     var system = me.make({group: 'system', type: 'basic', id: 'top'});
     system.make('method', {
@@ -201,7 +201,7 @@ var test = {
     console.warn('TODO');
   },
   UserInterface: function () {
-    var lib = require('../mecanica.js');
+    var lib = require('../dist/mecanica.js');
     var mec = new lib.Mecanica({settings: {uiContainer: '#container'}});
     var values = {
       string1: "hello",

@@ -2,7 +2,7 @@
 
   var availablePaths;
 
-  var url = ['../util/list.js', 'util/list.js', '../../util/list.js'];
+  var url = ['../dist/list.js', 'dist/list.js', '../../dist/list.js'];
   var list;
   for (var i = 0; !list && (i < url.length); i++) {
     $.ajax(url[i], {
@@ -12,7 +12,7 @@
       success: function (data) {
         list = eval(data);
         for (var i = 0; i < list.length; i++) {
-          list[i] = list[i].substr(3);
+          list[i] = list[i].substr(2);
           if (list[i].indexOf('/') === 0) list[i] = list[i].substr(1);
         }
         availablePaths = list;

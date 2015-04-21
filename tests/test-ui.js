@@ -1,8 +1,8 @@
 var testUtils = require('test-utils.js');
-var utils = require('../util/utils.js');
-var $ = require('../lib/jquery.js');
-var _ = require('../lib/underscore.js');
-var lib = require('../mecanica.js');
+var utils = require('../dist/utils.js');
+var $ = require('../dist/lib/jquery.js');
+var _ = require('../dist/lib/underscore.js');
+var lib = require('../dist/mecanica.js');
 
 function clearObjects() {
   $('#container').empty();
@@ -135,7 +135,7 @@ var test = {
     makeGetValues(editor);
   },
   'ware object': function () {
-    var obj = require('../ware/experiment/random-shapes.js').getObject();
+    var obj = require('../dist/ware/experiment/random-shapes.js').getObject();
     var template = {};
     _.each(obj, function (o, k) {
       template[k] = {folded: true};

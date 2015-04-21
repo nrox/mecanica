@@ -23,7 +23,7 @@ module.exports = function (grunt) {
           'src/ui.js',
           'src/exports.js'
         ],
-        dest: 'mecanica.js'
+        dest: 'dist/mecanica.js'
       },
       options: {
         separator: '\n',
@@ -44,7 +44,7 @@ module.exports = function (grunt) {
     },
     shell: {
       listDir: {
-        command: 'cd util && bash listdir.sh'
+        command: 'bash listdir.sh'
       }
     },
     watch: {
@@ -53,7 +53,11 @@ module.exports = function (grunt) {
         tasks: ['concat', 'shell:listDir']
       },
       ware: {
-        files: ['./ware/**/*.js'],
+        files: ['./dist/ware/**/*.js'],
+        tasks: ['shell:listDir']
+      },
+      tests: {
+        files: ['./tests/**/*'],
         tasks: ['shell:listDir']
       }
     }

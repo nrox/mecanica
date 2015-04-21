@@ -1,7 +1,7 @@
 var testUtils = require('test-utils.js');
-var _ = require('../lib/underscore.js');
-var $ = require('../lib/jquery.js');
-var lib = require('../mecanica.js');
+var _ = require('../dist/lib/underscore.js');
+var $ = require('../dist/lib/jquery.js');
+var lib = require('../dist/mecanica.js');
 var test = {
 };
 
@@ -474,6 +474,8 @@ test['fixed'] = fixedTest();
 test['slider'] = sliderTest();
 test['gear'] = gearTest();
 test['linear'] = linearTest();
+
+test.all = testUtils.all(test);
 
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;

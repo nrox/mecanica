@@ -10,7 +10,7 @@ var RUNS_WEBGL = true;
 
 var _ = require('lib/underscore.js');
 var ammoHelper = require('lib/ammo.js');
-var utils = require('util/utils.js');
+var utils = require('../dist/utils.js');
 
 var Ammo, THREE, jQuery;
 

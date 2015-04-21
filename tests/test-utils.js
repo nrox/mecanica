@@ -1,4 +1,4 @@
-var _ = require('../lib/underscore.js');
+var _ = require('../dist/lib/underscore.js');
 
 
 module.exports = {

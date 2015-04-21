@@ -1,6 +1,6 @@
 var utils = require('test-utils.js');
-var Ammo = require('../lib/ammo.js');
-var _ = require('../lib/underscore.js');
+var Ammo = require('../dist/lib/ammo.js');
+var _ = require('../dist/lib/underscore.js');
 
 var test = {
   'important constructors': function () {

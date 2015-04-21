@@ -11,6 +11,8 @@ Alpha
 
 #Usage
 
+All you need is inside dist/ folder
+
 ##Creating and Saving, Controlling Simulation
 
 ###Initialization

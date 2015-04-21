@@ -1,4 +1,5 @@
-var utils = require('../../util/utils.js');
+var utils = require('../../utils.js');
+
 module.exports.defaultOptions = {};
 module.exports.getObject = function () {
   return {
