@@ -10,7 +10,7 @@ function clearObjects() {
   $('#container').empty();
 }
 
-function makeTest(bodyOptions, floorOptions, title) {
+function makeTest(bodyOptions, floorOptions) {
   return function () {
     var me = new lib.Mecanica({type: 'empty'});
     me.import('../ware/settings/tests.js');
@@ -118,7 +118,7 @@ function addAllTests() {
       body.shape.type = bodyType;
       body.shape.segments = bodySegments[bodyType];
       var title = bodyType + ' on ' + floorType;
-      test[title] = makeTest(utils.deepCopy(body), utils.deepCopy(floor), title);
+      test[title] = makeTest(utils.deepCopy(body), utils.deepCopy(floor));
     });
   });
 }

@@ -51,5 +51,8 @@ module.exports = {
   },
   time: function (from) {
     return new Date().getTime() - (from || 0);
+  },
+  seconds: function (from) {
+    return this.time(from) / 1000.0;
   }
 };

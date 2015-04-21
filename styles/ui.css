@@ -1,0 +1,124 @@
+
+.ui.top {
+    color: #eee;
+    background-color: #111;
+    border: 1px solid white;
+    margin: 1em;
+    padding: 1em 1em 2em 1em;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}
+
+.ui .level {
+    border: 1px dashed transparent;
+    margin: 0 1em;
+}
+
+.ui .wrapper {
+    display: block;
+    margin: 0.2em 1px;
+    font-size: 0.8rem;
+    padding: 1px;
+    clear: both;
+    white-space: nowrap;
+}
+
+.ui .value {
+    padding: 1px 10px;
+    margin: 1px 3px;
+    cursor: text;
+    border-radius: 3px;
+    border: 0 solid transparent;
+}
+
+.ui .string {
+    padding: 1px 5px;
+    cursor: auto;
+    font-style: italic;
+    background: #333;
+}
+
+.ui .number {
+    padding: 1px 5px;
+    cursor: auto;
+    color: #112;
+    font-weight: bold;
+    /*float: left;*/
+}
+
+.ui .color {
+    color: black;
+    text-shadow: 1px 1px gray;
+    font-style: italic;
+}
+
+.ui .boolean {
+    cursor: pointer;
+    font-weight: bold;
+    background: #eee;
+    color: #111;
+}
+
+.ui .range {
+    white-space: nowrap;
+    background-color: transparent;
+    padding: 0 2px;
+}
+
+.ui .rangeValue {
+    float: left;
+    min-width: 5em;
+    background-color: #999;
+    padding: 1px 10px;
+    margin: 0 3px 0 1em;
+    border-radius: 3px;
+    border: 0 solid transparent;
+}
+
+.ui .pm {
+    float: left;
+
+    cursor: pointer;
+    color: #311;
+    margin: 0 2px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 0 5px;
+    background-color: #777;
+    font-weight: bold;
+    width: 1em;
+    text-align: center;
+}
+
+.ui .function {
+    cursor: pointer;
+    border: 0;
+    margin: 2px 3px;
+    min-width: 30px;
+    font-weight: bold;
+    border-radius: 0.3em;
+    background: #eee;
+    color: #111;
+}
+
+.ui .key {
+    margin: 1px;
+    float: left;
+}
+
+.ui .object {
+    color: #ccc;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.ui .list {
+    cursor: pointer;
+}
+
+.ui .folded {
+    color: #777;
+}
+

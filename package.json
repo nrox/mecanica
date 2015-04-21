@@ -1,6 +1,6 @@
 {
   "name": "mecanica.js",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Mechanism simulation with THREE.js and Ammo.js",
   "author": "nrox https://github.com/nrox",
   "repository": {
