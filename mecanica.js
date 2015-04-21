@@ -887,23 +887,35 @@ function Material(options, system) {
 }
 
 Material.prototype.types = {
-  basic: function (options) {
+  _intro: function (options) {
     this.include(options, {
       friction: 0.3, restitution: 0.2,
       color: 0x333333, opacity: 1, transparent: false,
       wireframe: this.getSettings().wireframe || false
     });
+    this.notifyUndefined(['friction', 'restitution']);
+  },
+  basic: function (options) {
+    this.include(options, {
+    });
+    Material.prototype.types._intro.call(this, options);
     if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
   phong: function (options) {
     this.include(options, {
-      friction: 0.3, restitution: 0.2,
-      color: 0x333333, opacity: 1, transparent: false,
-      emissive: 0x000000, specular: 0x555555,
-      wireframe: this.getSettings().wireframe || false
+      emissive: 0x000000, specular: 0x555555
     });
+    Material.prototype.types._intro.call(this, options);
     if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
   }
+};
+
+Material.prototype.getFriction = function () {
+  return this.options().friction;
+};
+
+Material.prototype.getRestitution = function () {
+  return this.options().restitution;
 };
 
 extend(Material, Component);
@@ -1040,7 +1052,8 @@ Body.prototype.updateMotionState = function () {
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
-
+    rbInfo.set_m_friction(this.material.getFriction());
+    rbInfo.set_m_restitution(this.material.getRestitution());
     /*
      rbInfo.m_friction = 0.5;
      rbInfo.m_restitution = 0.5;

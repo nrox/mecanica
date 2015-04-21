@@ -73,7 +73,8 @@ Body.prototype.updateMotionState = function () {
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
-
+    rbInfo.set_m_friction(this.material.getFriction());
+    rbInfo.set_m_restitution(this.material.getRestitution());
     /*
      rbInfo.m_friction = 0.5;
      rbInfo.m_restitution = 0.5;
