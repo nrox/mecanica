@@ -1035,7 +1035,6 @@ Body.prototype.types = {
     this.syncPhysics();
   }
 };
-
 /**
  * updates ammo and three position and rotation from the objects position and rotation
  */
@@ -1055,12 +1054,9 @@ Body.prototype.updateMotionState = function () {
     rbInfo.set_m_friction(this.material.getFriction());
     rbInfo.set_m_restitution(this.material.getRestitution());
     /*
-     rbInfo.m_friction = 0.5;
-     rbInfo.m_restitution = 0.5;
      rbInfo.m_linearDamping = 0.5;
      rbInfo.m_angularDamping = 0.5;
      */
-
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }
 };

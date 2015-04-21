@@ -49,17 +49,21 @@
     while (script.indexOf('/') == 0) script = script.substr(1);
     var fragments = script.split('/');
     var ret;
+    var failed;
     for (var i = 0; i < availablePaths.length; i++) {
       if (script == availablePaths[i]) {
         ret = script;
         break;
       }
-      var pos = -1;
+      failed = false;
+      var pathFragments = availablePaths[i].split('/');
       for (var j = 0; j < fragments.length; j++) {
-        pos = availablePaths[i].indexOf(fragments[j], pos);
-        if (pos < 0) break;
+        if (fragments[fragments.length - j - 1] != pathFragments[pathFragments.length - j - 1]) {
+          failed = true;
+          break;
+        }
       }
-      if (pos > -1) {
+      if (!failed) {
         ret = availablePaths[i];
         break;
       }

@@ -1,4 +1,4 @@
-var testUtils = require('../util/test.js');
+var testUtils = require('test-utils.js');
 var utils = require('../util/utils.js');
 var _ = require('../lib/underscore.js');
 var worker;

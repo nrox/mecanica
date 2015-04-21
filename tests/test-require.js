@@ -1,4 +1,4 @@
-var utils = require('../util/test.js');
+var utils = require('test-utils.js');
 var _ = require('../lib/underscore.js');
 
 var test = {
@@ -16,7 +16,7 @@ var verify = {
   'ammo.js': ['btVector3'],
   'underscore.js': ['each', 'map', 'pick', 'pluck'],
   'jquery.js': ['ajax', 'css', 'attr', 'text', 'parseJSON', 'parseXML'],
-  '../util/test.js': ['run', 'all'],
+  '../tests/test-utils.js': ['run', 'all'],
   'mecanica.js': ['UserInterface', 'Mecanica', 'System', 'Shape'],
   '../util/utils.js': ['stringify', 'deepCopy', 'randomLinear'],
   '/ware/experiment/basic2.js': ['getObject']

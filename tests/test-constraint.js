@@ -1,4 +1,4 @@
-var testUtils = require('../util/test.js');
+var testUtils = require('test-utils.js');
 var _ = require('../lib/underscore.js');
 var $ = require('../lib/jquery.js');
 var lib = require('../mecanica.js');

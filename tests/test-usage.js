@@ -1,4 +1,4 @@
-var testUtils = require('../util/test.js');
+var testUtils = require('test-utils.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var _ = require('../lib/underscore.js');
@@ -19,7 +19,7 @@ var test = {
   },
   'mec.import(url)': function () {
     var me = new (require('../mecanica.js').Mecanica)();
-    me.importSystem('../ware/basic2.js', 'basic2');
+    me.importSystem('../ware/experiment/basic2.js', 'basic2');
     testUtils.checkKeys(me.getObject().system, [
       'basic2'
     ], 'system imported ?');
@@ -29,7 +29,7 @@ var test = {
   },
   'mec.toJSON()': function () {
     var me = new (require('../mecanica.js').Mecanica)({type: 'complete'});
-    me.importSystem('../ware/basic2.js', 'basic2');
+    me.importSystem('../ware/experiment/basic2.js', 'basic2');
     //me.useMonitor();
     me.useLight({def: {}});
     var json = me.toJSON();
@@ -53,7 +53,7 @@ var test = {
       type: 'complete',
       settings: {canvasContainer: '#container', type: 'global'}
     });
-    me.importSystem('../ware/basic2.js', 'basic2', {coneRadius: 1, coneY: 2.5});
+    me.importSystem('../ware/experiment/basic2.js', 'basic2', {coneRadius: 1, coneY: 2.5});
     me.useLight({def: {}});
     me.addToScene();
     me.start();
@@ -73,7 +73,7 @@ var test = {
       }
     };
     var template = {
-      speed: {type: 'range', min: 0, max: 20, step: 0.2, round: 0.1, onChange: setSpeed}
+      speed: {type: 'range', min: 0, max: 20, step: 0.1, onChange: setSpeed}
     };
 
     function setSpeed() {
@@ -94,7 +94,7 @@ var test = {
     me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/simple.js');
-    me.importSystem('../ware/basic2.js', 'basic2');
+    me.importSystem('../ware/experiment/basic2.js', 'basic2');
     me.importSystem('../ware/world/surface.js', 'surf', {
       position: {y: -5},
       color: 0xaa1111,
@@ -114,7 +114,7 @@ var test = {
     me.import('../ware/settings/tests.js');
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/set3.js');
-    me.importSystem('../ware/basic2.js', 'basic2');
+    me.importSystem('../ware/experiment/basic2.js', 'basic2');
     me.import('../ware/monitor/satellite.js', {lookAt: me.getSystem('basic2').getBody('id5'), distance: 30});
 
     var url = '../ware/world/surface.js';

@@ -1,4 +1,4 @@
-var testUtils = require('../util/test.js');
+var testUtils = require('test-utils.js');
 var ammo = require('../lib/ammo.js');
 var three = require('../lib/three.js');
 var _ = require('../lib/underscore.js');
@@ -133,7 +133,6 @@ var test = {
       front: {z: 1}
     };
     var obj = new mecanica.Connector(options, system);
-    console.log(obj);
     testUtils.checkValues(obj.base, {
       x: 1
     }, 'connector options');
