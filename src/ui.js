@@ -235,8 +235,9 @@ UserInterface.prototype.inputs = {
       plus: '+', minus: '-', editable: true, velocity: 1
     });
     var $wrapper = $('<div />', {'class': 'range-wrapper'});
-    var $v = $('<div>' + v + '</div>', {'class': 'rangeValue'});
+    var $v = $('<div>' + v + '</div>');
     if (specs.editable) $v.attr('contenteditable', 'true');
+    $v.addClass('range-value');
     var values = specs.values;
     var step = Number(specs.step);
     var max = specs.max;

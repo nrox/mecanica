@@ -23,6 +23,7 @@
     padding: 1px;
     clear: both;
     white-space: nowrap;
+    min-width: 200px;
 }
 
 .ui .value {
@@ -62,24 +63,19 @@
 }
 
 .ui .range {
-    white-space: nowrap;
-    background-color: transparent;
     padding: 0 2px;
 }
 
-.ui .rangeValue {
+.ui .range-value {
     float: left;
-    min-width: 5em;
-    background-color: #999;
+    display: block;
+    min-width: 3em;
     padding: 1px 10px;
-    margin: 0 3px 0 1em;
-    border-radius: 3px;
-    border: 0 solid transparent;
+    background: #333;
 }
 
 .ui .pm {
     float: left;
-
     cursor: pointer;
     color: #311;
     margin: 0 2px;
