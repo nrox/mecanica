@@ -51,10 +51,10 @@ Scene.prototype.makeConstraintsSolver = function () {
 
 Scene.prototype.showAxisHelper = function () {
   var settings = this.getSettings();
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this.three = new THREE.Scene();
     if (settings.axisHelper) {
-      if (this.runsWebGL()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
+      if (this.runsRender()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
   }
 };

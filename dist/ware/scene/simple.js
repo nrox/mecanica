@@ -2,7 +2,8 @@ var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
   id: 'simple',
-  type: 'simple'
+  type: 'basic',
+  solver: 'pgs'
 };
 
 function getObject(options) {

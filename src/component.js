@@ -4,22 +4,22 @@
  */
 
 
+var _ = require('./lib/underscore.js');
+var ammoHelper = require('./lib/ammo.js');
+var utils = require('../dist/utils.js');
+
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
-var RUNS_WEBGL = true;
-
-var _ = require('lib/underscore.js');
-var ammoHelper = require('lib/ammo.js');
-var utils = require('../dist/utils.js');
+var RUNS_RENDER = !utils.isNode();
 
 var Ammo, THREE, jQuery;
 
 if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
-if (RUNS_WEBGL) {
-  THREE = require('lib/three.js');
-  jQuery = require('lib/jquery.js');
+if (RUNS_RENDER) {
+  THREE = require('./lib/three.js');
+  jQuery = require('./lib/jquery.js');
 }
 
 function extend(target, source) {
@@ -34,12 +34,8 @@ Component.prototype.runsPhysics = function () {
   return RUNS_PHYSICS;
 };
 
-Component.prototype.runsWebGL = function () {
-  return RUNS_WEBGL;
-};
-
 Component.prototype.runsRender = function () {
-  return RUNS_WEBGL;
+  return RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {
@@ -143,7 +139,7 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
 };
 
 Component.prototype.addRenderMethod = function (funName, reference) {
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this[funName] = reference;
   }
 };

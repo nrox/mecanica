@@ -9,7 +9,7 @@ Light.prototype.types = {
       lookAt: {}, castShadow: this.getSettings().castShadow,
       shadowDistance: 20
     });
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
       light.position.copy(new Vector(this.position).three);
       if (typeof(this.lookAt) == 'object') {
@@ -34,7 +34,7 @@ Light.prototype.types = {
 
 Light.prototype.methods = {
   addToScene: function (scene) {
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       if (!this._added) {
         this._added = true;
         scene.three.add(this.three);

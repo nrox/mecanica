@@ -32,7 +32,7 @@ Body.prototype.types = {
     this.position = new Vector(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.Mesh(shape.three, material.three);
       var axisHelper = this.getSettings().axisHelper;
       if (axisHelper) {
@@ -94,7 +94,7 @@ Body.prototype.applySystemTransform = function () {
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
-    if (this.runsWebGL()) scene.three.add(this.three);
+    if (this.runsRender()) scene.three.add(this.three);
     if (this.runsPhysics()) {
       scene.ammo.addRigidBody(this.ammo);
       if (!this.ammo.isInWorld()) {

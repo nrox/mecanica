@@ -8,14 +8,14 @@ Shape.prototype.types = {
       r: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
-    if (this.runsWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
+    if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
   },
   box: function (options) {
     this.include(options, {
       dx: 1, dy: 1, dz: 1, segments: 1
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.BoxGeometry(
         this.dx, this.dy, this.dz,
         this.segments, this.segments, this.segments
@@ -27,14 +27,14 @@ Shape.prototype.types = {
       r: 1, dy: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
-    if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
   },
   cone: function (options) {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
-    if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
   compound: function (options) {
     this.include(options, {
@@ -68,7 +68,7 @@ Shape.prototype.types = {
         compound.addChildShape(transChild, child.ammo);
         Ammo.destroy(transChild);
       }
-      if (_this.runsWebGL()) {
+      if (_this.runsRender()) {
         var tc = new THREE.Matrix4;
         tc.makeRotationFromQuaternion(qua.three);
         tc.setPosition(pos.three);
@@ -78,7 +78,7 @@ Shape.prototype.types = {
     if (this.runsPhysics()) {
       this.ammo = compound;
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = this.parent.three;
     }
   }

@@ -10,7 +10,7 @@ Camera.prototype.types = {
       lookAt: {}
     });
     this.position = new Vector(this.position);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
       this.three.position.copy(this.position.three);
       this.three.lookAt(new Vector(this.lookAt).three);
@@ -32,7 +32,7 @@ Camera.prototype.types = {
     } else {
       this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
@@ -55,7 +55,7 @@ Camera.prototype.types = {
     } else {
       this.lookAt = new Vector(this.lookAt);
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }

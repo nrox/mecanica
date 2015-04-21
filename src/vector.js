@@ -47,7 +47,7 @@ function Quaternion(options) {
   if (this.runsPhysics()) {
     this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
   }
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
   }
 }

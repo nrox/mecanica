@@ -124,7 +124,7 @@ Mecanica.prototype.stopSimulation = function () {
 
 Mecanica.prototype.startRender = function () {
 
-  if (!this.runsWebGL()) return false;
+  if (!this.runsRender()) return false;
   if (this._renderRunning) return true;
 
   var settings = this.getSettings();
@@ -153,6 +153,7 @@ Mecanica.prototype.startRender = function () {
 };
 
 Mecanica.prototype.stopRender = function () {
+  if (!this.runsRender()) return;
   clearTimeout(this._rstid);
   cancelAnimationFrame(this._rafid);
   this._renderRunning = false;

@@ -10,22 +10,22 @@
  */
 
 
+var _ = require('./lib/underscore.js');
+var ammoHelper = require('./lib/ammo.js');
+var utils = require('../dist/utils.js');
+
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
-var RUNS_WEBGL = true;
-
-var _ = require('lib/underscore.js');
-var ammoHelper = require('lib/ammo.js');
-var utils = require('../dist/utils.js');
+var RUNS_RENDER = !utils.isNode();
 
 var Ammo, THREE, jQuery;
 
 if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
-if (RUNS_WEBGL) {
-  THREE = require('lib/three.js');
-  jQuery = require('lib/jquery.js');
+if (RUNS_RENDER) {
+  THREE = require('./lib/three.js');
+  jQuery = require('./lib/jquery.js');
 }
 
 function extend(target, source) {
@@ -40,12 +40,8 @@ Component.prototype.runsPhysics = function () {
   return RUNS_PHYSICS;
 };
 
-Component.prototype.runsWebGL = function () {
-  return RUNS_WEBGL;
-};
-
 Component.prototype.runsRender = function () {
-  return RUNS_WEBGL;
+  return RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {
@@ -149,7 +145,7 @@ Component.prototype.addPhysicsMethod = function (funName, reference) {
 };
 
 Component.prototype.addRenderMethod = function (funName, reference) {
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this[funName] = reference;
   }
 };
@@ -618,7 +614,7 @@ Mecanica.prototype.stopSimulation = function () {
 
 Mecanica.prototype.startRender = function () {
 
-  if (!this.runsWebGL()) return false;
+  if (!this.runsRender()) return false;
   if (this._renderRunning) return true;
 
   var settings = this.getSettings();
@@ -647,6 +643,7 @@ Mecanica.prototype.startRender = function () {
 };
 
 Mecanica.prototype.stopRender = function () {
+  if (!this.runsRender()) return;
   clearTimeout(this._rstid);
   cancelAnimationFrame(this._rafid);
   this._renderRunning = false;
@@ -751,7 +748,7 @@ function Quaternion(options) {
   if (this.runsPhysics()) {
     this.ammo = new Ammo.btQuaternion(this.x, this.y, this.z, this.w);
   }
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
   }
 }
@@ -800,14 +797,14 @@ Shape.prototype.types = {
       r: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
-    if (this.runsWebGL()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
+    if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
   },
   box: function (options) {
     this.include(options, {
       dx: 1, dy: 1, dz: 1, segments: 1
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.BoxGeometry(
         this.dx, this.dy, this.dz,
         this.segments, this.segments, this.segments
@@ -819,14 +816,14 @@ Shape.prototype.types = {
       r: 1, dy: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
-    if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
   },
   cone: function (options) {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
-    if (this.runsWebGL()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
   compound: function (options) {
     this.include(options, {
@@ -860,7 +857,7 @@ Shape.prototype.types = {
         compound.addChildShape(transChild, child.ammo);
         Ammo.destroy(transChild);
       }
-      if (_this.runsWebGL()) {
+      if (_this.runsRender()) {
         var tc = new THREE.Matrix4;
         tc.makeRotationFromQuaternion(qua.three);
         tc.setPosition(pos.three);
@@ -870,7 +867,7 @@ Shape.prototype.types = {
     if (this.runsPhysics()) {
       this.ammo = compound;
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = this.parent.three;
     }
   }
@@ -899,14 +896,14 @@ Material.prototype.types = {
     this.include(options, {
     });
     Material.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
+    if (this.runsRender()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
   phong: function (options) {
     this.include(options, {
       emissive: 0x000000, specular: 0x555555
     });
     Material.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
+    if (this.runsRender()) this.three = new THREE.MeshPhongMaterial(this.options());
   }
 };
 
@@ -937,7 +934,7 @@ Light.prototype.types = {
       lookAt: {}, castShadow: this.getSettings().castShadow,
       shadowDistance: 20
     });
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
       light.position.copy(new Vector(this.position).three);
       if (typeof(this.lookAt) == 'object') {
@@ -962,7 +959,7 @@ Light.prototype.types = {
 
 Light.prototype.methods = {
   addToScene: function (scene) {
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       if (!this._added) {
         this._added = true;
         scene.three.add(this.three);
@@ -1011,7 +1008,7 @@ Body.prototype.types = {
     this.position = new Vector(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.Mesh(shape.three, material.three);
       var axisHelper = this.getSettings().axisHelper;
       if (axisHelper) {
@@ -1073,7 +1070,7 @@ Body.prototype.applySystemTransform = function () {
 Body.prototype.addToScene = function (scene) {
   if (!this._added) {
     this._added = true;
-    if (this.runsWebGL()) scene.three.add(this.three);
+    if (this.runsRender()) scene.three.add(this.three);
     if (this.runsPhysics()) {
       scene.ammo.addRigidBody(this.ammo);
       if (!this.ammo.isInWorld()) {
@@ -1689,10 +1686,10 @@ Scene.prototype.makeConstraintsSolver = function () {
 
 Scene.prototype.showAxisHelper = function () {
   var settings = this.getSettings();
-  if (this.runsWebGL()) {
+  if (this.runsRender()) {
     this.three = new THREE.Scene();
     if (settings.axisHelper) {
-      if (this.runsWebGL()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
+      if (this.runsRender()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
   }
 };
@@ -1715,7 +1712,7 @@ Camera.prototype.types = {
       lookAt: {}
     });
     this.position = new Vector(this.position);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
       this.three.position.copy(this.position.three);
       this.three.lookAt(new Vector(this.lookAt).three);
@@ -1737,7 +1734,7 @@ Camera.prototype.types = {
     } else {
       this.lookAt = this.parentSystem.getObject('body', this.lookAt);
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
@@ -1760,7 +1757,7 @@ Camera.prototype.types = {
     } else {
       this.lookAt = new Vector(this.lookAt);
     }
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
@@ -1902,14 +1899,14 @@ Renderer.prototype.types = {
   },
   webgl: function (options) {
     Renderer.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.WebGLRenderer({canvas: this.canvas});
     }
     Renderer.prototype.types._outro.call(this);
   },
   canvas: function (options) {
     Renderer.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.CanvasRenderer({canvas: this.canvas});
     }
     Renderer.prototype.types._outro.call(this);

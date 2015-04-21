@@ -97,3 +97,7 @@ table.results td, table.results th {
 #status {
     clear: both;
 }
+
+.small {
+    font-size: 80%;
+}

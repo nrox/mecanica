@@ -27,6 +27,18 @@ module.exports = {
     title && console.log('  ' + count + ' properties');
   },
 
+  assert: function (res, title) {
+    this.logTitle(title);
+    this.logStatus(res, title);
+    return res;
+  },
+
+  different: function (value, compare, title) {
+    this.logTitle(title);
+    this.logStatus(value !== compare, title);
+    return value !== compare;
+  },
+
   /**
    * check if obj contains all properties in list keys
    * @param obj the object to check
@@ -148,7 +160,8 @@ module.exports = {
         if (timeout) {
           setTimeout(obj[keys[i]], timeout * i);
         } else {
-          console.info(keys[i]);
+          console.log();
+          console.info(keys[i], '------------------------------------------------');
           obj[keys[i]]();
         }
       }

@@ -15,14 +15,14 @@ Material.prototype.types = {
     this.include(options, {
     });
     Material.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) this.three = new THREE.MeshBasicMaterial(this.options());
+    if (this.runsRender()) this.three = new THREE.MeshBasicMaterial(this.options());
   },
   phong: function (options) {
     this.include(options, {
       emissive: 0x000000, specular: 0x555555
     });
     Material.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) this.three = new THREE.MeshPhongMaterial(this.options());
+    if (this.runsRender()) this.three = new THREE.MeshPhongMaterial(this.options());
   }
 };
 

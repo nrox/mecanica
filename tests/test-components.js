@@ -13,7 +13,7 @@ var test = {
     var obj = new mecanica.Component();
     testUtils.checkKeys(obj, [
       'include', 'options', 'maker', 'nextId',
-      'hasUndefined', 'notifyUndefined', 'runsPhysics', 'runsWebGL', 'construct'
+      'hasUndefined', 'notifyUndefined', 'runsPhysics', 'runsRender', 'construct'
     ], 'Component methods');
   },
   Mecanica: function () {

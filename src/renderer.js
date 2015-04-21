@@ -37,14 +37,14 @@ Renderer.prototype.types = {
   },
   webgl: function (options) {
     Renderer.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.WebGLRenderer({canvas: this.canvas});
     }
     Renderer.prototype.types._outro.call(this);
   },
   canvas: function (options) {
     Renderer.prototype.types._intro.call(this, options);
-    if (this.runsWebGL()) {
+    if (this.runsRender()) {
       this.three = new THREE.CanvasRenderer({canvas: this.canvas});
     }
     Renderer.prototype.types._outro.call(this);

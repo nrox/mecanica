@@ -67,6 +67,7 @@
 }
 
 .ui .range-value {
+    border-radius: 3px;
     float: left;
     display: block;
     min-width: 3em;
