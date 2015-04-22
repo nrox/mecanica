@@ -17,6 +17,7 @@ var Ammo, THREE, jQuery;
 if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
+
 if (RUNS_RENDER) {
   THREE = require('./lib/three.js');
   jQuery = require('./lib/jquery.js');
@@ -27,15 +28,18 @@ function extend(target, source) {
 }
 
 function Component() {
-
 }
 
+Component.prototype.RUNS_PHYSICS = true;
+Component.prototype.RUNS_RENDER = !utils.isNode();
+
+
 Component.prototype.runsPhysics = function () {
-  return RUNS_PHYSICS;
+  return this.RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
-  return RUNS_RENDER;
+  return this.RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {

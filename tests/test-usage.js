@@ -28,10 +28,13 @@ var test = {
     ], 'subsystem imported');
   },
   'mec.toJSON()': function () {
-    var me = new (require('../dist/mecanica.js').Mecanica)({type: 'complete'});
+    var me = new (require('../dist/mecanica.js').Mecanica)();
+    me.import('../ware/settings/tests.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/simple.js');
+    me.import('../ware/monitor/simple.js');
     me.importSystem('../ware/experiment/basic2.js', 'basic2');
-    //me.useMonitor();
-    me.useLight({def: {}});
+
     var json = me.toJSON();
     console.log('import basic2.js, and then .toJSON');
     testUtils.checkKeys(json, [
@@ -49,12 +52,12 @@ var test = {
   },
   'mec.start/stop()': function () {
     var lib = require('../dist/mecanica.js');
-    var me = new lib.Mecanica({
-      type: 'complete',
-      settings: {canvasContainer: '#container', type: 'global'}
-    });
+    var me = new lib.Mecanica();
+    me.import('../ware/settings/tests.js');
+    me.import('../ware/scene/simple.js');
+    me.import('../ware/light/simple.js');
+    me.import('../ware/monitor/simple.js');
     me.importSystem('../ware/experiment/basic2.js', 'basic2', {coneRadius: 1, coneY: 2.5});
-    me.useLight({def: {}});
     me.addToScene();
     me.start();
     var buttons = {

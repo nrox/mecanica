@@ -112,9 +112,9 @@ Body.prototype.addToScene = function (scene) {
  */
 Body.prototype.syncPhysics = function () {
   var body = this;
-  var trans = this.rootSystem.ammoTransform;
   //copy physics from .ammo object
   if (this.runsPhysics()) {
+    var trans = this.rootSystem.ammoTransform;
     trans.setIdentity();
     body.ammo.getMotionState().getWorldTransform(trans);
     body.warnInvalidTranform(trans);
@@ -139,15 +139,29 @@ Body.prototype.warnInvalidTranform = function (transform) {
  the result is passed by reference in the argument
  */
 Body.prototype.packPhysics = function (myPhysics) {
-  if (!myPhysics.position) myPhysics.position = {};
-  if (!myPhysics.quaternion) myPhysics.quaternion = {};
-  myPhysics.position.x = this.position.x;
-  myPhysics.position.y = this.position.y;
-  myPhysics.position.z = this.position.z;
-  myPhysics.quaternion.x = this.quaternion.x;
-  myPhysics.quaternion.y = this.quaternion.y;
-  myPhysics.quaternion.z = this.quaternion.z;
-  myPhysics.quaternion.w = this.quaternion.w;
+  if (!myPhysics.p) myPhysics.p = {};
+  if (!myPhysics.q) myPhysics.q = {};
+  myPhysics.p.x = this.position.x;
+  myPhysics.p.y = this.position.y;
+  myPhysics.p.z = this.position.z;
+  myPhysics.q.x = this.quaternion.x;
+  myPhysics.q.y = this.quaternion.y;
+  myPhysics.q.z = this.quaternion.z;
+  myPhysics.q.w = this.quaternion.w;
+};
+
+Body.prototype.unpackPhysics = function (myPhysics) {
+  this.position.x = myPhysics.p.x;
+  this.position.y = myPhysics.p.y;
+  this.position.z = myPhysics.p.z;
+  this.quaternion.x = myPhysics.q.x;
+  this.quaternion.y = myPhysics.q.y;
+  this.quaternion.z = myPhysics.q.z;
+  this.quaternion.w = myPhysics.q.w;
+  if (this.runsRender()) {
+    this.three.position.copy(this.position);
+    this.three.quaternion.copy(this.quaternion);
+  }
 };
 
 Body.prototype.destroy = function (scene) {

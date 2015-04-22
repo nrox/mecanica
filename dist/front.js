@@ -66,23 +66,28 @@ MecanicaClient.prototype.buildInputs = function () {
 
 MecanicaClient.prototype.buildListeners = function () {
   this.lib = require('../dist/mecanica.js');
-  var me = this.mecanica = new this.lib.Mecanica();
+  var me = this.mecanica = new this.lib.Mecanica({
+    runsPhysics: false
+  });
   me.import('./ware/settings/tests.js');
   me.import('./ware/scene/simple.js');
   me.import('./ware/light/set3.js');
+  me.import('./ware/monitor/satellite.js');
   this.socket.on('status', function (data) {
     console[data.type || 'log']('status for', data.channel, ' - ', data.message);
   });
-  this.socket.on('physicsPack', function (data) {
-    console.log('physicsPack', data);
+  this.socket.on('stream', function (data) {
+    me.unpackPhysics(data.json);
+    me.physicsDataReceived(true);
+    me.startRender();
   });
   this.socket.on('request', function (data) {
     var script = data.script;
     var json = JSON.parse(data.json);
-
-    console.log(json);
     try {
       me.loadSystem(json, script);
+      me.addToScene();
+      console.log('loaded system received from server: ' + script);
     } catch (e) {
       console.error(e);
     }

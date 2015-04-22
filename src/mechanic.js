@@ -1,5 +1,10 @@
 function Mecanica(options) {
   if (!options) options = {};
+
+  if (options.runsPhysics !== undefined) {
+    Component.prototype.RUNS_PHYSICS = !!options.runsPhysics;
+  }
+
   this.objects = {
     settings: {}, //preferences
     scene: {}, //three scene + ammo world
@@ -8,37 +13,13 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
-  if (this.runsPhysics) this.ammoTransform = new Ammo.btTransform;
+  if (this.runsPhysics()) this.ammoTransform = new Ammo.btTransform;
   this.construct(options, this, 'empty');
 }
 
 Mecanica.prototype.types = {
   empty: function (options) {
     this.include(options, {});
-  },
-  complete: function (options) {
-    this.include(options, {
-      settings: undefined,
-      scene: undefined,
-      light: undefined,
-      system: undefined,
-      monitor: undefined
-    });
-    this.useSettings(this.settings);
-    this.useScene(this.scene);
-
-    var scene = this.getScene();
-
-    //load all systems
-    var _this = this;
-    _.each(this.system, function (sys, id) {
-      _this.loadSystem(sys, id);
-    });
-    this.useLight(this.light);
-
-    _.each(this.objects.system, function (sys) {
-      sys.addToScene(scene);
-    });
   }
 };
 
@@ -79,7 +60,7 @@ Mecanica.prototype.startSimulation = function () {
   this._physicsDataReceived = false;
 
   var settings = this.getSettings();
-  var physicsPack = {};
+  this.physicsPack = {};
   var scene = this.getScene();
   var _this = this;
 
@@ -91,27 +72,28 @@ Mecanica.prototype.startSimulation = function () {
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
+    _this._totalTime += dt;
     _this._lastTime = curTime;
-    //callbacks beforeStep
+
     _this.callBeforeStep();
+
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
-    _this.syncPhysics();
-    _this.callAfterStep();
-    //_.each(objects.method, function (m) {
-    //  if (m.type == 'afterStep') m.afterStep.execute();
-    //});
 
-    if (_this.runsInWorker()) {
-      _this.packPhysics(physicsPack);
-      post(['transfer', physicsPack], 'transfer physics');
-    } else {
-      _this._physicsDataReceived = true;
+    _this.syncPhysics();
+
+    _this.callAfterStep();
+
+    if (true || utils.isBrowserWorker() || utils.isNode()) {
+      _this.packPhysics(_this.physicsPack);
     }
+    _this._physicsDataReceived = true;
+
   }
 
+  _this._totalTime = _this._totalTime || 0;
   _this._lastTime = (new Date()).getTime() / 1000;
   //stopSimulation(); //make sure is stopped
   simulate(); //then go
@@ -173,7 +155,8 @@ Mecanica.prototype.setSpeed = function (speed) {
   this.getSettings().simSpeed = Number(speed);
 };
 
-Mecanica.prototype.physicsDataReceived = function () {
+Mecanica.prototype.physicsDataReceived = function (arg) {
+  if (arg !== undefined) this._physicsDataReceived = !!arg;
   return !!this._physicsDataReceived;
 };
 

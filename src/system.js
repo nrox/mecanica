@@ -255,6 +255,17 @@ System.prototype.packPhysics = function (myPack) {
   });
 };
 
+System.prototype.unpackPhysics = function (myPack) {
+
+  _.each(this.objects.body, function (body, id) {
+    body.unpackPhysics(myPack.body[id]);
+  });
+
+  _.each(this.objects.system, function (sys, id) {
+    sys.unpackPhysics(myPack.system[id]);
+  });
+};
+
 System.prototype.callBeforeStep = function () {
   _.each(this.objects.system, function (s) {
     s.callBeforeStep();

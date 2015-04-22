@@ -23,6 +23,7 @@ var Ammo, THREE, jQuery;
 if (RUNS_PHYSICS) {
   Ammo = ammoHelper;
 }
+
 if (RUNS_RENDER) {
   THREE = require('./lib/three.js');
   jQuery = require('./lib/jquery.js');
@@ -33,15 +34,18 @@ function extend(target, source) {
 }
 
 function Component() {
-
 }
 
+Component.prototype.RUNS_PHYSICS = true;
+Component.prototype.RUNS_RENDER = !utils.isNode();
+
+
 Component.prototype.runsPhysics = function () {
-  return RUNS_PHYSICS;
+  return this.RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
-  return RUNS_RENDER;
+  return this.RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {
@@ -454,6 +458,17 @@ System.prototype.packPhysics = function (myPack) {
   });
 };
 
+System.prototype.unpackPhysics = function (myPack) {
+
+  _.each(this.objects.body, function (body, id) {
+    body.unpackPhysics(myPack.body[id]);
+  });
+
+  _.each(this.objects.system, function (sys, id) {
+    sys.unpackPhysics(myPack.system[id]);
+  });
+};
+
 System.prototype.callBeforeStep = function () {
   _.each(this.objects.system, function (s) {
     s.callBeforeStep();
@@ -490,6 +505,11 @@ Component.prototype.maker.system = System;
 
 function Mecanica(options) {
   if (!options) options = {};
+
+  if (options.runsPhysics !== undefined) {
+    Component.prototype.RUNS_PHYSICS = !!options.runsPhysics;
+  }
+
   this.objects = {
     settings: {}, //preferences
     scene: {}, //three scene + ammo world
@@ -498,37 +518,13 @@ function Mecanica(options) {
     monitor: {} //set of camera + renderer
   };
   this.rootSystem = this;
-  if (this.runsPhysics) this.ammoTransform = new Ammo.btTransform;
+  if (this.runsPhysics()) this.ammoTransform = new Ammo.btTransform;
   this.construct(options, this, 'empty');
 }
 
 Mecanica.prototype.types = {
   empty: function (options) {
     this.include(options, {});
-  },
-  complete: function (options) {
-    this.include(options, {
-      settings: undefined,
-      scene: undefined,
-      light: undefined,
-      system: undefined,
-      monitor: undefined
-    });
-    this.useSettings(this.settings);
-    this.useScene(this.scene);
-
-    var scene = this.getScene();
-
-    //load all systems
-    var _this = this;
-    _.each(this.system, function (sys, id) {
-      _this.loadSystem(sys, id);
-    });
-    this.useLight(this.light);
-
-    _.each(this.objects.system, function (sys) {
-      sys.addToScene(scene);
-    });
   }
 };
 
@@ -569,7 +565,7 @@ Mecanica.prototype.startSimulation = function () {
   this._physicsDataReceived = false;
 
   var settings = this.getSettings();
-  var physicsPack = {};
+  this.physicsPack = {};
   var scene = this.getScene();
   var _this = this;
 
@@ -581,27 +577,28 @@ Mecanica.prototype.startSimulation = function () {
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
+    _this._totalTime += dt;
     _this._lastTime = curTime;
-    //callbacks beforeStep
+
     _this.callBeforeStep();
+
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
     var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
-    _this.syncPhysics();
-    _this.callAfterStep();
-    //_.each(objects.method, function (m) {
-    //  if (m.type == 'afterStep') m.afterStep.execute();
-    //});
 
-    if (_this.runsInWorker()) {
-      _this.packPhysics(physicsPack);
-      post(['transfer', physicsPack], 'transfer physics');
-    } else {
-      _this._physicsDataReceived = true;
+    _this.syncPhysics();
+
+    _this.callAfterStep();
+
+    if (true || utils.isBrowserWorker() || utils.isNode()) {
+      _this.packPhysics(_this.physicsPack);
     }
+    _this._physicsDataReceived = true;
+
   }
 
+  _this._totalTime = _this._totalTime || 0;
   _this._lastTime = (new Date()).getTime() / 1000;
   //stopSimulation(); //make sure is stopped
   simulate(); //then go
@@ -663,7 +660,8 @@ Mecanica.prototype.setSpeed = function (speed) {
   this.getSettings().simSpeed = Number(speed);
 };
 
-Mecanica.prototype.physicsDataReceived = function () {
+Mecanica.prototype.physicsDataReceived = function (arg) {
+  if (arg !== undefined) this._physicsDataReceived = !!arg;
   return !!this._physicsDataReceived;
 };
 
@@ -1099,9 +1097,9 @@ Body.prototype.addToScene = function (scene) {
  */
 Body.prototype.syncPhysics = function () {
   var body = this;
-  var trans = this.rootSystem.ammoTransform;
   //copy physics from .ammo object
   if (this.runsPhysics()) {
+    var trans = this.rootSystem.ammoTransform;
     trans.setIdentity();
     body.ammo.getMotionState().getWorldTransform(trans);
     body.warnInvalidTranform(trans);
@@ -1126,15 +1124,29 @@ Body.prototype.warnInvalidTranform = function (transform) {
  the result is passed by reference in the argument
  */
 Body.prototype.packPhysics = function (myPhysics) {
-  if (!myPhysics.position) myPhysics.position = {};
-  if (!myPhysics.quaternion) myPhysics.quaternion = {};
-  myPhysics.position.x = this.position.x;
-  myPhysics.position.y = this.position.y;
-  myPhysics.position.z = this.position.z;
-  myPhysics.quaternion.x = this.quaternion.x;
-  myPhysics.quaternion.y = this.quaternion.y;
-  myPhysics.quaternion.z = this.quaternion.z;
-  myPhysics.quaternion.w = this.quaternion.w;
+  if (!myPhysics.p) myPhysics.p = {};
+  if (!myPhysics.q) myPhysics.q = {};
+  myPhysics.p.x = this.position.x;
+  myPhysics.p.y = this.position.y;
+  myPhysics.p.z = this.position.z;
+  myPhysics.q.x = this.quaternion.x;
+  myPhysics.q.y = this.quaternion.y;
+  myPhysics.q.z = this.quaternion.z;
+  myPhysics.q.w = this.quaternion.w;
+};
+
+Body.prototype.unpackPhysics = function (myPhysics) {
+  this.position.x = myPhysics.p.x;
+  this.position.y = myPhysics.p.y;
+  this.position.z = myPhysics.p.z;
+  this.quaternion.x = myPhysics.q.x;
+  this.quaternion.y = myPhysics.q.y;
+  this.quaternion.z = myPhysics.q.z;
+  this.quaternion.w = myPhysics.q.w;
+  if (this.runsRender()) {
+    this.three.position.copy(this.position);
+    this.three.quaternion.copy(this.quaternion);
+  }
 };
 
 Body.prototype.destroy = function (scene) {
