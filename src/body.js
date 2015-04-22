@@ -44,7 +44,7 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
-    this.applySystemTransform();
+    this.applyParentSystemsTransform();
     this.updateMotionState();
     this.syncPhysics();
     _.each(this.connector, function (c, id) {
@@ -65,9 +65,9 @@ Body.prototype.updateMotionState = function () {
     this.three.position.copy(this.position.three);
   }
   if (this.runsPhysics()) {
-    this.ammoTransform.setIdentity();
-    this.ammoTransform.setRotation(this.quaternion.ammo);
-    this.ammoTransform.setOrigin(this.position.ammo);
+    //this.ammoTransform.setIdentity();
+    //this.ammoTransform.setOrigin(this.position.ammo);
+    //this.ammoTransform.setRotation(this.quaternion.ammo);
     var inertia = new Ammo.btVector3(0, 0, 0);
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
@@ -82,14 +82,8 @@ Body.prototype.updateMotionState = function () {
   }
 };
 
-Body.prototype.applySystemTransform = function () {
-  //FIXME use transforms
-  if (this.parentSystem.position) {
-    this.position.add(this.parentSystem.position);
-  }
-  if (this.parentSystem.quaternion) {
-    this.quaternion.multiply(this.parentSystem.quaternion);
-  }
+Body.prototype.applyParentSystemsTransform = function () {
+  this.parentSystem.applyTransform(this.ammoTransform);
 };
 
 Body.prototype.addToScene = function (scene) {

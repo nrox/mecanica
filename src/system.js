@@ -42,11 +42,25 @@ System.prototype.types = {
   }
 };
 
-System.prototype.buildSystemPosition = function (options) {
-  //FIXME use transforms
-  if (this.position) this.position = new Vector(options.position);
-  if (this.rotation || this.quaternion) this.quaternion = new Quaternion(this.rotation || this.quaternion);
+System.prototype.isRoot = function () {
+  return false;
 };
+
+System.prototype.buildSystemPosition = function (options) {
+  if (this.runsPhysics() && (this.rotation || this.position)) {
+    this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
+    this.position = new Vector(options.position || {});
+    this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
+  }
+};
+
+System.prototype.applyTransform = function (ammoTransform) {
+  //FIXME: not working properly, just works for 1 level
+  if (this.isRoot() || !this.ammoTransform) return;
+  ammoTransform.mult(this.ammoTransform, ammoTransform);
+  this.parentSystem.applyTransform(ammoTransform);
+};
+
 /**
  * arguments for this function are keys leading to the deep nested element in object
  * we want to retrieve (by reference)
@@ -213,6 +227,10 @@ System.prototype.destroy = function (scene) {
       delete groupObjects[key];
     });
   });
+  if (this.ammoTransform) {
+    Ammo.destroy(this.ammoTransform);
+    delete this.ammoTransform;
+  }
   delete this.parentSystem.objects['system'][this.id];
 };
 

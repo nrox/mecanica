@@ -4,6 +4,7 @@ module.exports.defaultOptions = {};
 module.exports.getObject = function () {
   return {
     rotation: {x: 1, y: -1},
+    position: {y: -1},
     shape: {
       id1: {
         type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),
@@ -27,7 +28,7 @@ module.exports.getObject = function () {
       id4: {type: 'phong', color: utils.randomColor() }
     },
     body: {
-      id5: { mass: 0, shape: 'id1', material: 'id4',  position: {x: 0, y: 0, z: -3}},
+      id5: { mass: 0, shape: 'id1', material: 'id4', position: {x: 0, y: 0, z: -3}},
       id6: { mass: 0, shape: 'id2', material: 'id3', position: {x: 0, y: 0, z: 3}}
     }
   };

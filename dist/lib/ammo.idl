@@ -73,7 +73,7 @@ interface btTransform {
   //use like this to avoid passing references:  new Ammo.btTransform(t1.inverse());
   [Const,Value] btTransform inverse();
   [Operator="*=", Ref] btTransform op_mul([Ref] btTransform t);
-
+  void mult([Const,Ref] btTransform t1, [Const, Ref] btTransform t2);
 };
 
 interface btMotionState {

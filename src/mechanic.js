@@ -23,11 +23,8 @@ Mecanica.prototype.types = {
   }
 };
 
-Mecanica.prototype.useSettings = function (json) {
-  json = json || {};
-  json.id = 'use';
-  json.type = 'global';
-  this.make('settings', json);
+Mecanica.prototype.isRoot = function(){
+  return true;
 };
 
 Mecanica.prototype.useMonitor = function (json) {
@@ -35,22 +32,6 @@ Mecanica.prototype.useMonitor = function (json) {
   json = json || {};
   json.id = 'use';
   this.make('monitor', json);
-};
-
-Mecanica.prototype.useScene = function (json) {
-  json = json || {};
-  json.id = 'use';
-  this.make('scene', json);
-};
-
-Mecanica.prototype.useLight = function (json) {
-  var _this = this;
-  _.each(json, function (light, id) {
-    if (_this.getObject('light', id)) return;
-    light = light || {};
-    light.id = id;
-    _this.make('light', light);
-  });
 };
 
 Mecanica.prototype.startSimulation = function () {

@@ -245,11 +245,25 @@ System.prototype.types = {
   }
 };
 
-System.prototype.buildSystemPosition = function (options) {
-  //FIXME use transforms
-  if (this.position) this.position = new Vector(options.position);
-  if (this.rotation || this.quaternion) this.quaternion = new Quaternion(this.rotation || this.quaternion);
+System.prototype.isRoot = function () {
+  return false;
 };
+
+System.prototype.buildSystemPosition = function (options) {
+  if (this.runsPhysics() && (this.rotation || this.position)) {
+    this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
+    this.position = new Vector(options.position || {});
+    this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
+  }
+};
+
+System.prototype.applyTransform = function (ammoTransform) {
+  //FIXME: not working properly, just works for 1 level
+  if (this.isRoot() || !this.ammoTransform) return;
+  ammoTransform.mult(this.ammoTransform, ammoTransform);
+  this.parentSystem.applyTransform(ammoTransform);
+};
+
 /**
  * arguments for this function are keys leading to the deep nested element in object
  * we want to retrieve (by reference)
@@ -416,6 +430,10 @@ System.prototype.destroy = function (scene) {
       delete groupObjects[key];
     });
   });
+  if (this.ammoTransform) {
+    Ammo.destroy(this.ammoTransform);
+    delete this.ammoTransform;
+  }
   delete this.parentSystem.objects['system'][this.id];
 };
 
@@ -545,11 +563,8 @@ Mecanica.prototype.types = {
   }
 };
 
-Mecanica.prototype.useSettings = function (json) {
-  json = json || {};
-  json.id = 'use';
-  json.type = 'global';
-  this.make('settings', json);
+Mecanica.prototype.isRoot = function(){
+  return true;
 };
 
 Mecanica.prototype.useMonitor = function (json) {
@@ -557,22 +572,6 @@ Mecanica.prototype.useMonitor = function (json) {
   json = json || {};
   json.id = 'use';
   this.make('monitor', json);
-};
-
-Mecanica.prototype.useScene = function (json) {
-  json = json || {};
-  json.id = 'use';
-  this.make('scene', json);
-};
-
-Mecanica.prototype.useLight = function (json) {
-  var _this = this;
-  _.each(json, function (light, id) {
-    if (_this.getObject('light', id)) return;
-    light = light || {};
-    light.id = id;
-    _this.make('light', light);
-  });
 };
 
 Mecanica.prototype.startSimulation = function () {
@@ -1047,7 +1046,7 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
-    this.applySystemTransform();
+    this.applyParentSystemsTransform();
     this.updateMotionState();
     this.syncPhysics();
     _.each(this.connector, function (c, id) {
@@ -1068,9 +1067,9 @@ Body.prototype.updateMotionState = function () {
     this.three.position.copy(this.position.three);
   }
   if (this.runsPhysics()) {
-    this.ammoTransform.setIdentity();
-    this.ammoTransform.setRotation(this.quaternion.ammo);
-    this.ammoTransform.setOrigin(this.position.ammo);
+    //this.ammoTransform.setIdentity();
+    //this.ammoTransform.setOrigin(this.position.ammo);
+    //this.ammoTransform.setRotation(this.quaternion.ammo);
     var inertia = new Ammo.btVector3(0, 0, 0);
     if (this.mass) this.shape.ammo.calculateLocalInertia(this.mass, inertia);
     var motionState = new Ammo.btDefaultMotionState(this.ammoTransform);
@@ -1085,14 +1084,8 @@ Body.prototype.updateMotionState = function () {
   }
 };
 
-Body.prototype.applySystemTransform = function () {
-  //FIXME use transforms
-  if (this.parentSystem.position) {
-    this.position.add(this.parentSystem.position);
-  }
-  if (this.parentSystem.quaternion) {
-    this.quaternion.multiply(this.parentSystem.quaternion);
-  }
+Body.prototype.applyParentSystemsTransform = function () {
+  this.parentSystem.applyTransform(this.ammoTransform);
 };
 
 Body.prototype.addToScene = function (scene) {
