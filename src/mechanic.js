@@ -177,4 +177,8 @@ Mecanica.prototype.physicsDataReceived = function () {
   return !!this._physicsDataReceived;
 };
 
+Mecanica.prototype.isSimulationRunning = function () {
+  return !!this._simulationRunning;
+};
+
 extend(Mecanica, System);

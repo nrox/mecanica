@@ -1,8 +1,3 @@
-function init() {
-
-}
-
-
 window.onload = function () {
   var client = new MecanicaClient();
 };
@@ -41,11 +36,28 @@ MecanicaClient.prototype.initSocket = function () {
 };
 
 MecanicaClient.prototype.buildInputs = function () {
+  var _this = this;
+  var list = _.filter(availablePaths(), function (p) {
+    if ((p.indexOf('dist/ware/') == 0) && p.indexOf('.js') > 0) {
+      return p;
+    }
+  });
+  list = list.sort();
   var inputs = {
-
+    script: list[0]
   };
-  var template = {
 
+  //some simple controls
+  _.each(['load', 'start', 'stop', 'request', 'stream'], function (key) {
+    inputs[key] = function () {
+      var script = _this.ui.getValues().script;
+      console.log(key, script);
+      _this.socket.emit(key, {script: script});
+    };
+  });
+
+  var template = {
+    script: {type: 'list', values: list}
   };
   this.ui = new this.lib.UserInterface({
     values: inputs, template: template, container: '#triggers'
@@ -58,4 +70,21 @@ MecanicaClient.prototype.buildListeners = function () {
   me.import('./ware/settings/tests.js');
   me.import('./ware/scene/simple.js');
   me.import('./ware/light/set3.js');
+  this.socket.on('status', function (data) {
+    console[data.type || 'log']('status for', data.channel, ' - ', data.message);
+  });
+  this.socket.on('physicsPack', function (data) {
+    console.log('physicsPack', data);
+  });
+  this.socket.on('request', function (data) {
+    var script = data.script;
+    var json = JSON.parse(data.json);
+
+    console.log(json);
+    try {
+      me.loadSystem(json, script);
+    } catch (e) {
+      console.error(e);
+    }
+  });
 };

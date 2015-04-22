@@ -9,13 +9,20 @@ Method.prototype.types = {
     });
     this.notifyUndefined(['method']);
     if (typeof this.method == 'string') {
-      this.method = eval(this.method);
+      this.method = eval('(' + this.method + ')');
     }
     if (typeof this.method == 'function') {
       this.parentSystem[this.id] = this.method;
     }
   }
 };
+
+Method.prototype.toJSON = function () {
+  var copy = utils.deepCopy(this._options);
+  copy.method = "" + this.method;
+  return copy;
+};
+
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;
