@@ -86,8 +86,9 @@ Mecanica.prototype.startSimulation = function () {
 
     _this.callAfterStep();
 
-    if (true || utils.isBrowserWorker() || utils.isNode()) {
+    if (utils.isBrowserWorker() || utils.isNode()) {
       _this.packPhysics(_this.physicsPack);
+      _this.physicsPack.time = _this._totalTime;
     }
     _this._physicsDataReceived = true;
 

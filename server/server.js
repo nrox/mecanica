@@ -99,7 +99,7 @@ function register(socket) {
         try {
           var json = mecanica.physicsPack;
           //console.log(json.system['dist/ware/experiment/basic2.js'].body['id6'].position.y);
-          socket.emit(channel, {script: script, json: json});
+          socket.volatile.emit(channel, {script: script, json: json});
         } catch (e) {
           socket.emit(STATUS, {channel: channel, message: e, type: 'error'});
         }
