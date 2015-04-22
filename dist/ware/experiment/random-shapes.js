@@ -3,6 +3,7 @@ var utils = require('../../utils.js');
 module.exports.defaultOptions = {};
 module.exports.getObject = function () {
   return {
+    rotation: {x: 1, y: -1},
     shape: {
       id1: {
         type: utils.randomItem(['box', 'cone', 'sphere', 'cylinder']),

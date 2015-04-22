@@ -43,8 +43,9 @@ System.prototype.types = {
 };
 
 System.prototype.buildSystemPosition = function (options) {
+  //FIXME use transforms
   if (this.position) this.position = new Vector(options.position);
-  if (this.quaternion) this.quaternion = new Quaternion(options.rotation);
+  if (this.rotation || this.quaternion) this.quaternion = new Quaternion(this.rotation || this.quaternion);
 };
 /**
  * arguments for this function are keys leading to the deep nested element in object

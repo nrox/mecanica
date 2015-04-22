@@ -83,6 +83,7 @@ Body.prototype.updateMotionState = function () {
 };
 
 Body.prototype.applySystemTransform = function () {
+  //FIXME use transforms
   if (this.parentSystem.position) {
     this.position.add(this.parentSystem.position);
   }
