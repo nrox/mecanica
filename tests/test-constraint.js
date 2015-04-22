@@ -1,4 +1,4 @@
-var testUtils = require('test-utils.js');
+var testUtils = require('./test-utils.js');
 var _ = require('../dist/lib/underscore.js');
 var $ = require('../dist/lib/jquery.js');
 var lib = require('../dist/mecanica.js');
@@ -13,11 +13,11 @@ function clearObjects() {
 function makeTest(system, inputOptions) {
   return function () {
     var me = new lib.Mecanica();
-    me.import('../ware/settings/tests.js');
-    me.import('../ware/scene/simple.js');
-    me.import('../ware/light/set3.js');
+    me.import('../dist/ware/settings/tests.js');
+    me.import('../dist/ware/scene/simple.js');
+    me.import('../dist/ware/light/set3.js');
     me.loadSystem(system, 'system');
-    me.import('../ware/monitor/satellite.js');
+    me.import('../dist/ware/monitor/satellite.js');
     me.addToScene();
     if (inputOptions) new lib.UserInterface(inputOptions, me);
     me.start();
@@ -479,3 +479,4 @@ test.all = testUtils.all(test);
 
 module.exports.test = test;
 module.exports.clearObjects = clearObjects;
+

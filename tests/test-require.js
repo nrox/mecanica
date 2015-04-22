@@ -1,9 +1,12 @@
-var utils = require('test-utils.js');
+var testUtils = require('./test-utils.js');
+var utils = require('../dist/utils.js');
 var _ = require('../dist/lib/underscore.js');
 
 var test = {
   console: function () {
-    setConsole('.console');
+    if (utils.isBrowserWindow()) {
+      setConsole('.console');
+    }
     console.log('example of console.log');
     console.error('example of console.error');
     console.warn('example of console.warn');
@@ -25,12 +28,11 @@ var verify = {
 _.each(verify, function (list, script) {
   test[script] = function () {
     var obj = require(script);
-    //utils.logKeys(obj, 'keys of object');
-    utils.checkKeys(obj, list, 'check keys in ' + script);
+    testUtils.checkKeys(obj, list, 'check keys in ' + script);
   };
 });
 
-test.all = utils.all(test);
+test.all = testUtils.all(test);
 module.exports.test = test;
-utils.run(test, process.argv, __filename);
+testUtils.run(test, process.argv, __filename);
 

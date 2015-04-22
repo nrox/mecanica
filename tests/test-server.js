@@ -80,6 +80,11 @@ var tests = {
   }
 };
 
-//tests['start simulation with ware/template.js']();
+var others = ['components', 'ammo', 'require', 'constraint'];
+_.each(others, function (other) {
+  //require('../tests/test-' + other + '.js').test.all();
+});
 
-testUtils.all(tests)();
+test.all = testUtils.all(test);
+module.exports.test = test;
+

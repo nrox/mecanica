@@ -1935,7 +1935,7 @@ UserInterface.prototype.types = {
       container: this.getSettings().uiContainer
     });
     this.notifyUndefined(['container']);
-    if (this.runsRender) {
+    if (this.runsRender()) {
       if (typeof $ === 'undefined') {
         $ = jQuery;
       }

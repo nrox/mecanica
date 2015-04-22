@@ -1,4 +1,4 @@
-var utils = require('test-utils.js');
+var utils = require('./test-utils.js');
 var ammo = require('../dist/lib/ammo.js');
 var three = require('../dist/lib/three.js');
 var _ = require('../dist/lib/underscore.js');
@@ -66,11 +66,11 @@ function shape(type) {
       }
     };
     var me = new lib.Mecanica();
-    me.import('../ware/settings/tests.js');
-    me.import('../ware/scene/simple.js');
-    me.import('../ware/light/set3.js');
+    me.import('../dist/ware/settings/tests.js');
+    me.import('../dist/ware/scene/simple.js');
+    me.import('../dist/ware/light/set3.js');
     me.loadSystem(system, 'system');
-    me.import('../ware/monitor/satellite.js', {distance: 30});
+    me.import('../dist/ware/monitor/satellite.js', {distance: 30});
     me.addToScene();
     me.start();
   };
