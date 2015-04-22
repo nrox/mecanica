@@ -24,8 +24,12 @@ function register(socket) {
     if (simulations[script]) {
       socket.emit(STATUS, {channel: channel, message: 'already loaded: ' + script, type: 'warn'});
     } else {
-      simulations[script] = initMecanica(script, data.options);
-      socket.emit(STATUS, {channel: channel, message: 'loaded: ' + script});
+      try {
+        simulations[script] = initMecanica(script, data.options);
+        socket.emit(STATUS, {channel: channel, message: 'loaded: ' + script});
+      } catch (e) {
+        socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
+      }
     }
   });
 
@@ -43,7 +47,7 @@ function register(socket) {
         mecanica.startSimulation();
         socket.emit(STATUS, {channel: channel, message: 'running: ' + script});
       } catch (e) {
-        socket.emit(STATUS, {channel: channel, message: e, type: 'error'});
+        socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
       }
     }
   });

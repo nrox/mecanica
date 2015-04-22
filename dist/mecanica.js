@@ -216,23 +216,39 @@ function System(options, system) {
 System.prototype.types = {
   //base and axis are specified in local coordinates
   basic: function (options) {
-    this.include(options, {});
+    this.include(options, {
+      position: undefined,
+      rotation: undefined
+    });
+    this.buildSystemPosition(options);
     this.load(options);
   },
   imported: function (options) {
     this.include(options, {
       url: undefined,
-      position: {},
-      rotation: {},
+      position: undefined,
+      rotation: undefined,
       importOptions: {}
     });
     this.notifyUndefined(['url']);
-    this.position = new Vector(options.position);
-    this.quaternion = new Quaternion(options.rotation);
+    this.buildSystemPosition(options);
     this.import(this.url, this.importOptions);
+  },
+  loaded: function (options) {
+    this.include(options, {
+      position: undefined,
+      rotation: undefined,
+      json: {}
+    });
+    this.buildSystemPosition(options);
+    this.load(this.json);
   }
 };
 
+System.prototype.buildSystemPosition = function (options) {
+  if (this.position) this.position = new Vector(options.position);
+  if (this.quaternion) this.quaternion = new Quaternion(options.rotation);
+};
 /**
  * arguments for this function are keys leading to the deep nested element in object
  * we want to retrieve (by reference)

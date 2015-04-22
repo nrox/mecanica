@@ -1,5 +1,6 @@
 var _ = require('../../lib/underscore.js');
 var utils = require('../../utils.js');
+var fingerData = require('../../ware/experiment/finger.js');
 
 var defaultOptions = {
   fingerRadius: 0.5,
@@ -16,14 +17,13 @@ function getObject(options) {
     var x = Math.sin(angle);
     var z = Math.cos(angle);
     return {
-      type: 'imported',
-      url: '../../ware/experiment/finger.js',
+      type: 'loaded',
       position: {x: x * o.handRadius, z: z * o.handRadius},
       rotation: {y: angle + Math.PI / 2},
-      importOptions: {
+      json: fingerData.getObject({
         r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
         baseMass: 2 * o.fingerMass / 3, tipMass: o.fingerMass / 3
-      }
+      })
     };
   };
   var constraint = function (system) {
