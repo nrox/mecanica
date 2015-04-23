@@ -97,7 +97,9 @@ Component.prototype.notifyUndefined = function (keys) {
 Component.prototype.assertOneOf = function (key, values, allowAlso) {
   if ((arguments.length === 3) && (this[key] === allowAlso)) return;
   if (values.indexOf(this[key]) < 0) {
-    throw new Error('in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values));
+    var msg = 'in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values);
+    console.log(msg);
+    throw new Error(msg);
   }
 };
 
@@ -118,7 +120,21 @@ Component.prototype.construct = function (options, system, defaultType) {
   var cons = this.types[options.type];
   this.parentSystem = system;
   this.rootSystem = system.rootSystem;
-  cons.call(this, options, system);
+  try {
+    cons.call(this, options, system);
+  } catch (e) {
+    console.log('...................');
+    console.log('error in Component.construct ' + options.group + '.' + options.id + ':');
+    console.log(e.message);
+    console.log(options);
+    console.log(this);
+    console.log('...................');
+    throw e;
+  }
+};
+
+Component.prototype.isRoot = function () {
+  return false;
 };
 
 Component.prototype.types = {};
@@ -130,19 +146,28 @@ Component.prototype.debug = function () {
 };
 
 Component.prototype.getSettings = function () {
-  if (this.parentSystem == this) {
-    return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
-  } else if (this.parentSystem) {
-    return this.parentSystem.getSettings();
-  }
+  return this.globalSettings();
 };
 
 Component.prototype.globalSettings = function () {
-  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  try {
+    if (!this.rootSystem) return {};
+    return this.rootSystem.getObject('settings', _.keys(this.rootSystem.objects['settings'])[0]) || {};
+  } catch (e) {
+    console.log('in globalSettings in ', this.group, this.id);
+    console.log(e.message);
+    throw e;
+  }
 };
 
 Component.prototype.localSettings = function () {
-  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  try {
+    return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+  } catch (e) {
+    console.log('in globalSettings in ', this.group, this.id);
+    console.log(e.message);
+    throw e;
+  }
 };
 
 Component.prototype.settingsFor = function (key) {
@@ -152,6 +177,15 @@ Component.prototype.settingsFor = function (key) {
   } else {
     return this.globalSettings()[key];
   }
+};
+
+Component.prototype.lengthConversionRate = function () {
+  var globalUnit = this.globalSettings().lengthUnits;
+  var localUnit = this.localSettings().lengthUnits;
+  if (localUnit === undefined) return 1;
+  if (globalUnit === localUnit) return 1;
+  var settingsInstance = this.globalSettings();
+  return settingsInstance.availableLengthUnits[localUnit] / settingsInstance.availableLengthUnits[globalUnit];
 };
 
 Component.prototype.getScene = function () {
@@ -183,6 +217,8 @@ Component.prototype.toJSON = function () {
 };
 
 
+
+
 // src/component.js ends
 
 ;// src/settings.js begins
@@ -194,6 +230,7 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
+      gravity: {y: -9.81},
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -208,8 +245,9 @@ Settings.prototype.types = {
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024, //shadow map width and height,
-      lengthUnits: 'm'
+      lengthUnits: 'cm' //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
     });
+    this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   },
   local: function (options) {
@@ -219,7 +257,7 @@ Settings.prototype.types = {
       connectorHelper: undefined,
       lengthUnits: undefined
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
+    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
   }
 };
 
@@ -239,14 +277,6 @@ Settings.prototype.availableTorqueUnits = {
   'Kg.cm': 9.81
 };
 
-Settings.prototype.lengthConversionRate = function (component) {
-  var globalUnit = component.globalSettings().lengthUnits;
-  var localUnit = component.localSettings().lengthUnits;
-  if (localUnit === undefined) return 1;
-  if (globalUnit === localUnit) return 1;
-  return this.availableLengthUnits[localUnit] / this.availableLengthUnits[globalUnit];
-};
-
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
 // src/settings.js ends
@@ -255,6 +285,7 @@ Component.prototype.maker.settings = Settings;
 
 function System(options, system) {
   this.objects = {
+    settings: {},
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
     body: {}, //shape + mesh
@@ -295,10 +326,6 @@ System.prototype.types = {
     this.buildSystemPosition(options);
     this.load(this.json);
   }
-};
-
-System.prototype.isRoot = function () {
-  return false;
 };
 
 System.prototype.buildSystemPosition = function (options) {
@@ -420,9 +447,10 @@ System.prototype.make = function () {
         this.objects[group][obj.id] = obj;
       }
     } catch (e) {
-      console.log('failed make ' + group + '.' + options.id);
-      console.log(obj.options());
-      console.error(e);
+      console.log(e.message);
+      console.log('in system', this.id, '    during make ', group, options.id, '   with options:');
+      console.log(options);
+      throw e;
     }
   } else {
     console.warn('incapable of making object:');
@@ -437,8 +465,9 @@ System.prototype.import = function (url, options) {
     var json = require(url).getObject(options);
     this.load(json);
   } catch (e) {
-    console.log('System.import: ' + url);
-    console.error(e);
+    console.log('in System.import: ' + url);
+    console.log(e.message);
+    throw e;
   }
 };
 
@@ -459,7 +488,9 @@ System.prototype.importSystem = function (url, id, options) {
     var json = require(url).getObject(options);
     return this.loadSystem(json, id);
   } catch (e) {
-    console.error(e);
+    console.log('in System.importSystem: ' + id + ' @ ' + url);
+    console.log(e.message);
+    throw e;
   }
 };
 
@@ -470,7 +501,8 @@ System.prototype.loadSystem = function (json, id) {
     return this.make('system', json);
   } catch (e) {
     console.log('in System.loadSystem: ' + id);
-    console.error(e);
+    console.log(e.message);
+    throw e;
   }
 };
 
@@ -611,11 +643,13 @@ function Mecanica(options) {
 
 Mecanica.prototype.types = {
   empty: function (options) {
-    this.include(options, {});
+    this.include(options, {
+      id: 'root'
+    });
   }
 };
 
-Mecanica.prototype.isRoot = function(){
+Mecanica.prototype.isRoot = function () {
   return true;
 };
 
@@ -1727,7 +1761,6 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      gravity: {y: -9.81},
       solver: 'sequential' //pgs, dantzig
     });
     this.showAxisHelper();
@@ -1747,7 +1780,7 @@ Scene.prototype.createWorld = function () {
       this.constraintSolver,
       this.btDefaultCollisionConfiguration
     );
-    this.ammo.setGravity(new Vector(this.gravity).ammo);
+    this.ammo.setGravity(new Vector(this.settingsFor('gravity')).ammo);
   }
 };
 

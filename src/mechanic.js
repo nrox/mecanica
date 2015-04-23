@@ -19,11 +19,13 @@ function Mecanica(options) {
 
 Mecanica.prototype.types = {
   empty: function (options) {
-    this.include(options, {});
+    this.include(options, {
+      id: 'root'
+    });
   }
 };
 
-Mecanica.prototype.isRoot = function(){
+Mecanica.prototype.isRoot = function () {
   return true;
 };
 

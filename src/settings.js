@@ -5,6 +5,7 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
+      gravity: {y: -9.81},
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -19,8 +20,9 @@ Settings.prototype.types = {
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024, //shadow map width and height,
-      lengthUnits: 'm'
+      lengthUnits: 'cm' //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
     });
+    this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   },
   local: function (options) {
@@ -30,7 +32,7 @@ Settings.prototype.types = {
       connectorHelper: undefined,
       lengthUnits: undefined
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
+    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
   }
 };
 
@@ -48,14 +50,6 @@ Settings.prototype.availableForceUnits = {
 Settings.prototype.availableTorqueUnits = {
   'N.m': 1,
   'Kg.cm': 9.81
-};
-
-Settings.prototype.lengthConversionRate = function (component) {
-  var globalUnit = component.globalSettings().lengthUnits;
-  var localUnit = component.localSettings().lengthUnits;
-  if (localUnit === undefined) return 1;
-  if (globalUnit === localUnit) return 1;
-  return this.availableLengthUnits[localUnit] / this.availableLengthUnits[globalUnit];
 };
 
 extend(Settings, Component);

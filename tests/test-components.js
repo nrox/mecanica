@@ -66,10 +66,20 @@ var test = {
     ], 'Quaternion instance assigned options');
   },
   Settings: function () {
-    var mecanica = require('../dist/mecanica.js');
-    var obj = new mecanica.Settings({type: 'global', webWorker: true, renderFrequency: 15}, mecanica);
+    var lib = require('../dist/mecanica.js');
+    var mecanica = new lib.Mecanica();
+    mecanica.load({
+      settings: {
+        use: {
+          webWorker: true,
+          renderFrequency: 15,
+          lengthUnits: 'cm'
+        }
+      }
+    });
+    var obj = mecanica.getSettings();
     testUtils.checkValues(obj.options(), {
-      webWorker: true, renderFrequency: 15
+      webWorker: true, renderFrequency: 15, type: 'global'
     }, 'Settings instance default options');
     testUtils.checkKeys(obj, [
       'include', 'options'
@@ -77,7 +87,25 @@ var test = {
     testUtils.checkKeys(obj, [
       'webWorker', 'axisHelper', 'reuseCanvas', 'connectorHelper', 'simSpeed'
     ], 'Settings instance assigned options');
-    testUtils.logKeys(obj, 'Settings instance keys');
+    obj = mecanica.loadSystem({
+      settings: {
+        use: {
+          lengthUnits: 'm'
+        }
+      },
+      shape: {
+        a: {
+          type: 'box'
+        }
+      }
+    }, 'child').getSome('settings');
+    testUtils.checkValues(obj, {
+      lengthUnits: 'm', webWorker: undefined
+    }, 'local settings');
+    var shape = mecanica.getSystem('child').getObject('shape', 'a');
+    testUtils.checkValues(shape, {
+      lengthConversionRate: 100
+    }, 'proper length conversion rate');
   },
   Shape: function () {
     var mecanica = require('../dist/mecanica.js');
@@ -86,7 +114,7 @@ var test = {
       dx: 1, dy: 1.2, dz: 3, r: 0.5, segments: 12
     };
     generic.type = 'box';
-    var obj = new mecanica.Shape(generic, mecanica);
+    var obj = new mecanica.Shape(generic, new mecanica.Mecanica());
     testUtils.checkValues(obj.options(), {
       dx: 1, dy: 1.2, dz: 3
     }, 'box shape options');

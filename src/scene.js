@@ -5,7 +5,6 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      gravity: {y: -9.81},
       solver: 'sequential' //pgs, dantzig
     });
     this.showAxisHelper();
@@ -25,7 +24,7 @@ Scene.prototype.createWorld = function () {
       this.constraintSolver,
       this.btDefaultCollisionConfiguration
     );
-    this.ammo.setGravity(new Vector(this.gravity).ammo);
+    this.ammo.setGravity(new Vector(this.settingsFor('gravity')).ammo);
   }
 };
 

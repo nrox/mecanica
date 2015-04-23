@@ -91,7 +91,9 @@ Component.prototype.notifyUndefined = function (keys) {
 Component.prototype.assertOneOf = function (key, values, allowAlso) {
   if ((arguments.length === 3) && (this[key] === allowAlso)) return;
   if (values.indexOf(this[key]) < 0) {
-    throw new Error('in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values));
+    var msg = 'in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values);
+    console.log(msg);
+    throw new Error(msg);
   }
 };
 
@@ -112,7 +114,21 @@ Component.prototype.construct = function (options, system, defaultType) {
   var cons = this.types[options.type];
   this.parentSystem = system;
   this.rootSystem = system.rootSystem;
-  cons.call(this, options, system);
+  try {
+    cons.call(this, options, system);
+  } catch (e) {
+    console.log('...................');
+    console.log('error in Component.construct ' + options.group + '.' + options.id + ':');
+    console.log(e.message);
+    console.log(options);
+    console.log(this);
+    console.log('...................');
+    throw e;
+  }
+};
+
+Component.prototype.isRoot = function () {
+  return false;
 };
 
 Component.prototype.types = {};
@@ -124,19 +140,28 @@ Component.prototype.debug = function () {
 };
 
 Component.prototype.getSettings = function () {
-  if (this.parentSystem == this) {
-    return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
-  } else if (this.parentSystem) {
-    return this.parentSystem.getSettings();
-  }
+  return this.globalSettings();
 };
 
 Component.prototype.globalSettings = function () {
-  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  try {
+    if (!this.rootSystem) return {};
+    return this.rootSystem.getObject('settings', _.keys(this.rootSystem.objects['settings'])[0]) || {};
+  } catch (e) {
+    console.log('in globalSettings in ', this.group, this.id);
+    console.log(e.message);
+    throw e;
+  }
 };
 
 Component.prototype.localSettings = function () {
-  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+  try {
+    return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+  } catch (e) {
+    console.log('in globalSettings in ', this.group, this.id);
+    console.log(e.message);
+    throw e;
+  }
 };
 
 Component.prototype.settingsFor = function (key) {
@@ -146,6 +171,15 @@ Component.prototype.settingsFor = function (key) {
   } else {
     return this.globalSettings()[key];
   }
+};
+
+Component.prototype.lengthConversionRate = function () {
+  var globalUnit = this.globalSettings().lengthUnits;
+  var localUnit = this.localSettings().lengthUnits;
+  if (localUnit === undefined) return 1;
+  if (globalUnit === localUnit) return 1;
+  var settingsInstance = this.globalSettings();
+  return settingsInstance.availableLengthUnits[localUnit] / settingsInstance.availableLengthUnits[globalUnit];
 };
 
 Component.prototype.getScene = function () {
@@ -175,4 +209,6 @@ Component.prototype.addRenderMethod = function (funName, reference) {
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
+
+
 

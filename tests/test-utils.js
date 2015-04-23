@@ -150,24 +150,25 @@ module.exports = {
    * @param repeat to continuously repeat all tests
    * @returns {Function}
    */
-  all: function (obj, timeout, repeat) {
-    function run() {
-      var keys = _.without(_.keys(obj), 'all');
-      if (timeout && repeat) {
-        setTimeout(run, keys.length * timeout);
-      }
-      for (var i = 0; i < keys.length; i++) {
-        if (timeout) {
-          setTimeout(obj[keys[i]], timeout * i);
-        } else {
-          console.log();
-          console.info(keys[i], '------------------------------------------------');
-          obj[keys[i]]();
-        }
+  all: function (obj) {
+    var keys = _.without(_.keys(obj), 'all');
+    var i;
+
+    function runNext() {
+      console.log();
+      console.info(keys[i], ' -----------------------');
+      obj[keys[i]]();
+      if (++i < keys.length) {
+        setTimeout(runNext, 1);
       }
     }
 
-    return run;
+    function runAll() {
+      i = 0;
+      setTimeout(runNext, 1);
+    }
+
+    return runAll;
   },
 
   /**

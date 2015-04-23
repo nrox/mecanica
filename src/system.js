@@ -1,5 +1,6 @@
 function System(options, system) {
   this.objects = {
+    settings: {},
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
     body: {}, //shape + mesh
@@ -40,10 +41,6 @@ System.prototype.types = {
     this.buildSystemPosition(options);
     this.load(this.json);
   }
-};
-
-System.prototype.isRoot = function () {
-  return false;
 };
 
 System.prototype.buildSystemPosition = function (options) {
@@ -165,9 +162,10 @@ System.prototype.make = function () {
         this.objects[group][obj.id] = obj;
       }
     } catch (e) {
-      console.log('failed make ' + group + '.' + options.id);
-      console.log(obj.options());
-      console.error(e);
+      console.log(e.message);
+      console.log('in system', this.id, '    during make ', group, options.id, '   with options:');
+      console.log(options);
+      throw e;
     }
   } else {
     console.warn('incapable of making object:');
@@ -182,8 +180,9 @@ System.prototype.import = function (url, options) {
     var json = require(url).getObject(options);
     this.load(json);
   } catch (e) {
-    console.log('System.import: ' + url);
-    console.error(e);
+    console.log('in System.import: ' + url);
+    console.log(e.message);
+    throw e;
   }
 };
 
@@ -204,7 +203,9 @@ System.prototype.importSystem = function (url, id, options) {
     var json = require(url).getObject(options);
     return this.loadSystem(json, id);
   } catch (e) {
-    console.error(e);
+    console.log('in System.importSystem: ' + id + ' @ ' + url);
+    console.log(e.message);
+    throw e;
   }
 };
 
@@ -215,7 +216,8 @@ System.prototype.loadSystem = function (json, id) {
     return this.make('system', json);
   } catch (e) {
     console.log('in System.loadSystem: ' + id);
-    console.error(e);
+    console.log(e.message);
+    throw e;
   }
 };
 

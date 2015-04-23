@@ -2,7 +2,6 @@ var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
   id: 'simple',
-  type: 'basic',
   solver: 'pgs'
 };
 
