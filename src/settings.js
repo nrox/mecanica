@@ -5,7 +5,7 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
-      gravity: {y: -9.81},
+      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -19,8 +19,7 @@ Settings.prototype.types = {
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024, //shadow map width and height,
-      lengthUnits: 'cm' //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      shadowMapSize: 1024 //shadow map width and height,
     });
     this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));

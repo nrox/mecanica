@@ -230,7 +230,7 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
-      gravity: {y: -9.81},
+      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -244,8 +244,7 @@ Settings.prototype.types = {
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024, //shadow map width and height,
-      lengthUnits: 'cm' //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      shadowMapSize: 1024 //shadow map width and height,
     });
     this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
@@ -813,10 +812,10 @@ Component.prototype.maker.method = Method;
 
 function Vector(options) {
   this.include(options, {
-    x: 0, y: 0, z: 0
+    x: 0, y: 0, z: 0, scale: 1
   });
-  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {
@@ -1761,7 +1760,8 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: 'sequential' //pgs, dantzig
+      solver: 'sequential', //pgs, dantzig
+      gravity: {y: -9.81}
     });
     this.showAxisHelper();
     this.createWorld();
@@ -1780,7 +1780,9 @@ Scene.prototype.createWorld = function () {
       this.constraintSolver,
       this.btDefaultCollisionConfiguration
     );
-    this.ammo.setGravity(new Vector(this.settingsFor('gravity')).ammo);
+    var gravity = utils.deepCopy(this.options().gravity);
+    gravity.scale = this.lengthConversionRate();
+    this.ammo.setGravity(new Vector(gravity).ammo);
   }
 };
 

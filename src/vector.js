@@ -1,9 +1,9 @@
 function Vector(options) {
   this.include(options, {
-    x: 0, y: 0, z: 0
+    x: 0, y: 0, z: 0, scale: 1
   });
-  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
-  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {
