@@ -271,7 +271,8 @@ Settings.prototype.types = {
       wireframe: undefined,
       axisHelper: undefined,
       connectorHelper: undefined,
-      lengthUnits: undefined
+      lengthUnits: undefined,
+      forceUnits: undefined
     });
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
   }
@@ -279,6 +280,8 @@ Settings.prototype.types = {
 
 Settings.prototype.availableLengthUnits = {
   'm': 1,
+  'dm': 0.1,
+  'in': 0.0254,
   'cm': 0.01,
   'mm': 0.001
 };
@@ -695,7 +698,7 @@ Mecanica.prototype.startSimulation = function () {
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
-    _this._totalTime += dt;
+    _this._totalTime += dt * settings.simSpeed;
     _this._lastTime = curTime;
 
     _this.callBeforeStep();
@@ -939,7 +942,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
     if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
   },
@@ -947,7 +950,7 @@ Shape.prototype.types = {
     this.include(options, {
       dx: 1, dy: 1, dz: 1, segments: 1
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
     if (this.runsRender()) this.three = new THREE.BoxGeometry(this.dx, this.dy, this.dz, this.segments, this.segments, this.segments);
   },
@@ -955,7 +958,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
   },
@@ -963,7 +966,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
@@ -979,7 +982,6 @@ Shape.prototype.types = {
     }
     var compound;
     var transParent;
-    //var lengthScale = this.lengthConversionRate();
     if (this.runsPhysics()) {
       compound = new Ammo.btCompoundShape;
       transParent = new Ammo.btTransform;
@@ -990,7 +992,7 @@ Shape.prototype.types = {
       childOptions._dontSave = true;
       var child = new Shape(childOptions, this.parentSystem);
       var pos = new Vector(childOptions.position || {});
-      //this.applyLengthConversionRate(pos);
+      this.applyLengthConversionRate(pos);
       var qua = new Quaternion(childOptions.rotation || {});
       if (this.runsPhysics()) {
         var transChild = new Ammo.btTransform;
@@ -1086,11 +1088,12 @@ Light.prototype.types = {
     });
     if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
-      light.position.copy(new Vector(this.position).three);
+      light.position.copy(this.applyLengthConversionRate(new Vector(this.position)).three);
       if (typeof(this.lookAt) == 'object') {
         light.target.position.copy(new Vector(this.lookAt).three);
       }
       if (this.castShadow) {
+        this.shadowDistance = this.applyLengthConversionRate(this.shadowDistance);
         light.shadowCameraLeft = -this.shadowDistance;
         light.shadowCameraTop = -this.shadowDistance;
         light.shadowCameraRight = this.shadowDistance;
@@ -1335,13 +1338,17 @@ Connector.prototype.types = {
       body.connector[this.id] = this;
       this.body = body;
       this.ammoTransform = this.normalize();
+
       this.base = new Vector(this.base);
+      this.applyLengthConversionRate(this.base);
+
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
       var settings = this.getSettings();
       var helper = settings.connectorHelper;
       if (THREE && helper) {
+        helper = this.applyLengthConversionRate(helper);
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
           color: settings.connectorColor,
@@ -1485,6 +1492,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    //TODO initial state, scale velocity, binary
     Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
     this.addPhysicsMethod('disable', Constraint.prototype.methods.disable);
@@ -1498,6 +1506,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    //TODO scale
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
       this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
@@ -1524,6 +1533,7 @@ Constraint.prototype.types = {
       lowerLimit: 1,
       upperLimit: -1
     });
+    //TODO scale (no need to scale transforms, they are already OK from connectors/bodies)
     Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
 
@@ -1568,7 +1578,7 @@ Constraint.prototype.types = {
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
         );
-        this.ammo.setBreakingImpulseThreshold(1000);
+        //this.ammo.setBreakingImpulseThreshold(1000);
       };
     }
   },
@@ -1597,6 +1607,7 @@ Constraint.prototype.types = {
       maxForce: 1,
       maxVelocity: 1
     });
+    //todo scale
     Constraint.prototype.types.slider.call(this, options);
     this.create = function () {
       this.ammo = new Ammo.btSliderConstraint(
@@ -1737,7 +1748,7 @@ Constraint.prototype.destroy = function (scene) {
     this.removeFromScene(scene);
     Ammo.destroy(this.ammo);
     if (this.transformA) Ammo.destroy(this.transformA);
-    if (this.transformA) Ammo.destroy(this.transformB);
+    if (this.transformB) Ammo.destroy(this.transformB);
   }
 };
 
@@ -1772,6 +1783,7 @@ Constraint.prototype.methods = {
   },
   //linear motors only
   setPosition: function (position) {
+    //todo how to scale
     if (this.runsPhysics()) {
       this.position = position;
       this.bodyA.ammo.activate();

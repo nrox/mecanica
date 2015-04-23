@@ -42,6 +42,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    //TODO initial state, scale velocity, binary
     Constraint.prototype.types.hinge.call(this, options);
     this.addPhysicsMethod('enable', Constraint.prototype.methods.enable);
     this.addPhysicsMethod('disable', Constraint.prototype.methods.disable);
@@ -55,6 +56,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    //TODO scale
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
       this.ammo.setLimit(this.lowerLimit, this.upperLimit, 0.9, 0.3, 1.0);
@@ -81,6 +83,7 @@ Constraint.prototype.types = {
       lowerLimit: 1,
       upperLimit: -1
     });
+    //TODO scale (no need to scale transforms, they are already OK from connectors/bodies)
     Constraint.prototype.types._abstract.call(this, options);
     if (this.runsPhysics()) {
 
@@ -125,7 +128,7 @@ Constraint.prototype.types = {
         this.ammo = new Ammo.btHingeConstraint(
           this.bodyA.ammo, this.bodyB.ammo, this.transformA, this.transformB, true
         );
-        this.ammo.setBreakingImpulseThreshold(1000);
+        //this.ammo.setBreakingImpulseThreshold(1000);
       };
     }
   },
@@ -154,6 +157,7 @@ Constraint.prototype.types = {
       maxForce: 1,
       maxVelocity: 1
     });
+    //todo scale
     Constraint.prototype.types.slider.call(this, options);
     this.create = function () {
       this.ammo = new Ammo.btSliderConstraint(
@@ -294,7 +298,7 @@ Constraint.prototype.destroy = function (scene) {
     this.removeFromScene(scene);
     Ammo.destroy(this.ammo);
     if (this.transformA) Ammo.destroy(this.transformA);
-    if (this.transformA) Ammo.destroy(this.transformB);
+    if (this.transformB) Ammo.destroy(this.transformB);
   }
 };
 
@@ -329,6 +333,7 @@ Constraint.prototype.methods = {
   },
   //linear motors only
   setPosition: function (position) {
+    //todo how to scale
     if (this.runsPhysics()) {
       this.position = position;
       this.bodyA.ammo.activate();

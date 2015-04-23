@@ -11,11 +11,12 @@ Light.prototype.types = {
     });
     if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
-      light.position.copy(new Vector(this.position).three);
+      light.position.copy(this.applyLengthConversionRate(new Vector(this.position)).three);
       if (typeof(this.lookAt) == 'object') {
         light.target.position.copy(new Vector(this.lookAt).three);
       }
       if (this.castShadow) {
+        this.shadowDistance = this.applyLengthConversionRate(this.shadowDistance);
         light.shadowCameraLeft = -this.shadowDistance;
         light.shadowCameraTop = -this.shadowDistance;
         light.shadowCameraRight = this.shadowDistance;

@@ -7,7 +7,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
     if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
   },
@@ -15,7 +15,7 @@ Shape.prototype.types = {
     this.include(options, {
       dx: 1, dy: 1, dz: 1, segments: 1
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
     if (this.runsRender()) this.three = new THREE.BoxGeometry(this.dx, this.dy, this.dz, this.segments, this.segments, this.segments);
   },
@@ -23,7 +23,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
   },
@@ -31,7 +31,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
-    //this.useConversion();
+    this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
@@ -47,7 +47,6 @@ Shape.prototype.types = {
     }
     var compound;
     var transParent;
-    //var lengthScale = this.lengthConversionRate();
     if (this.runsPhysics()) {
       compound = new Ammo.btCompoundShape;
       transParent = new Ammo.btTransform;
@@ -58,7 +57,7 @@ Shape.prototype.types = {
       childOptions._dontSave = true;
       var child = new Shape(childOptions, this.parentSystem);
       var pos = new Vector(childOptions.position || {});
-      //this.applyLengthConversionRate(pos);
+      this.applyLengthConversionRate(pos);
       var qua = new Quaternion(childOptions.rotation || {});
       if (this.runsPhysics()) {
         var transChild = new Ammo.btTransform;

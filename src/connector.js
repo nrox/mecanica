@@ -17,13 +17,17 @@ Connector.prototype.types = {
       body.connector[this.id] = this;
       this.body = body;
       this.ammoTransform = this.normalize();
+
       this.base = new Vector(this.base);
+      this.applyLengthConversionRate(this.base);
+
       this.up = new Vector(this.up);
       this.front = new Vector(this.front);
       //check for orthogonality
       var settings = this.getSettings();
       var helper = settings.connectorHelper;
       if (THREE && helper) {
+        helper = this.applyLengthConversionRate(helper);
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
           color: settings.connectorColor,

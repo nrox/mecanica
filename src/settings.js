@@ -29,7 +29,8 @@ Settings.prototype.types = {
       wireframe: undefined,
       axisHelper: undefined,
       connectorHelper: undefined,
-      lengthUnits: undefined
+      lengthUnits: undefined,
+      forceUnits: undefined
     });
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
   }
@@ -37,6 +38,8 @@ Settings.prototype.types = {
 
 Settings.prototype.availableLengthUnits = {
   'm': 1,
+  'dm': 0.1,
+  'in': 0.0254,
   'cm': 0.01,
   'mm': 0.001
 };

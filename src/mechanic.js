@@ -55,7 +55,7 @@ Mecanica.prototype.startSimulation = function () {
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
-    _this._totalTime += dt;
+    _this._totalTime += dt * settings.simSpeed;
     _this._lastTime = curTime;
 
     _this.callBeforeStep();

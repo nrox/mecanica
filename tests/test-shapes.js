@@ -15,6 +15,9 @@ var test = {
 function shape(type) {
   return function () {
     var system = {
+      settings: {
+        local: {lengthUnits: 'm'}
+      },
       shape: {
         shape0: {
           type: type,
