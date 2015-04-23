@@ -56,7 +56,7 @@ Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
-    'id', 'group', 'type', 'comment'
+    'id', 'group', 'type', 'comment', 'lengthUnits', 'forceUnits'
   ]));
   _.extend(target, options);
   if (!target._options) target._options = {};
@@ -179,17 +179,26 @@ Component.prototype.settingsFor = function (key) {
   }
 };
 
+Component.prototype.getScene = function () {
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
+};
+
 Component.prototype.lengthConversionRate = function () {
   var globalUnit = this.globalSettings().lengthUnits;
-  var localUnit = this.localSettings().lengthUnits;
+  var localUnit = this.lengthUnits || this.localSettings().lengthUnits;
   if (localUnit === undefined) return 1;
   if (globalUnit === localUnit) return 1;
   var settingsInstance = this.globalSettings();
   return settingsInstance.availableLengthUnits[localUnit] / settingsInstance.availableLengthUnits[globalUnit];
 };
 
-Component.prototype.getScene = function () {
-  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
+Component.prototype.forceConversionRate = function () {
+  var globalUnit = this.globalSettings().forceUnits;
+  var localUnit = this.forceUnits || this.localSettings().forceUnits;
+  if (localUnit === undefined) return 1;
+  if (globalUnit === localUnit) return 1;
+  var settingsInstance = this.globalSettings();
+  return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
 Component.prototype.destroy = function () {
@@ -230,7 +239,8 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
-      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      forceUnits: 'N', //Newton
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -246,7 +256,6 @@ Settings.prototype.types = {
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024 //shadow map width and height,
     });
-    this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   },
   local: function (options) {
@@ -1780,9 +1789,8 @@ Scene.prototype.createWorld = function () {
       this.constraintSolver,
       this.btDefaultCollisionConfiguration
     );
-    var gravity = utils.deepCopy(this.options().gravity);
-    gravity.scale = this.lengthConversionRate();
-    this.ammo.setGravity(new Vector(gravity).ammo);
+    this.gravity.scale = this.lengthConversionRate();
+    this.ammo.setGravity(new Vector(this.gravity).ammo);
   }
 };
 

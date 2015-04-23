@@ -50,7 +50,7 @@ Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
-    'id', 'group', 'type', 'comment'
+    'id', 'group', 'type', 'comment', 'lengthUnits', 'forceUnits'
   ]));
   _.extend(target, options);
   if (!target._options) target._options = {};
@@ -173,17 +173,26 @@ Component.prototype.settingsFor = function (key) {
   }
 };
 
+Component.prototype.getScene = function () {
+  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
+};
+
 Component.prototype.lengthConversionRate = function () {
   var globalUnit = this.globalSettings().lengthUnits;
-  var localUnit = this.localSettings().lengthUnits;
+  var localUnit = this.lengthUnits || this.localSettings().lengthUnits;
   if (localUnit === undefined) return 1;
   if (globalUnit === localUnit) return 1;
   var settingsInstance = this.globalSettings();
   return settingsInstance.availableLengthUnits[localUnit] / settingsInstance.availableLengthUnits[globalUnit];
 };
 
-Component.prototype.getScene = function () {
-  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
+Component.prototype.forceConversionRate = function () {
+  var globalUnit = this.globalSettings().forceUnits;
+  var localUnit = this.forceUnits || this.localSettings().forceUnits;
+  if (localUnit === undefined) return 1;
+  if (globalUnit === localUnit) return 1;
+  var settingsInstance = this.globalSettings();
+  return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
 Component.prototype.destroy = function () {

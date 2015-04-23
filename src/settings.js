@@ -5,7 +5,8 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
-      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      forceUnits: 'N', //Newton
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -21,7 +22,6 @@ Settings.prototype.types = {
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024 //shadow map width and height,
     });
-    this.notifyUndefined(['gravity']);
     this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   },
   local: function (options) {
