@@ -206,6 +206,7 @@ Component.prototype.applyLengthConversionRate = function (target) {
   if (rate == 1) return target;
   if (target instanceof Vector) return target.setScale(rate);
   if (typeof(target) === 'number') return target * rate;
+  return target;
 };
 
 Component.prototype.destroy = function () {
@@ -866,6 +867,9 @@ Vector.prototype.add = function (v) {
 Vector.prototype.setScale = function (scale) {
   if (this.ammo) this.ammo.op_mul(scale);
   if (this.three) this.three.multiplyScalar(scale);
+  this.x *= scale;
+  this.y *= scale;
+  this.z *= scale;
   return this;
 };
 

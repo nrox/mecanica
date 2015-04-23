@@ -200,6 +200,7 @@ Component.prototype.applyLengthConversionRate = function (target) {
   if (rate == 1) return target;
   if (target instanceof Vector) return target.setScale(rate);
   if (typeof(target) === 'number') return target * rate;
+  return target;
 };
 
 Component.prototype.destroy = function () {

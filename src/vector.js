@@ -38,6 +38,9 @@ Vector.prototype.add = function (v) {
 Vector.prototype.setScale = function (scale) {
   if (this.ammo) this.ammo.op_mul(scale);
   if (this.three) this.three.multiplyScalar(scale);
+  this.x *= scale;
+  this.y *= scale;
+  this.z *= scale;
   return this;
 };
 

@@ -106,6 +106,11 @@ var test = {
     testUtils.checkValues(shape, {
       lengthConversionRate: 100
     }, 'proper length conversion rate');
+    var v = new lib.Vector({x: 2, y: 3, z: -1});
+    shape.applyLengthConversionRate(v);
+    testUtils.checkValues(v, {
+      x: 200, y: 300, z: -100
+    }, ' apply length conversion rate to vector');
   },
   Shape: function () {
     var mecanica = require('../dist/mecanica.js');
@@ -226,6 +231,12 @@ var test = {
     console.warn('TODO');
   },
   Light: function () {
+    console.warn('TODO');
+  },
+  Vector: function () {
+    console.warn('TODO');
+  },
+  Quaternion: function () {
     console.warn('TODO');
   },
   UserInterface: function () {
