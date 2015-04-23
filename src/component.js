@@ -88,6 +88,13 @@ Component.prototype.notifyUndefined = function (keys) {
   return false;
 };
 
+Component.prototype.assertOneOf = function (key, values, allowAlso) {
+  if ((arguments.length === 3) && (this[key] === allowAlso)) return;
+  if (values.indexOf(this[key]) < 0) {
+    throw new Error('in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values));
+  }
+};
+
 Component.prototype.nextId = (function () {
   var index = 0;
   return function (prefix) {
@@ -121,6 +128,23 @@ Component.prototype.getSettings = function () {
     return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
   } else if (this.parentSystem) {
     return this.parentSystem.getSettings();
+  }
+};
+
+Component.prototype.globalSettings = function () {
+  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+Component.prototype.localSettings = function () {
+  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+Component.prototype.settingsFor = function (key) {
+  var local = this.localSettings()[key];
+  if (local !== undefined) {
+    return local;
+  } else {
+    return this.globalSettings()[key];
   }
 };
 

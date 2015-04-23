@@ -1,7 +1,6 @@
 availablePaths = [
 ".//dist",
 ".//Gruntfile.js",
-".//Gruntfile.js~",
 ".//index.html",
 ".//license.txt",
 ".//listdir.sh",
@@ -67,7 +66,6 @@ availablePaths = [
 "./dist/ware/settings/tests.js",
 "./dist/ware/world/surface.js",
 "./server/index.js",
-"./server/public",
 "./server/readme.md",
 "./server/server.js",
 "./src/body.js",

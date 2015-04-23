@@ -94,6 +94,13 @@ Component.prototype.notifyUndefined = function (keys) {
   return false;
 };
 
+Component.prototype.assertOneOf = function (key, values, allowAlso) {
+  if ((arguments.length === 3) && (this[key] === allowAlso)) return;
+  if (values.indexOf(this[key]) < 0) {
+    throw new Error('in ' + this.id + '.' + key + ' = ' + this[key] + ' but should be one of' + utils.stringify(values));
+  }
+};
+
 Component.prototype.nextId = (function () {
   var index = 0;
   return function (prefix) {
@@ -127,6 +134,23 @@ Component.prototype.getSettings = function () {
     return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
   } else if (this.parentSystem) {
     return this.parentSystem.getSettings();
+  }
+};
+
+Component.prototype.globalSettings = function () {
+  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+Component.prototype.localSettings = function () {
+  return this.rootSystem.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+};
+
+Component.prototype.settingsFor = function (key) {
+  var local = this.localSettings()[key];
+  if (local !== undefined) {
+    return local;
+  } else {
+    return this.globalSettings()[key];
   }
 };
 
@@ -164,11 +188,11 @@ Component.prototype.toJSON = function () {
 ;// src/settings.js begins
 
 function Settings(options, system) {
-  this.construct(options, system, 'global');
+  this.construct(options, system, system.isRoot() ? 'global' : 'local');
 }
 
 Settings.prototype.types = {
-  global: function(options){
+  global: function (options) {
     this.include(options, {
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
@@ -183,16 +207,44 @@ Settings.prototype.types = {
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024 //shadow map width and height
+      shadowMapSize: 1024, //shadow map width and height,
+      lengthUnits: 'm'
     });
+    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   },
-  local: function(options){
+  local: function (options) {
     this.include(options, {
-      wireframe: false, //show wireframes
-      axisHelper: 0, //show an axis helper
-      connectorHelper: 0
+      wireframe: undefined,
+      axisHelper: undefined,
+      connectorHelper: undefined,
+      lengthUnits: undefined
     });
+    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
   }
+};
+
+Settings.prototype.availableLengthUnits = {
+  'm': 1,
+  'cm': 0.01,
+  'mm': 0.001
+};
+
+Settings.prototype.availableForceUnits = {
+  'N': 1,
+  'Kg': 9.81
+};
+
+Settings.prototype.availableTorqueUnits = {
+  'N.m': 1,
+  'Kg.cm': 9.81
+};
+
+Settings.prototype.lengthConversionRate = function (component) {
+  var globalUnit = component.globalSettings().lengthUnits;
+  var localUnit = component.localSettings().lengthUnits;
+  if (localUnit === undefined) return 1;
+  if (globalUnit === localUnit) return 1;
+  return this.availableLengthUnits[localUnit] / this.availableLengthUnits[globalUnit];
 };
 
 extend(Settings, Component);
