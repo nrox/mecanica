@@ -195,6 +195,13 @@ Component.prototype.forceConversionRate = function () {
   return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
+Component.prototype.applyLengthConversionRate = function (target) {
+  var rate = this.lengthConversionRate();
+  if (rate == 1) return target;
+  if (target instanceof Vector) return target.setScale(rate);
+  if (typeof(target) === 'number') return target * rate;
+};
+
 Component.prototype.destroy = function () {
 };
 

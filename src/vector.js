@@ -1,9 +1,11 @@
 function Vector(options) {
   this.include(options, {
-    x: 0, y: 0, z: 0, scale: 1
+    x: 0, y: 0, z: 0, scale: undefined
   });
-  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
-  if (this.runsRender()) this.three = new THREE.Vector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
+  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.scale) this.setScale(this.scale);
+
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {
@@ -24,11 +26,19 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   if (this.runsRender()) {
     this.three.set(this.x, this.y, this.z);
   }
+  return this;
 };
 
 Vector.prototype.add = function (v) {
   if (this.ammo && v.ammo) this.ammo.op_add(v.ammo);
   if (this.three && v.three) this.three.add(v.three);
+  return this;
+};
+
+Vector.prototype.setScale = function (scale) {
+  if (this.ammo) this.ammo.op_mul(scale);
+  if (this.three) this.three.multiplyScalar(scale);
+  return this;
 };
 
 function Quaternion(options) {
@@ -72,11 +82,13 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   if (this.runsRender()) {
     this.three.set(this.x, this.y, this.z, this.w);
   }
+  return this;
 };
 
 Quaternion.prototype.multiply = function (v) {
   if (this.ammo && v.ammo) this.ammo.op_mul(v.ammo);
   if (this.three && v.three) this.three.multiply(v.three);
+  return this;
 };
 
 extend(Vector, Component);

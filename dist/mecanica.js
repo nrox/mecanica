@@ -201,6 +201,13 @@ Component.prototype.forceConversionRate = function () {
   return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
+Component.prototype.applyLengthConversionRate = function (target) {
+  var rate = this.lengthConversionRate();
+  if (rate == 1) return target;
+  if (target instanceof Vector) return target.setScale(rate);
+  if (typeof(target) === 'number') return target * rate;
+};
+
 Component.prototype.destroy = function () {
 };
 
@@ -821,10 +828,12 @@ Component.prototype.maker.method = Method;
 
 function Vector(options) {
   this.include(options, {
-    x: 0, y: 0, z: 0, scale: 1
+    x: 0, y: 0, z: 0, scale: undefined
   });
-  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
-  if (this.runsRender()) this.three = new THREE.Vector3(this.x * this.scale, this.y * this.scale, this.z * this.scale);
+  if (this.runsPhysics()) this.ammo = new Ammo.btVector3(this.x, this.y, this.z);
+  if (this.runsRender()) this.three = new THREE.Vector3(this.x, this.y, this.z);
+  if (this.scale) this.setScale(this.scale);
+
 }
 
 Vector.prototype.fromAmmo = function (ammoVector) {
@@ -845,11 +854,19 @@ Vector.prototype.copyFromAmmo = function (ammoVector) {
   if (this.runsRender()) {
     this.three.set(this.x, this.y, this.z);
   }
+  return this;
 };
 
 Vector.prototype.add = function (v) {
   if (this.ammo && v.ammo) this.ammo.op_add(v.ammo);
   if (this.three && v.three) this.three.add(v.three);
+  return this;
+};
+
+Vector.prototype.setScale = function (scale) {
+  if (this.ammo) this.ammo.op_mul(scale);
+  if (this.three) this.three.multiplyScalar(scale);
+  return this;
 };
 
 function Quaternion(options) {
@@ -893,11 +910,13 @@ Quaternion.prototype.copyFromAmmo = function (ammoVector) {
   if (this.runsRender()) {
     this.three.set(this.x, this.y, this.z, this.w);
   }
+  return this;
 };
 
 Quaternion.prototype.multiply = function (v) {
   if (this.ammo && v.ammo) this.ammo.op_mul(v.ammo);
   if (this.three && v.three) this.three.multiply(v.three);
+  return this;
 };
 
 extend(Vector, Component);
@@ -916,6 +935,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, segments: 12
     });
+    //this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
     if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
   },
@@ -923,18 +943,15 @@ Shape.prototype.types = {
     this.include(options, {
       dx: 1, dy: 1, dz: 1, segments: 1
     });
+    //this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-    if (this.runsRender()) {
-      this.three = new THREE.BoxGeometry(
-        this.dx, this.dy, this.dz,
-        this.segments, this.segments, this.segments
-      );
-    }
+    if (this.runsRender()) this.three = new THREE.BoxGeometry(this.dx, this.dy, this.dz, this.segments, this.segments, this.segments);
   },
   cylinder: function (options) {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
+    //this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
   },
@@ -942,6 +959,7 @@ Shape.prototype.types = {
     this.include(options, {
       r: 1, dy: 1, segments: 12
     });
+    //this.useConversion();
     if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
     if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
   },
@@ -955,9 +973,9 @@ Shape.prototype.types = {
     } else {
       this.parent = new Shape(this.parent, this.parentSystem);
     }
-    var _this = this;
     var compound;
     var transParent;
+    //var lengthScale = this.lengthConversionRate();
     if (this.runsPhysics()) {
       compound = new Ammo.btCompoundShape;
       transParent = new Ammo.btTransform;
@@ -966,10 +984,11 @@ Shape.prototype.types = {
     }
     _.each(this.children, function (childOptions) {
       childOptions._dontSave = true;
-      var child = new Shape(childOptions, _this.parentSystem);
+      var child = new Shape(childOptions, this.parentSystem);
       var pos = new Vector(childOptions.position || {});
+      //this.applyLengthConversionRate(pos);
       var qua = new Quaternion(childOptions.rotation || {});
-      if (_this.runsPhysics()) {
+      if (this.runsPhysics()) {
         var transChild = new Ammo.btTransform;
         transChild.setIdentity();
         transChild.setRotation(qua.ammo);
@@ -977,13 +996,13 @@ Shape.prototype.types = {
         compound.addChildShape(transChild, child.ammo);
         Ammo.destroy(transChild);
       }
-      if (_this.runsRender()) {
+      if (this.runsRender()) {
         var tc = new THREE.Matrix4;
         tc.makeRotationFromQuaternion(qua.three);
         tc.setPosition(pos.three);
-        _this.parent.three.merge(child.three, tc);
+        this.parent.three.merge(child.three, tc);
       }
-    });
+    }, this);
     if (this.runsPhysics()) {
       this.ammo = compound;
     }
@@ -991,6 +1010,13 @@ Shape.prototype.types = {
       this.three = this.parent.three;
     }
   }
+};
+
+Shape.prototype.useConversion = function (scale) {
+  if (!scale) scale = this.lengthConversionRate();
+  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
+    if (this[prop]) this[prop] *= scale;
+  }, this);
 };
 
 extend(Shape, Component);
@@ -1126,6 +1152,7 @@ Body.prototype.types = {
     this.material = material;
 
     this.position = new Vector(this.position);
+    //this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
@@ -1269,6 +1296,13 @@ Body.prototype.destroy = function (scene) {
     Ammo.destroy(this.ammo);
     Ammo.destroy(this.ammoTransform);
   }
+};
+
+Body.prototype.useConversion = function (scale) {
+  if (!scale) scale = this.lengthConversionRate();
+  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
+    if (this[prop]) this[prop] *= scale;
+  }, this);
 };
 
 extend(Body, Component);
@@ -1789,8 +1823,9 @@ Scene.prototype.createWorld = function () {
       this.constraintSolver,
       this.btDefaultCollisionConfiguration
     );
-    this.gravity.scale = this.lengthConversionRate();
-    this.ammo.setGravity(new Vector(this.gravity).ammo);
+    this.gravity = new Vector(this.gravity);
+    //this.applyLengthConversionRate(this.gravity);
+    this.ammo.setGravity(this.gravity.ammo);
   }
 };
 
