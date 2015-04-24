@@ -121,11 +121,11 @@ var test = {
     }, 'transfer works in 2nd level');
 
   },
-  'override callbacks': function () {
+  'callbacks': function () {
     var states = {};
     var values = {
       f: function () {
-        states.f = 'not overrided';
+        states.f = 'callbacks';
       },
       c: 'name'
     };
@@ -133,7 +133,7 @@ var test = {
       c: {
         type: 'string',
         change: function () {
-          states.c = 'not overrided'
+          states.c = 'callbacks'
         }
       }
     };
@@ -142,11 +142,47 @@ var test = {
       template: template,
       container: '#triggers'
     }, new lib.Mecanica());
+
     editor.getReference().f.trigger('click');
     editor.getReference().c.trigger('change');
     setTimeout(function () {
-      console.log(states);
-    }, 10);
+      testUtils.checkValues(states, {
+        f: 'callbacks', c: 'callbacks'
+      }, 'callbacks were called');
+    }, 1);
+  },
+  'override callbacks': function () {
+    var states = {};
+    var values = {
+      f: function () {
+        states.f = 'callbacks';
+      },
+      c: 'name'
+    };
+    var template = {
+      c: {
+        type: 'string',
+        change: function () {
+          states.c = 'callbacks'
+        }
+      }
+    };
+    var editor = new lib.UserInterface({
+      values: values,
+      template: template,
+      container: '#triggers',
+      overrideCallbacks: true
+    }, new lib.Mecanica());
+    editor.setCallback(function (data) {
+      states[data.path[0]] = 'override';
+    });
+    editor.getReference().f.trigger('click');
+    editor.getReference().c.trigger('change');
+    setTimeout(function () {
+      testUtils.checkValues(states, {
+        f: 'override', c: 'override'
+      }, 'callbacks were override');
+    }, 2);
   },
   'factory settings': function () {
     var template = {

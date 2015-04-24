@@ -159,13 +159,13 @@ module.exports = {
       console.info(keys[i], ' -----------------------');
       obj[keys[i]]();
       if (++i < keys.length) {
-        setTimeout(runNext, 1);
+        setTimeout(runNext, 10);
       }
     }
 
     function runAll() {
       i = 0;
-      setTimeout(runNext, 1);
+      setTimeout(runNext, 10);
     }
 
     return runAll;

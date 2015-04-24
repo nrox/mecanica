@@ -90,7 +90,6 @@ UserInterface.prototype.setCallback = function (fun) {
 };
 
 UserInterface.prototype.useCallback = function (eventName, domElement) {
-  if (!this._callbackOverride) return;
   var _this = this;
   domElement.off(eventName);
   domElement.on(eventName, function () {
@@ -99,7 +98,8 @@ UserInterface.prototype.useCallback = function (eventName, domElement) {
       values: _this.transferValues(),
       path: _this.pathInReference(domElement)
     };
-    _this._callbackOverride(data);
+    if (!_this._callbackOverride) throw new Error('need to setCallback in UserInterface');
+    _this._callbackOverride.call(_this, data);
   });
 };
 
