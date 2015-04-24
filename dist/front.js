@@ -53,7 +53,7 @@ MecanicaClient.prototype.buildInputs = function () {
   _.each(['options', 'load', 'ui', 'start', 'stop', 'request', 'stream'], function (key) {
     inputs[key] = function () {
       var script = _this.controls.getValues().script;
-      console.log(key, script);
+      console.log('command', key, script);
       _this.socket.emit(key, {script: script, options: _this.options ? _this.options.getValues() : undefined});
     };
   });
@@ -62,7 +62,7 @@ MecanicaClient.prototype.buildInputs = function () {
     script: {type: 'list', values: list}
   };
   this.controls = new this.lib.UserInterface({
-    values: inputs, template: template, container: '#triggers'
+    values: inputs, template: template, container: '#triggers', title: 'Server Commands'
   }, this.mecanica);
 };
 
@@ -78,7 +78,7 @@ MecanicaClient.prototype.buildListeners = function () {
   me.import('./ware/monitor/satellite.js');
 
   this.socket.on('status', function (message) {
-    console[message.type || 'log'](message.channel, message.script, message.status);
+    console[message.type || 'log']('response', message.channel, message.script, message.status);
   });
 
   this.socket.on('options', function (message) {
@@ -87,13 +87,18 @@ MecanicaClient.prototype.buildListeners = function () {
       return;
     }
     message.data.container = '#triggers';
-    message.data.title = 'Load Options';
+    message.data.title = 'Options';
+    message.data.css = {
+      '.key': {
+        'text-align': 'right',
+        'min-width': '10em'
+      }
+    };
     if (_this.options) {
       _this.options.reuseWith(message.data);
     } else {
       _this.options = new _this.lib.UserInterface(message.data, me);
     }
-    options = _this.options;
   });
 
   this.socket.on('stream', function (message) {
@@ -109,6 +114,25 @@ MecanicaClient.prototype.buildListeners = function () {
       me.addToScene();
     } catch (e) {
       console.error(e);
+    }
+  });
+
+  this.socket.on('ui', function (message) {
+    var script = message.script;
+    var obj = require(script);
+    if (!_this.ui) {
+      _this.ui = new _this.lib.UserInterface({
+        container: '#triggers', title: 'Controls', overrideCallbacks: true
+      }, me);
+    }
+    if (obj.userInterface) {
+      var options = obj.userInterface({
+        system: script, container: '#triggers'
+      });
+      _this.ui.reuseWith(options);
+      _this.ui.setCallback(function (data) {
+        _this.socket.emit('ui-trigger', {script: script, data: data});
+      });
     }
   });
 };

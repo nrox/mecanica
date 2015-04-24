@@ -31,27 +31,30 @@ function registerAll(socket) {
     }
   });
 
-  new Listener(socket, 'ui', function (data) {
+  new Listener(socket, 'ui', function () {
+    if (this.loadedUI()) {
+      this.emitWarn('ui already loaded');
+      this.emit();
+      return;
+    }
     var mecanica = this.loadedMecanica();
     var obj = this.require();
     if (obj.userInterface) {
-      var ui = obj.userInterface({
-        system: mecanica.getSystem(this.script)
-      }, mecanica);
+      var options = obj.userInterface({
+        system: this.script
+      });
+      var ui = new lib.UserInterface(options, mecanica);
       this.loadedUI(ui);
+      this.emit();
     }
   });
 
   new Listener(socket, 'ui-trigger', function (data) {
     var ui = this.loadedUI();
-    var path = data.path;
-    var values = data.values;
-
     if (ui) {
-      var ui = obj.userInterface({
-        system: mecanica.getSystem(this.script)
-      }, mecanica);
-      this.loadedUI(ui);
+      ui.applyRemote(data.data);
+    } else {
+      this.emitWarn('ui not loaded');
     }
   });
 

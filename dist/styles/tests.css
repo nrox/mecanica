@@ -43,9 +43,11 @@ button, a.test, select {
 }
 
 canvas {
-    border: 1px solid #eee;
+    border: 1px solid #aaa;
+    border-radius: 3px;
     width: 90%;
     height: 95%;
+    margin: 3px;
 }
 
 

@@ -12,8 +12,9 @@ UserInterface.prototype.types = {
       values: undefined,
       template: {},
       container: this.getSettings().uiContainer,
-      title: undefined,
-      overrideCallbacks: false
+      title: 'User Interface',
+      overrideCallbacks: false,
+      css: undefined
     });
     if (this.runsRender()) {
       this.notifyUndefined(['container']);
@@ -27,9 +28,30 @@ UserInterface.prototype.types = {
   }
 };
 
+
+UserInterface.prototype.showEditor = function () {
+  this.destroy();
+  var domElements = this.build(this.values, this.template, this.reference);
+  var $domElements = $(domElements);
+  $domElements.attr('id', this.domId = this.nextId('ui') + new Date().getTime());
+  $domElements.removeClass('level');
+  $domElements.addClass(CLASS);
+  _.each(this.css, function (css, sel) {
+    $domElements.find(sel).css(css);
+  });
+  if (this.title) {
+    var $title = $('<h3 />', {'class': 'title'});
+    $title.text(this.title);
+    $domElements.prepend($title);
+  }
+  $(this.container).append($domElements);
+};
+
+
 UserInterface.prototype.reuseWith = function (options) {
   this.destroy();
-  this.construct(options, this.parentSystem, this.options().type);
+  _.extend(this._options, options);
+  this.construct(this._options, this.parentSystem, this.options().type);
 };
 
 UserInterface.prototype.getValues = function () {
@@ -85,6 +107,10 @@ UserInterface.prototype.transferValues = function (to, from) {
   return to;
 };
 
+UserInterface.prototype.copyValues = function (from) {
+  this.transferValues(this.values, from);
+};
+
 UserInterface.prototype.setCallback = function (fun) {
   this._callbackOverride = fun;
 };
@@ -103,18 +129,17 @@ UserInterface.prototype.useCallback = function (eventName, domElement) {
   });
 };
 
-UserInterface.prototype.showEditor = function () {
-  this.destroy();
-  var domElements = this.build(this.values, this.template, this.reference);
-  $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
-  $(domElements).addClass('top');
-  $(domElements).addClass(CLASS);
-  if (this.title) {
-    var $title = $('<h3 />', {'class': 'title'});
-    $title.text(this.title);
-    $(domElements).prepend($title);
+UserInterface.prototype.applyRemote = function (data) {
+  this.copyValues(data.values);
+  var value = this.objectInPath(data.path);
+  if ((typeof value == 'function')) {
+    value.call(this);
+  } else if (data.event == 'change') {
+    var template = utils.pathObject(this.template, data.path);
+    if (template && template.change) {
+      template.change.call(this);
+    }
   }
-  $(this.container).append(domElements);
 };
 
 UserInterface.prototype.destroy = function () {
@@ -136,6 +161,7 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
     var $wrapper = $('<div />', {'class': 'wrapper'});
     var $key = $('<div />', {'class': 'key'});
     $key.text(k + '');
+    $key.addClass('length' + ~~($key.text().length / 4));
     var $value;
     if (typeof v == 'object') { //folders
       var $folded = $('<span>' + FOLDER_SYMBOL + '</span>', {'class': 'folded'});

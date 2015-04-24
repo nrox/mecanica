@@ -27,6 +27,7 @@
     <button onclick='removeFile();'>remove</button>
 </p>
 
+
 <div id='container'></div>
 <div id='triggers'></div>
 <pre id='status'></pre>
@@ -59,7 +60,7 @@
             var file = $(e.target).val();
             location.hash = encodeURIComponent(file);
             var obj = require(file).defaultOptions;
-            ui.reuseWith({values: obj, container: '#triggers'});
+            ui.reuseWith({values: obj});
         });
         $list.trigger('change');
     }
@@ -75,7 +76,8 @@
             if (controlsOptionsGenerator) {
                 var controlsOptions = controlsOptionsGenerator({
                     system: sys.options().id,
-                    container: '#triggers'
+                    container: '#triggers',
+                    title: 'Controls'
                 });
                 controls.reuseWith(controlsOptions);
             } else {
@@ -102,10 +104,24 @@
     mecanica.start();
     var ui = new lib.UserInterface({
         values: {},
-        container: '#triggers'
+        container: '#triggers',
+        title: 'Options',
+        css: {
+            '.key': {
+                'text-align': 'right',
+                'min-width': '10em'
+            }
+        }
     }, mecanica);
     var controls = new lib.UserInterface({
-        container: '#triggers'
+        container: '#triggers',
+        title: 'Controls',
+        css: {
+            '.key': {
+                'text-align': 'right',
+                'min-width': '10em'
+            }
+        }
     }, mecanica);
     makeList(loadList());
 </script>

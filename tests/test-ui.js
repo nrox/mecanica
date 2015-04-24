@@ -127,7 +127,7 @@ var test = {
       f: function () {
         states.f = 'callbacks';
       },
-      c: 'name'
+      c: 'foo'
     };
     var template = {
       c: {
@@ -140,7 +140,8 @@ var test = {
     var editor = new lib.UserInterface({
       values: values,
       template: template,
-      container: '#triggers'
+      container: '#triggers',
+      title: 'callbacks'
     }, new lib.Mecanica());
 
     editor.getReference().f.trigger('click');
@@ -157,7 +158,7 @@ var test = {
       f: function () {
         states.f = 'callbacks';
       },
-      c: 'name'
+      c: 'bar'
     };
     var template = {
       c: {
@@ -171,7 +172,8 @@ var test = {
       values: values,
       template: template,
       container: '#triggers',
-      overrideCallbacks: true
+      overrideCallbacks: true,
+      title: 'override callbacks'
     }, new lib.Mecanica());
     editor.setCallback(function (data) {
       states[data.path[0]] = 'override';
