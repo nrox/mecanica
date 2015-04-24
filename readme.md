@@ -7,7 +7,7 @@ Mechanism simulation with Ammo.js and THREE.js.
 
 #Current state
 
-Alpha
+Beta
 
 #Usage
 
