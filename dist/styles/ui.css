@@ -11,6 +11,10 @@
     -ms-user-select: none;
 }
 
+.ui .title {
+    font-weight: bold;
+}
+
 .ui .level {
     border: 1px dashed transparent;
     margin: 0 1em;

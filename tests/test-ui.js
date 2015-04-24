@@ -102,6 +102,24 @@ var test = {
       container: '#container'
     }, new lib.Mecanica());
     makeGetValues(editor);
+    console.log(editor.getValues());
+    var obj = editor.getReference().root.folder.boolean1;
+    var path = editor.pathInReference(obj);
+    testUtils.checkValues(path, {
+      0: 'root', 1: 'folder', 2: 'boolean1'
+    }, 'path in reference for boolean1');
+    var obj2 = editor.objectInPath(path);
+    testUtils.assert(editor.values.root.folder.boolean1 === obj2, 'objectInPath points to the correct value');
+    var to = {};
+    editor.transferValues(to);
+    testUtils.checkValues(to.root, {
+      number: 3, range1: 4
+    }, 'transfer works in 1st level');
+    testUtils.checkValues(to.root.folder, {
+      boolean1: false,
+      string2: 'world'
+    }, 'transfer works in 2nd level');
+
   },
   'factory settings': function () {
     var template = {

@@ -76,33 +76,37 @@ MecanicaClient.prototype.buildListeners = function () {
   me.import('./ware/scene/simple.js');
   me.import('./ware/light/set3.js');
   me.import('./ware/monitor/satellite.js');
-  this.socket.on('status', function (data) {
-    console[data.type || 'log']('status for', data.channel, ' - ', data.message);
+
+  this.socket.on('status', function (message) {
+    console[message.type || 'log'](message.channel, message.script, message.status);
   });
-  this.socket.on('options', function (data) {
-    if (!data.values) {
+
+  this.socket.on('options', function (message) {
+    if (!message.data.values) {
       if (_this.options) _this.options.destroy();
       return;
     }
-    data.container = '#triggers';
+    message.data.container = '#triggers';
+    message.data.title = 'Load Options';
     if (_this.options) {
-      _this.options.reuseWith(data);
+      _this.options.reuseWith(message.data);
     } else {
-      _this.options = new _this.lib.UserInterface(data, me);
+      _this.options = new _this.lib.UserInterface(message.data, me);
     }
+    options = _this.options;
   });
-  this.socket.on('stream', function (data) {
-    me.unpackPhysics(data.json);
+
+  this.socket.on('stream', function (message) {
+    me.unpackPhysics(message.data);
     me.physicsDataReceived(true);
     me.startRender();
   });
-  this.socket.on('request', function (data) {
-    var script = data.script;
-    var json = JSON.parse(data.json);
+
+  this.socket.on('request', function (message) {
+    var script = message.script;
     try {
-      me.loadSystem(json, script);
+      me.loadSystem(message.data, script);
       me.addToScene();
-      console.log('loaded system received from server: ' + script);
     } catch (e) {
       console.error(e);
     }

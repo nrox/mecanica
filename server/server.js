@@ -1,144 +1,183 @@
 var lib = require('../dist/mecanica.js');
 var utils = require('../dist/utils.js');
 var _ = require('underscore');
-var STATUS = 'status';
+var VERBOSE = true;
 
 var simulations = {
-
 };
 
-function register(socket) {
+var userInterfaces = {
+};
 
-  socket.on('disconnect', function () {
+function registerAll(socket) {
+
+  new Listener(socket, 'disconnect', function (data) {
     _.each(simulations, function (m, id) {
-      console.log('stopping ' + id);
       clearTimeout(m._streamIntervalId);
-      m.stop();
+      //m.stop();
     });
   });
 
-  socket.on('options', function (data) {
-    var channel = 'options';
-    console.log(channel, data);
-    var script = data.script;
-    try {
-      var obj = require(fileFor(script));
-      socket.emit(channel, {values: obj.defaultOptions});
-    } catch (e) {
-      socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
-    }
+  new Listener(socket, 'options', function (data) {
+    var obj = this.require();
+    this.emit({values: obj.defaultOptions});
   });
 
-  socket.on('load', function (data) {
-    var channel = 'load';
-    console.log(channel, data);
-    var script = data.script;
-    if (simulations[script]) {
-      socket.emit(STATUS, {channel: channel, message: 'already loaded: ' + script, type: 'warn'});
+  new Listener(socket, 'load', function (data) {
+    if (this.loadedMecanica()) {
+      this.emitWarn('already loaded');
     } else {
-      try {
-        simulations[script] = initMecanica(script, data.options);
-        socket.emit(STATUS, {channel: channel, message: 'loaded: ' + script});
-      } catch (e) {
-        socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
-      }
+      this.loadedMecanica(this.initMecanica(data.options));
     }
   });
 
-  socket.on('start', function (data) {
-    var channel = 'start';
-    console.log(channel, data);
-    var script = data.script;
-    var mecanica = simulations[script];
+  new Listener(socket, 'ui', function (data) {
+    var mecanica = this.loadedMecanica();
+    var obj = this.require();
+    if (obj.userInterface) {
+      var ui = obj.userInterface({
+        system: mecanica.getSystem(this.script)
+      }, mecanica);
+      this.loadedUI(ui);
+    }
+  });
+
+  new Listener(socket, 'ui-trigger', function (data) {
+    var ui = this.loadedUI();
+    var path = data.path;
+    var values = data.values;
+
+    if (ui) {
+      var ui = obj.userInterface({
+        system: mecanica.getSystem(this.script)
+      }, mecanica);
+      this.loadedUI(ui);
+    }
+  });
+
+  new Listener(socket, 'start', function (data) {
+    var mecanica = this.loadedMecanica();
     if (!mecanica) {
-      socket.emit(STATUS, {channel: channel, message: 'not yet loaded: ' + script, type: 'error'});
+      this.emitError('not yet loaded');
     } else if (mecanica.isSimulationRunning()) {
-      socket.emit(STATUS, {channel: channel, message: 'already running: ' + script, type: 'warn'});
+      this.emitWarn('already running');
     } else {
-      try {
-        mecanica.startSimulation();
-        socket.emit(STATUS, {channel: channel, message: 'running: ' + script});
-      } catch (e) {
-        socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
-      }
+      mecanica.startSimulation();
     }
   });
 
-  socket.on('stop', function (data) {
-    var channel = 'stop';
-    console.log(channel, data);
-    var script = data.script;
-    var mecanica = simulations[script];
+  new Listener(socket, 'stop', function (data) {
+    var mecanica = this.loadedMecanica();
     if (!mecanica) {
-      socket.emit(STATUS, {channel: channel, message: 'not yet loaded: ' + script, type: 'error'});
+      this.emitError('not yet loaded');
     } else if (!mecanica.isSimulationRunning()) {
-      socket.emit(STATUS, {channel: channel, message: 'not running: ' + script, type: 'warn'});
+      this.emitWarn('not running');
     } else {
-      try {
-        clearInterval(mecanica._streamIntervalId);
-        mecanica.stopSimulation();
-        socket.emit(STATUS, {channel: channel, message: 'stopped: ' + script});
-      } catch (e) {
-        socket.emit(STATUS, {channel: channel, message: e, type: 'error'});
-      }
+      clearInterval(mecanica._streamIntervalId);
+      mecanica.stopSimulation();
     }
   });
 
-  socket.on('request', function (data) {
-    var channel = 'request';
-    console.log(channel, data);
-    var script = data.script;
-    var mecanica = simulations[script];
+  new Listener(socket, 'request', function (data) {
+    var mecanica = this.loadedMecanica();
     if (!mecanica) {
-      socket.emit(STATUS, {channel: channel, message: 'not yet loaded: ' + script, type: 'error'});
+      this.emitError('not yet loaded');
     } else {
-      try {
-        var json = utils.stringify(mecanica.getSystem(script).toJSON());
-        socket.emit(channel, {script: script, json: json});
-      } catch (e) {
-        socket.emit(STATUS, {channel: channel, message: e, type: 'error'});
-      }
+      var json = mecanica.getSystem(this.script).toJSON();
+      this.emit(json);
     }
   });
 
-  socket.on('stream', function (data) {
-    var channel = 'stream';
-    console.log(channel, data);
-    var script = data.script;
-    var mecanica = simulations[script];
+  new Listener(socket, 'stream', function (data) {
+    var mecanica = this.loadedMecanica();
     if (!mecanica) {
-      socket.emit(STATUS, {channel: channel, message: 'not yet loaded: ' + script, type: 'error'});
+      this.emitError('not yet loaded');
     } else if (!mecanica.isSimulationRunning()) {
-      socket.emit(STATUS, {channel: channel, message: 'simulation not running: ' + script, type: 'error'});
+      this.emitWarn('not running');
     } else {
+      var _this = this;
       mecanica._streamIntervalId = setInterval(function () {
         try {
-          var json = mecanica.physicsPack;
-          //console.log(json.system['dist/ware/experiment/basic2.js'].body['id6'].position.y);
-          socket.volatile.emit(channel, {script: script, json: json});
+          _this.emitVolatile(mecanica.physicsPack);
         } catch (e) {
-          socket.emit(STATUS, {channel: channel, message: e, type: 'error'});
+          _this.emitError(e);
         }
       }, 1000 / mecanica.getSettings().renderFrequency);
     }
   });
 
+
 }
 
-function initMecanica(script, options) {
+function Listener(socket, channel, callback) {
+  socket.on(channel, function (data) {
+    new Responder(channel, socket, callback, data);
+  });
+}
+
+function Responder(channel, socket, callback, data) {
+  if (VERBOSE) console.log(channel, data.script);
+  this.socket = socket;
+  this.script = data.script;
+  this.channel = channel;
+  try {
+    callback.call(this, data);
+    if (VERBOSE) this.emitStatus('OK');
+  } catch (e) {
+    this.emitError(e);
+  }
+}
+
+Responder.prototype.emit = function (data) {
+  this.socket.emit(this.channel, {channel: this.channel, script: this.script, data: data});
+};
+
+Responder.prototype.emitVolatile = function (data) {
+  this.socket.volatile.emit(this.channel, {channel: this.channel, script: this.script, data: data});
+};
+
+Responder.prototype.emitStatus = function (status, type) {
+  this.socket.volatile.emit('status', {channel: this.channel, script: this.script, status: status, type: type || 'log'});
+};
+
+Responder.prototype.emitError = function (e) {
+  if (VERBOSE) console.error('error: ', e.message);
+  this.emitStatus(e.message, 'error');
+};
+
+Responder.prototype.emitWarn = function (message) {
+  if (VERBOSE) console.warn('warn: ', message);
+  this.emitStatus(message, 'warn');
+};
+
+Responder.prototype.scriptPath = function () {
+  //TODO security filter, validation, pick from folder
+  return '../' + this.script;
+};
+
+Responder.prototype.require = function () {
+  return require(this.scriptPath());
+};
+
+Responder.prototype.loadedMecanica = function (obj) {
+  if (obj) simulations[this.script] = obj;
+  return simulations[this.script];
+};
+
+Responder.prototype.loadedUI = function (obj) {
+  if (obj) userInterfaces[this.script] = obj;
+  return userInterfaces[this.script];
+};
+
+Responder.prototype.initMecanica = function (options) {
   var me = new lib.Mecanica();
   me.import('../dist/ware/settings/tests.js');
   me.import('../dist/ware/scene/simple.js');
-  me.importSystem(fileFor(script), script, options);
+  me.importSystem(this.scriptPath(), this.script, options);
   me.addToScene();
   return me;
 }
-function fileFor(script) {
-  //TODO security
-  return '../' + script;
-}
-
 
 module.exports = function (socket) {
-  register(socket);
+  registerAll(socket);
 };

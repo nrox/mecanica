@@ -32,6 +32,13 @@ module.exports = {
       z: this.randomLinear(min, max)
     };
   },
+  pathObject: function (obj, path) {
+    for (var i = 0; i < path.length; i++) {
+      if (!obj) break;
+      obj = obj[path[i]];
+    }
+    return obj;
+  },
   argList: function (args) {
     //args is like arguments, transform it into an array
     var a = [];

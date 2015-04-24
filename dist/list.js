@@ -1,6 +1,7 @@
 availablePaths = [
 ".//dist",
 ".//Gruntfile.js",
+".//Gruntfile.js~",
 ".//index.html",
 ".//license.txt",
 ".//listdir.sh",

@@ -11,10 +11,12 @@ UserInterface.prototype.types = {
     this.include(options, {
       values: undefined,
       template: {},
-      container: this.getSettings().uiContainer
+      container: this.getSettings().uiContainer,
+      title: undefined,
+      overrideCallbacks: false
     });
-    this.notifyUndefined(['container']);
     if (this.runsRender()) {
+      this.notifyUndefined(['container']);
       if (typeof $ === 'undefined') {
         $ = jQuery;
       }
@@ -44,12 +46,56 @@ UserInterface.prototype.getReference = function () {
   return this.reference;
 };
 
+UserInterface.prototype.objectInPath = function (path) {
+  return utils.pathObject(this.values, path);
+};
+
+UserInterface.prototype.pathInReference = function (child, ancestor, values, path) {
+  if (path === undefined) {
+    path = [];
+    ancestor = this.reference;
+    values = this.values;
+  }
+  var found = false;
+  if (typeof values == 'object') {
+    _.each(values, function (v, key) {
+      if (found) return;
+      if (child === ancestor[key]) {
+        found = true;
+      } else {
+        found = this.pathInReference(child, ancestor[key], v, path);
+      }
+      if (found) path.unshift(key);
+    }, this);
+  }
+  if (found) return path;
+};
+
+UserInterface.prototype.transferValues = function (to, from) {
+  from || (from = this.getValues());
+  to || (to = {});
+  _.each(from, function (value, key) {
+    if (typeof value == 'object') {
+      this.transferValues(to[key] || (to[key] = {}), value);
+    } else if (typeof value == 'function') {
+    } else {
+      to[key] = value;
+    }
+  }, this);
+  return to;
+};
+
 UserInterface.prototype.showEditor = function () {
   this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
   $(domElements).attr('id', this.domId = this.nextId('ui') + new Date().getTime());
   $(domElements).addClass('top');
   $(domElements).addClass(CLASS);
+  if (this.title) {
+    var $title = $('<h3 />', {'class': 'title'});
+    $title.text(this.title);
+    $(domElements).prepend($title);
+  }
   $(this.container).append(domElements);
 };
 
@@ -94,7 +140,8 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       if ($value[GET_VALUE]) {
         _this.updaters.push(function () {
           obj[k] = $value[GET_VALUE]();
-          if (!isNaN(obj[k])) {
+          if (obj[k] === false || obj[k] === true) {
+          } else if (!isNaN(obj[k])) {
             obj[k] = Number(obj[k]);
           }
         });
@@ -163,18 +210,20 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'boolean', t: true, f: false
     });
+    specs.t += '';
+    specs.f += '';
     var e = $('<span />');
     e.text(v);
     e.on('click', function (evt) {
       var tgt = $(evt.target);
-      tgt.text(tgt.text() == ('' + specs.t) ? specs.f : specs.t);
+      tgt.text(tgt.text() == specs.t ? specs.f : specs.t);
     });
     e[GET_VALUE] = function () {
       var txt = e.text();
-      return (txt === 'true' || txt === 'false') ? eval(txt) : txt;
+      return txt === specs.t;
     };
     e[SET_VALUE] = function (a) {
-      e.text('' + a);
+      e.text(a ? specs.t : specs.f);
     };
     return e;
   },
