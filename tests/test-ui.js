@@ -121,6 +121,33 @@ var test = {
     }, 'transfer works in 2nd level');
 
   },
+  'override callbacks': function () {
+    var states = {};
+    var values = {
+      f: function () {
+        states.f = 'not overrided';
+      },
+      c: 'name'
+    };
+    var template = {
+      c: {
+        type: 'string',
+        change: function () {
+          states.c = 'not overrided'
+        }
+      }
+    };
+    var editor = new lib.UserInterface({
+      values: values,
+      template: template,
+      container: '#triggers'
+    }, new lib.Mecanica());
+    editor.getReference().f.trigger('click');
+    editor.getReference().c.trigger('change');
+    setTimeout(function () {
+      console.log(states);
+    }, 10);
+  },
   'factory settings': function () {
     var template = {
       axisHelper: {type: 'range', min: '0', max: '5', step: '0.5'},

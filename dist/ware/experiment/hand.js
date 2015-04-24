@@ -132,11 +132,11 @@ function userInterface(options) {
   };
 
   function addTemplateForFinger(id, obj) {
-    var tilt = {type: 'range', min: -90, max: 90, step: 1, velocity: 5, onChange: function () {
+    var tilt = {type: 'range', min: -90, max: 90, step: 1, velocity: 5, change: function () {
       var angle = this.getValues()[id];
       this.rootSystem.getSystem(options.system).getSystem(id).setAngle(angle * Math.PI / 180);
     }};
-    var pan = {type: 'range', min: -90, max: 90, step: 1, velocity: 5, onChange: function () {
+    var pan = {type: 'range', min: -90, max: 90, step: 1, velocity: 5, change: function () {
       var angle = this.getValues()[id + 'Pan'];
       this.rootSystem.getSystem(options.system)[id + 'Pan'](angle * Math.PI / 180);
     }};

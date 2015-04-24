@@ -161,7 +161,7 @@ function servoTest() {
   var ui = {
     template: {
       'angle(°)': {type: 'range', min: -180, max: 180, step: 5,
-        onChange: function () {
+        change: function () {
           var c = this.parentSystem.getSystem('system').getConstraint('constraint');
           var values = this.getValues();
           var angle = values['angle(°)'];
@@ -270,7 +270,7 @@ function linearTest() {
       position: 0
     },
     template: {
-      position: {type: 'range', min: -10, max: 1, step: 0.1, round: 0.1, onChange: function () {
+      position: {type: 'range', min: -10, max: 1, step: 0.1, round: 0.1, change: function () {
         var c = this.parentSystem.getSystem('system').getConstraint('constraint');
         var position = this.getValues().position;
         c.setPosition(position);
@@ -450,12 +450,12 @@ function gearTest() {
     },
     template: {
       motor: {
-        velocity: {type: 'range', min: -5, max: 5, step: 1, onChange: function () {
+        velocity: {type: 'range', min: -5, max: 5, step: 1, change: function () {
           var c = this.parentSystem.getSystem('system').getConstraint('motor');
           var values = this.getValues().motor;
           c.enable(values.velocity, values.binary);
         }},
-        binary: {type: 'range', min: 0, max: 50, step: 1, onChange: function () {
+        binary: {type: 'range', min: 0, max: 50, step: 1, change: function () {
           var c = this.parentSystem.getSystem('system').getConstraint('motor');
           var values = this.getValues().motor;
           c.enable(values.velocity, values.binary);

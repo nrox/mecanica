@@ -85,6 +85,24 @@ UserInterface.prototype.transferValues = function (to, from) {
   return to;
 };
 
+UserInterface.prototype.setCallback = function (fun) {
+  this._callbackOverride = fun;
+};
+
+UserInterface.prototype.useCallback = function (eventName, domElement) {
+  if (!this._callbackOverride) return;
+  var _this = this;
+  domElement.off(eventName);
+  domElement.on(eventName, function () {
+    var data = {
+      event: eventName,
+      values: _this.transferValues(),
+      path: _this.pathInReference(domElement)
+    };
+    _this._callbackOverride(data);
+  });
+};
+
 UserInterface.prototype.showEditor = function () {
   this.destroy();
   var domElements = this.build(this.values, this.template, this.reference);
@@ -150,10 +168,14 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
       $value.addClass('value');
       $value.addClass(type);
     }
-    if (typeof(specs.onChange) == 'function') {
-      $value.on('change', function () {
-        specs.onChange.call(_this);
-      });
+    if (typeof(specs.change) == 'function') {
+      if (!_this.overrideCallbacks) {
+        $value.on('change', function () {
+          specs.change.call(_this);
+        });
+      } else {
+        _this.useCallback('change', $value);
+      }
     }
     //extend css from specs
     if (specs.keyCSS) $key.css(specs.keyCSS);
@@ -254,9 +276,13 @@ UserInterface.prototype.inputs = {
     var _this = this;
     var e = $('<span />');
     e.html(specs.caption);
-    e.on('click', function () {
-      if (typeof v == 'function') v.call(_this);
-    });
+    if (!_this.overrideCallbacks) {
+      e.on('click', function () {
+        if (typeof v == 'function') v.call(_this);
+      });
+    } else {
+      _this.useCallback('click', e);
+    }
     return e;
   },
   list: function (k, v, specs) {

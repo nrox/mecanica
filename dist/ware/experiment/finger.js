@@ -115,7 +115,7 @@ function userInterface(options) {
       angle: 0
     },
     template: {
-      angle: {type: 'range', min: -90, max: 90, step: 1, velocity: 5, onChange: function () {
+      angle: {type: 'range', min: -90, max: 90, step: 1, velocity: 5, change: function () {
         var angle = this.getValues().angle;
         this.rootSystem.getSystem(options.system).setAngle(angle * Math.PI / 180);
       }}
