@@ -17,7 +17,8 @@ function MecanicaClient() {
 }
 
 MecanicaClient.prototype.initSocket = function () {
-  var socket = io.connect(location.origin, {reconnection: false});
+  var url = location.href.substr(0, location.href.indexOf('/dist'));
+  var socket = io.connect(url, {reconnection: false});
   var _this = this;
   socket.on('connect', function () {
     _this.socket = socket;
