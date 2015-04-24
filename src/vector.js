@@ -44,6 +44,10 @@ Vector.prototype.setScale = function (scale) {
   return this;
 };
 
+Vector.prototype.destroy = function () {
+  if (this.ammo) Ammo.destroy(this.ammo);
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -93,6 +97,11 @@ Quaternion.prototype.multiply = function (v) {
   if (this.three && v.three) this.three.multiply(v.three);
   return this;
 };
+
+Quaternion.prototype.destroy = function () {
+  if (this.ammo) Ammo.destroy(this.ammo);
+};
+
 
 extend(Vector, Component);
 extend(Quaternion, Component);

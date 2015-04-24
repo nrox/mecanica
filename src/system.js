@@ -47,6 +47,8 @@ System.prototype.buildSystemPosition = function (options) {
   if (this.runsPhysics() && (this.rotation || this.position)) {
     this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
     this.position = new Vector(options.position || {});
+    //TODO check if this should be done with reference to local settings not from parent
+    this.applyLengthConversionRate(this.position);
     this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
   }
 };

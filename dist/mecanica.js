@@ -201,11 +201,20 @@ Component.prototype.forceConversionRate = function () {
   return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
-Component.prototype.applyLengthConversionRate = function (target) {
-  var rate = this.lengthConversionRate();
+Component.prototype.applyLengthConversionRate = function (target, rate) {
+  rate = rate || this.lengthConversionRate();
   if (rate == 1) return target;
+  //vectors
   if (target instanceof Vector) return target.setScale(rate);
+  //numbers
   if (typeof(target) === 'number') return target * rate;
+  //this numeric properties
+  if ((typeof(target) === 'string') && (typeof(this[target]) === 'number')) return this[target] *= rate;
+  //an array of objects: works just with properties and vectors, not useful with numbers
+  if (target instanceof Array) {
+    for (var i = 0; i < target.length; i++) target[i] = this.applyLengthConversionRate(target[i], rate);
+    return target;
+  }
   return target;
 };
 
@@ -351,6 +360,8 @@ System.prototype.buildSystemPosition = function (options) {
   if (this.runsPhysics() && (this.rotation || this.position)) {
     this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
     this.position = new Vector(options.position || {});
+    //TODO check if this should be done with reference to local settings not from parent
+    this.applyLengthConversionRate(this.position);
     this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
   }
 };
@@ -876,6 +887,10 @@ Vector.prototype.setScale = function (scale) {
   return this;
 };
 
+Vector.prototype.destroy = function () {
+  if (this.ammo) Ammo.destroy(this.ammo);
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -925,6 +940,11 @@ Quaternion.prototype.multiply = function (v) {
   if (this.three && v.three) this.three.multiply(v.three);
   return this;
 };
+
+Quaternion.prototype.destroy = function () {
+  if (this.ammo) Ammo.destroy(this.ammo);
+};
+
 
 extend(Vector, Component);
 extend(Quaternion, Component);
@@ -1019,10 +1039,7 @@ Shape.prototype.types = {
 };
 
 Shape.prototype.useConversion = function (scale) {
-  if (!scale) scale = this.lengthConversionRate();
-  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
-    if (this[prop]) this[prop] *= scale;
-  }, this);
+  this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz'], scale);
 };
 
 extend(Shape, Component);
@@ -1136,7 +1153,9 @@ Body.prototype.types = {
     this.include(options, {
       shape: undefined,
       material: undefined,
-      mass: 0, position: {}, quaternion: undefined, rotation: undefined,
+      mass: 0,
+      position: {},
+      quaternion: undefined, rotation: undefined,
       connector: {}
     });
     this.notifyUndefined(['shape', 'material']);
@@ -1159,7 +1178,7 @@ Body.prototype.types = {
     this.material = material;
 
     this.position = new Vector(this.position);
-    //this.applyLengthConversionRate(this.position);
+    this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
@@ -1302,14 +1321,9 @@ Body.prototype.destroy = function (scene) {
     scene.ammo.removeRigidBody(this.ammo);
     Ammo.destroy(this.ammo);
     Ammo.destroy(this.ammoTransform);
+    this.position.destroy();
+    this.quaternion.destroy();
   }
-};
-
-Body.prototype.useConversion = function (scale) {
-  if (!scale) scale = this.lengthConversionRate();
-  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
-    if (this[prop]) this[prop] *= scale;
-  }, this);
 };
 
 extend(Body, Component);
@@ -1840,7 +1854,7 @@ Scene.prototype.createWorld = function () {
       this.btDefaultCollisionConfiguration
     );
     this.gravity = new Vector(this.gravity);
-    //this.applyLengthConversionRate(this.gravity);
+    this.applyLengthConversionRate(this.gravity);
     this.ammo.setGravity(this.gravity.ammo);
   }
 };

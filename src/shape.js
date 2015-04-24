@@ -84,10 +84,7 @@ Shape.prototype.types = {
 };
 
 Shape.prototype.useConversion = function (scale) {
-  if (!scale) scale = this.lengthConversionRate();
-  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
-    if (this[prop]) this[prop] *= scale;
-  }, this);
+  this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz'], scale);
 };
 
 extend(Shape, Component);

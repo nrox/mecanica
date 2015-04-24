@@ -7,7 +7,9 @@ Body.prototype.types = {
     this.include(options, {
       shape: undefined,
       material: undefined,
-      mass: 0, position: {}, quaternion: undefined, rotation: undefined,
+      mass: 0,
+      position: {},
+      quaternion: undefined, rotation: undefined,
       connector: {}
     });
     this.notifyUndefined(['shape', 'material']);
@@ -30,7 +32,7 @@ Body.prototype.types = {
     this.material = material;
 
     this.position = new Vector(this.position);
-    //this.applyLengthConversionRate(this.position);
+    this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
@@ -173,14 +175,9 @@ Body.prototype.destroy = function (scene) {
     scene.ammo.removeRigidBody(this.ammo);
     Ammo.destroy(this.ammo);
     Ammo.destroy(this.ammoTransform);
+    this.position.destroy();
+    this.quaternion.destroy();
   }
-};
-
-Body.prototype.useConversion = function (scale) {
-  if (!scale) scale = this.lengthConversionRate();
-  _.each(['r', 'dx', 'dy', 'dz'], function (prop) {
-    if (this[prop]) this[prop] *= scale;
-  }, this);
 };
 
 extend(Body, Component);

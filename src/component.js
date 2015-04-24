@@ -195,11 +195,20 @@ Component.prototype.forceConversionRate = function () {
   return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
 };
 
-Component.prototype.applyLengthConversionRate = function (target) {
-  var rate = this.lengthConversionRate();
+Component.prototype.applyLengthConversionRate = function (target, rate) {
+  rate = rate || this.lengthConversionRate();
   if (rate == 1) return target;
+  //vectors
   if (target instanceof Vector) return target.setScale(rate);
+  //numbers
   if (typeof(target) === 'number') return target * rate;
+  //this numeric properties
+  if ((typeof(target) === 'string') && (typeof(this[target]) === 'number')) return this[target] *= rate;
+  //an array of objects: works just with properties and vectors, not useful with numbers
+  if (target instanceof Array) {
+    for (var i = 0; i < target.length; i++) target[i] = this.applyLengthConversionRate(target[i], rate);
+    return target;
+  }
   return target;
 };
 

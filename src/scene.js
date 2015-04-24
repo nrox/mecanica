@@ -26,7 +26,7 @@ Scene.prototype.createWorld = function () {
       this.btDefaultCollisionConfiguration
     );
     this.gravity = new Vector(this.gravity);
-    //this.applyLengthConversionRate(this.gravity);
+    this.applyLengthConversionRate(this.gravity);
     this.ammo.setGravity(this.gravity.ammo);
   }
 };
