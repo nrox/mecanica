@@ -235,9 +235,6 @@ Component.prototype.applyTorqueConversionRate = function (target, rate) {
   return this.applyConversionRate('TORQUE', 'torqueUnits', target, rate);
 };
 
-Component.prototype.destroy = function () {
-  if (this.ammo) Ammo.destroy(this.ammo);
-};
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
   if (this.runsPhysics()) {
@@ -260,5 +257,13 @@ Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
 
+Component.prototype.destroy = function () {
+  try {
+    if (this.ammo) Ammo.destroy(this.ammo);
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
+  }
+};
 
 

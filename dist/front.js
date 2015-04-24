@@ -1,4 +1,5 @@
 window.onload = function () {
+  //setConsole('.console', false, 5);
   var client = new MecanicaClient();
 };
 
@@ -18,10 +19,6 @@ function MecanicaClient() {
 MecanicaClient.prototype.initSocket = function () {
   var socket = io.connect(location.origin, {reconnection: false});
   var _this = this;
-  socket.on('news', function (data) {
-    console.log(data);
-    socket.emit('my other event', { my: 'data' });
-  });
   socket.on('connect', function () {
     _this.socket = socket;
     console.log('websocket: connected');
@@ -50,10 +47,10 @@ MecanicaClient.prototype.buildInputs = function () {
   };
 
   //some simple controls
-  _.each(['options', 'load', 'ui', 'start', 'stop', 'request', 'stream'], function (key) {
+  _.each(['options', 'load', 'ui', 'start', 'request', 'stream', 'stop', 'destroy'], function (key) {
     inputs[key] = function () {
       var script = _this.controls.getValues().script;
-      console.log('command', key, script);
+      //console.log('command', key, script);
       _this.socket.emit(key, {script: script, options: _this.options ? _this.options.getValues() : undefined});
     };
   });
@@ -110,10 +107,15 @@ MecanicaClient.prototype.buildListeners = function () {
   this.socket.on('request', function (message) {
     var script = message.script;
     try {
+      _.each(me.objects.system, function (sys) {
+        sys.destroy();
+      });
       me.loadSystem(message.data, script);
       me.addToScene();
+      me.physicsDataReceived(true);
+      me.startRender();
     } catch (e) {
-      console.error(e);
+      console.error(e.message);
     }
   });
 
@@ -122,7 +124,15 @@ MecanicaClient.prototype.buildListeners = function () {
     var obj = require(script);
     if (!_this.ui) {
       _this.ui = new _this.lib.UserInterface({
-        container: '#triggers', title: 'Controls', overrideCallbacks: true
+        container: '#triggers',
+        title: 'Controls',
+        overrideCallbacks: true,
+        css: {
+          '.key': {
+            'text-align': 'right',
+            'min-width': '10em'
+          }
+        }
       }, me);
     }
     if (obj.userInterface) {
@@ -135,4 +145,19 @@ MecanicaClient.prototype.buildListeners = function () {
       });
     }
   });
+
+  this.socket.on('destroy', function (message) {
+    var script = message.script;
+    try {
+      var sys = me.getSystem(script);
+      if (sys) {
+        sys.destroy();
+        _this.options && _this.options.destroy();
+        _this.ui && _this.ui.destroy();
+      }
+    } catch (e) {
+      console.error(e.message);
+    }
+  });
+
 };

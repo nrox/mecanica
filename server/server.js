@@ -1,7 +1,9 @@
 var lib = require('../dist/mecanica.js');
 var utils = require('../dist/utils.js');
+var path = require('path');
+
 var _ = require('underscore');
-var VERBOSE = true;
+var VERBOSE = false;
 
 var simulations = {
 };
@@ -11,14 +13,13 @@ var userInterfaces = {
 
 function registerAll(socket) {
 
-  new Listener(socket, 'disconnect', function (data) {
-    _.each(simulations, function (m, id) {
+  new Listener(socket, 'disconnect', function () {
+    _.each(simulations, function (m) {
       clearTimeout(m._streamIntervalId);
-      //m.stop();
     });
   });
 
-  new Listener(socket, 'options', function (data) {
+  new Listener(socket, 'options', function () {
     var obj = this.require();
     this.emit({values: obj.defaultOptions});
   });
@@ -58,7 +59,7 @@ function registerAll(socket) {
     }
   });
 
-  new Listener(socket, 'start', function (data) {
+  new Listener(socket, 'start', function () {
     var mecanica = this.loadedMecanica();
     if (!mecanica) {
       this.emitError('not yet loaded');
@@ -69,7 +70,7 @@ function registerAll(socket) {
     }
   });
 
-  new Listener(socket, 'stop', function (data) {
+  new Listener(socket, 'stop', function () {
     var mecanica = this.loadedMecanica();
     if (!mecanica) {
       this.emitError('not yet loaded');
@@ -81,7 +82,7 @@ function registerAll(socket) {
     }
   });
 
-  new Listener(socket, 'request', function (data) {
+  new Listener(socket, 'request', function () {
     var mecanica = this.loadedMecanica();
     if (!mecanica) {
       this.emitError('not yet loaded');
@@ -91,7 +92,7 @@ function registerAll(socket) {
     }
   });
 
-  new Listener(socket, 'stream', function (data) {
+  new Listener(socket, 'stream', function () {
     var mecanica = this.loadedMecanica();
     if (!mecanica) {
       this.emitError('not yet loaded');
@@ -99,6 +100,7 @@ function registerAll(socket) {
       this.emitWarn('not running');
     } else {
       var _this = this;
+      clearInterval(mecanica._streamIntervalId);
       mecanica._streamIntervalId = setInterval(function () {
         try {
           _this.emitVolatile(mecanica.physicsPack);
@@ -107,6 +109,27 @@ function registerAll(socket) {
         }
       }, 1000 / mecanica.getSettings().renderFrequency);
     }
+  });
+
+  new Listener(socket, 'destroy', function () {
+    var ui = this.loadedUI();
+    if (!ui) {
+      this.emitWarn('UI not yet loaded');
+    } else {
+      this.loadedUI(null);
+      ui.destroy();
+    }
+
+    var mecanica = this.loadedMecanica();
+    if (!mecanica) {
+      this.emitWarn('Mecanica not yet loaded');
+    } else {
+      mecanica.stopSimulation();
+      clearInterval(mecanica._streamIntervalId);
+      this.loadedMecanica(null);
+      mecanica.destroy();
+    }
+    this.emit();
   });
 
 
@@ -154,8 +177,12 @@ Responder.prototype.emitWarn = function (message) {
 };
 
 Responder.prototype.scriptPath = function () {
-  //TODO security filter, validation, pick from folder
-  return '../' + this.script;
+  var root = path.join(__dirname, '..');
+  var clean = path.normalize(this.script);
+  var absolute = path.join(root, clean);
+  var ware = path.join(root, 'dist', 'ware');
+  if (absolute.indexOf(ware) !== 0) throw new Error('path ' + this.script + ' resolving to ' + absolute + ' was rejected');
+  return absolute;
 };
 
 Responder.prototype.require = function () {
@@ -163,12 +190,20 @@ Responder.prototype.require = function () {
 };
 
 Responder.prototype.loadedMecanica = function (obj) {
-  if (obj) simulations[this.script] = obj;
+  if (obj) {
+    simulations[this.script] = obj;
+  } else if (obj === null) {
+    delete simulations[this.script];
+  }
   return simulations[this.script];
 };
 
 Responder.prototype.loadedUI = function (obj) {
-  if (obj) userInterfaces[this.script] = obj;
+  if (obj) {
+    userInterfaces[this.script] = obj;
+  } else if (obj === null) {
+    delete userInterfaces[this.script];
+  }
   return userInterfaces[this.script];
 };
 
@@ -179,7 +214,7 @@ Responder.prototype.initMecanica = function (options) {
   me.importSystem(this.scriptPath(), this.script, options);
   me.addToScene();
   return me;
-}
+};
 
 module.exports = function (socket) {
   registerAll(socket);

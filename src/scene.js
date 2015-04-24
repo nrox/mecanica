@@ -61,5 +61,20 @@ Scene.prototype.showAxisHelper = function () {
   }
 };
 
+Scene.prototype.destroy = function () {
+  try {
+    if (this.runsPhysics()) {
+      Ammo.destroy(this.ammo);
+      Ammo.destroy(this.btDefaultCollisionConfiguration);
+      Ammo.destroy(this.btCollisionDispatcher);
+      Ammo.destroy(this.btDbvtBroadphase);
+      this.gravity.destroy();
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
+  }
+};
+
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;

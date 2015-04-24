@@ -23,6 +23,15 @@ Method.prototype.toJSON = function () {
   return copy;
 };
 
+Method.prototype.destroy = function () {
+  try {
+    delete this.parentSystem[this.id];
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
+  }
+};
+
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;

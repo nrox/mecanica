@@ -225,17 +225,25 @@ System.prototype.loadSystem = function (json, id) {
 
 System.prototype.destroy = function (scene) {
   if (!scene) scene = this.rootSystem.getScene();
-  _.each(this.objects, function (groupObjects, groupName) {
+  _.each(_.keys(this.objects).reverse(), function (groupName) {
+    var groupObjects = this.objects[groupName];
     _.each(groupObjects, function (obj, key) {
       obj.destroy(scene);
       delete groupObjects[key];
     });
-  });
-  if (this.ammoTransform) {
-    Ammo.destroy(this.ammoTransform);
-    delete this.ammoTransform;
+  }, this);
+  try {
+    if (this.ammoTransform) {
+      Ammo.destroy(this.ammoTransform);
+      delete this.ammoTransform;
+    }
+    if (!this.isRoot()) {
+      delete this.parentSystem.objects['system'][this.id];
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
-  delete this.parentSystem.objects['system'][this.id];
 };
 
 System.prototype.addToScene = function (scene) {

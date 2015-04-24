@@ -166,17 +166,22 @@ Body.prototype.destroy = function (scene) {
   _.each(this.connector, function (c) {
     c.destroy();
   });
-  if (this.runsRender()) {
-    scene.three.remove(this.three);
-    this.three.geometry.dispose();
-    this.three.material.dispose();
-  }
-  if (this.runsPhysics()) {
-    scene.ammo.removeRigidBody(this.ammo);
-    Ammo.destroy(this.ammo);
-    Ammo.destroy(this.ammoTransform);
-    this.position.destroy();
-    this.quaternion.destroy();
+  try {
+    if (this.runsRender()) {
+      scene.three.remove(this.three);
+      this.three.geometry.dispose();
+      this.three.material.dispose();
+    }
+    if (this.runsPhysics()) {
+      scene.ammo.removeRigidBody(this.ammo);
+      Ammo.destroy(this.ammo);
+      Ammo.destroy(this.ammoTransform);
+      this.position.destroy();
+      this.quaternion.destroy();
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
 };
 

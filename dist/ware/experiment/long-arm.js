@@ -1,25 +1,23 @@
 var _ = require('../../lib/underscore.js');
 
 var defaultOptions = {
-  r: 0.2, //radius
-  length: 1,
-  margin: 0.1,
   segments: 5,
-  mass: 0.1,
+  segmentLength: 1,
+  segmentRadius: 0.2, //radius
+  segmentMass: 0.1,
   color: 0x449977
 };
 
 function getObject(o) {
   o = _.defaults(o || {}, defaultOptions);
-  console.log(defaultOptions);
   var body = function (y, mass) {
     return {
       mass: mass,
       material: 'segment', shape: 'segment',
       position: {y: y},
       connector: {
-        top: {base: {y: o.length / 2}, up: {z: 1}, front: {y: 1}},
-        bottom: {base: {y: -o.length / 2}, up: {z: 1}, front: {y: 1}}
+        top: {base: {y: o.segmentLength / 2}, up: {z: 1}, front: {y: 1}},
+        bottom: {base: {y: -o.segmentLength / 2}, up: {z: 1}, front: {y: 1}}
       }
     };
   };
@@ -34,7 +32,7 @@ function getObject(o) {
   var obj = {
     shape: {
       segment: {
-        type: 'cylinder', r: o.r, dy: o.length - 2 * o.margin
+        type: 'cylinder', r: o.segmentRadius, dy: o.segmentLength - 2 * o.segmentRadius
       }
     },
     material: {
@@ -58,7 +56,7 @@ function getObject(o) {
   };
   obj.body['b0'] = body(0, 0);
   for (var i = 1; i < o.segments; i++) {
-    obj.body['b' + i] = body(i * o.length, o.mass);
+    obj.body['b' + i] = body(i * o.segmentLength, o.segmentMass);
     obj.constraint['c' + i] = constraint('b' + (i - 1), 'b' + i);
   }
   return obj;

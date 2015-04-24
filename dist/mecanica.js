@@ -241,9 +241,6 @@ Component.prototype.applyTorqueConversionRate = function (target, rate) {
   return this.applyConversionRate('TORQUE', 'torqueUnits', target, rate);
 };
 
-Component.prototype.destroy = function () {
-  if (this.ammo) Ammo.destroy(this.ammo);
-};
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
   if (this.runsPhysics()) {
@@ -266,6 +263,14 @@ Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
 
+Component.prototype.destroy = function () {
+  try {
+    if (this.ammo) Ammo.destroy(this.ammo);
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
+  }
+};
 
 
 
@@ -544,17 +549,25 @@ System.prototype.loadSystem = function (json, id) {
 
 System.prototype.destroy = function (scene) {
   if (!scene) scene = this.rootSystem.getScene();
-  _.each(this.objects, function (groupObjects, groupName) {
+  _.each(_.keys(this.objects).reverse(), function (groupName) {
+    var groupObjects = this.objects[groupName];
     _.each(groupObjects, function (obj, key) {
       obj.destroy(scene);
       delete groupObjects[key];
     });
-  });
-  if (this.ammoTransform) {
-    Ammo.destroy(this.ammoTransform);
-    delete this.ammoTransform;
+  }, this);
+  try {
+    if (this.ammoTransform) {
+      Ammo.destroy(this.ammoTransform);
+      delete this.ammoTransform;
+    }
+    if (!this.isRoot()) {
+      delete this.parentSystem.objects['system'][this.id];
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
-  delete this.parentSystem.objects['system'][this.id];
 };
 
 System.prototype.addToScene = function (scene) {
@@ -837,6 +850,15 @@ Method.prototype.toJSON = function () {
   var copy = utils.deepCopy(this._options);
   copy.method = "" + this.method;
   return copy;
+};
+
+Method.prototype.destroy = function () {
+  try {
+    delete this.parentSystem[this.id];
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
+  }
 };
 
 
@@ -1318,17 +1340,22 @@ Body.prototype.destroy = function (scene) {
   _.each(this.connector, function (c) {
     c.destroy();
   });
-  if (this.runsRender()) {
-    scene.three.remove(this.three);
-    this.three.geometry.dispose();
-    this.three.material.dispose();
-  }
-  if (this.runsPhysics()) {
-    scene.ammo.removeRigidBody(this.ammo);
-    Ammo.destroy(this.ammo);
-    Ammo.destroy(this.ammoTransform);
-    this.position.destroy();
-    this.quaternion.destroy();
+  try {
+    if (this.runsRender()) {
+      scene.three.remove(this.three);
+      this.three.geometry.dispose();
+      this.three.material.dispose();
+    }
+    if (this.runsPhysics()) {
+      scene.ammo.removeRigidBody(this.ammo);
+      Ammo.destroy(this.ammo);
+      Ammo.destroy(this.ammoTransform);
+      this.position.destroy();
+      this.quaternion.destroy();
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
 };
 
@@ -1375,6 +1402,8 @@ Connector.prototype.types = {
           transparent: true,
           opacity: 0.5
         });
+        helper = Math.min(this.body.shape.three.boundingSphere.radius / 2, helper);
+
         var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
         var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
         var axis = new THREE.AxisHelper(helper);
@@ -1764,11 +1793,16 @@ Constraint.prototype.types = {
 };
 
 Constraint.prototype.destroy = function (scene) {
-  if (this.runsPhysics()) {
-    this.removeFromScene(scene);
-    Ammo.destroy(this.ammo);
-    if (this.transformA) Ammo.destroy(this.transformA);
-    if (this.transformB) Ammo.destroy(this.transformB);
+  try {
+    if (this.runsPhysics()) {
+      this.removeFromScene(scene);
+      Ammo.destroy(this.ammo);
+      if (this.transformA) Ammo.destroy(this.transformA);
+      if (this.transformB) Ammo.destroy(this.transformB);
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
 };
 
@@ -1892,6 +1926,21 @@ Scene.prototype.showAxisHelper = function () {
     if (settings.axisHelper) {
       if (this.runsRender()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
+  }
+};
+
+Scene.prototype.destroy = function () {
+  try {
+    if (this.runsPhysics()) {
+      Ammo.destroy(this.ammo);
+      Ammo.destroy(this.btDefaultCollisionConfiguration);
+      Ammo.destroy(this.btCollisionDispatcher);
+      Ammo.destroy(this.btDbvtBroadphase);
+      this.gravity.destroy();
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
 };
 
@@ -2265,11 +2314,18 @@ UserInterface.prototype.applyRemote = function (data) {
 };
 
 UserInterface.prototype.destroy = function () {
-  this.reference = {};
-  while (this.updaters.pop()) {
+  try {
+    this.reference = {};
+    if (this.updaters) {
+      while (this.updaters.pop()) {
+      }
+    }
+    if (this.domId) $('#' + this.domId).remove();
+    delete this.domId;
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
-  if (this.domId) $('#' + this.domId).remove();
-  delete this.domId;
 };
 
 UserInterface.prototype.build = function (obj, temp, ref, $parent) {
@@ -2330,7 +2386,8 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
     if (specs.valueCSS) $value.css(specs.valueCSS);
     if (specs.wrapperCSS) $wrapper.css(specs.wrapperCSS);
 
-    if (!specs.noKey) $wrapper.append($key);
+    if (specs.noKey) $key.html('');
+    $wrapper.append($key);
     $wrapper.append($value);
     $parent.append($wrapper);
   });

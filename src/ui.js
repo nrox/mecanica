@@ -143,11 +143,18 @@ UserInterface.prototype.applyRemote = function (data) {
 };
 
 UserInterface.prototype.destroy = function () {
-  this.reference = {};
-  while (this.updaters.pop()) {
+  try {
+    this.reference = {};
+    if (this.updaters) {
+      while (this.updaters.pop()) {
+      }
+    }
+    if (this.domId) $('#' + this.domId).remove();
+    delete this.domId;
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
-  if (this.domId) $('#' + this.domId).remove();
-  delete this.domId;
 };
 
 UserInterface.prototype.build = function (obj, temp, ref, $parent) {
@@ -208,7 +215,8 @@ UserInterface.prototype.build = function (obj, temp, ref, $parent) {
     if (specs.valueCSS) $value.css(specs.valueCSS);
     if (specs.wrapperCSS) $wrapper.css(specs.wrapperCSS);
 
-    if (!specs.noKey) $wrapper.append($key);
+    if (specs.noKey) $key.html('');
+    $wrapper.append($key);
     $wrapper.append($value);
     $parent.append($wrapper);
   });

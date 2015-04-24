@@ -34,6 +34,8 @@ Connector.prototype.types = {
           transparent: true,
           opacity: 0.5
         });
+        helper = Math.min(this.body.shape.three.boundingSphere.radius / 2, helper);
+
         var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
         var s = new THREE.Mesh(connectorHelperGeometry, connectorHelperMaterial);
         var axis = new THREE.AxisHelper(helper);

@@ -164,6 +164,9 @@
  */
 (function () {
   var $console;
+  var direction = 'append';
+  var remove = ':first';
+  var maximum = 500;
   var backups = {
     log: console.log,
     error: console.error,
@@ -179,12 +182,18 @@
         message += arguments[i] + ' ';
       }
       message += '\n';
-      $console.append("<pre class='" + type + "'>" + message + "</pre>");
+      $console[direction]("<pre class='" + type + "'>" + message + "</pre>");
       backups[type].apply(console, arguments);
+      if ($console.children().length > maximum) {
+        $console.children(remove).remove();
+      }
     };
   };
 
-  window.setConsole = function (selector) {
+  window.setConsole = function (selector, ontop, limit) {
+    direction = ontop ? 'prepend' : 'append';
+    remove = ontop ? ':last' : ':first';
+    maximum = limit;
     if (selector) {
       window.clearConsole();
       $console = $(selector);

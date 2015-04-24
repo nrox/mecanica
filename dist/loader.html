@@ -60,6 +60,7 @@
             var file = $(e.target).val();
             location.hash = encodeURIComponent(file);
             var obj = require(file).defaultOptions;
+            obj.load = loadFile;
             ui.reuseWith({values: obj});
         });
         $list.trigger('change');
@@ -103,7 +104,7 @@
     mecanica.addToScene();
     mecanica.start();
     var ui = new lib.UserInterface({
-        values: {},
+        values: {load: loadFile},
         container: '#triggers',
         title: 'Options',
         css: {

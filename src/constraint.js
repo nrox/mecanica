@@ -294,11 +294,16 @@ Constraint.prototype.types = {
 };
 
 Constraint.prototype.destroy = function (scene) {
-  if (this.runsPhysics()) {
-    this.removeFromScene(scene);
-    Ammo.destroy(this.ammo);
-    if (this.transformA) Ammo.destroy(this.transformA);
-    if (this.transformB) Ammo.destroy(this.transformB);
+  try {
+    if (this.runsPhysics()) {
+      this.removeFromScene(scene);
+      Ammo.destroy(this.ammo);
+      if (this.transformA) Ammo.destroy(this.transformA);
+      if (this.transformB) Ammo.destroy(this.transformB);
+    }
+  } catch (e) {
+    console.log(this.group, this.id, e.message || e);
+    throw e;
   }
 };
 
