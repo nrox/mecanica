@@ -22,7 +22,7 @@ Settings.prototype.types = {
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024 //shadow map width and height,
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
+    this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH));
   },
   local: function (options) {
     this.include(options, {
@@ -32,26 +32,8 @@ Settings.prototype.types = {
       lengthUnits: undefined,
       forceUnits: undefined
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
+    this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH), undefined);
   }
-};
-
-Settings.prototype.availableLengthUnits = {
-  'm': 1,
-  'dm': 0.1,
-  'in': 0.0254,
-  'cm': 0.01,
-  'mm': 0.001
-};
-
-Settings.prototype.availableForceUnits = {
-  'N': 1,
-  'Kg': 9.81
-};
-
-Settings.prototype.availableTorqueUnits = {
-  'N.m': 1,
-  'Kg.cm': 9.81
 };
 
 extend(Settings, Component);

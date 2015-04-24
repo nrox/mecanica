@@ -183,26 +183,37 @@ Component.prototype.getScene = function () {
   return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
 };
 
-Component.prototype.lengthConversionRate = function () {
-  var globalUnit = this.globalSettings().lengthUnits;
-  var localUnit = this.lengthUnits || this.localSettings().lengthUnits;
-  if (localUnit === undefined) return 1;
-  if (globalUnit === localUnit) return 1;
-  var settingsInstance = this.globalSettings();
-  return settingsInstance.availableLengthUnits[localUnit] / settingsInstance.availableLengthUnits[globalUnit];
+Component.prototype.CONVERSION = {
+  LENGTH: {
+    'm': 1,
+    'dm': 0.1,
+    'in': 0.0254,
+    'cm': 0.01,
+    'mm': 0.001
+  },
+  FORCE: {
+    'N': 1,
+    'Kg': 9.81
+  },
+  TORQUE: {
+    'N.m': 1,
+    'Kg.m': 9.81,
+    'Kg.cm': 9.81 / 100,
+    'N.cm': 0.01
+  }
 };
 
-Component.prototype.forceConversionRate = function () {
-  var globalUnit = this.globalSettings().forceUnits;
-  var localUnit = this.forceUnits || this.localSettings().forceUnits;
-  if (localUnit === undefined) return 1;
+Component.prototype.conversionRate = function (type, settingsProperty) {
+  //TODO memoize
+  var globalUnit = this.globalSettings()[settingsProperty];
+  var localUnit = this[settingsProperty] || this.localSettings()[settingsProperty];
   if (globalUnit === localUnit) return 1;
-  var settingsInstance = this.globalSettings();
-  return settingsInstance.availableForceUnits[localUnit] / settingsInstance.availableForceUnits[globalUnit];
+  if (localUnit === undefined) return 1; //FIXME search parent ?
+  return this.CONVERSION[type][localUnit] / this.CONVERSION[type][globalUnit];
 };
 
-Component.prototype.applyLengthConversionRate = function (target, rate) {
-  rate = rate || this.lengthConversionRate();
+Component.prototype.applyConversionRate = function (type, settingsProperty, target, rate) {
+  rate = rate || this.conversionRate(type, settingsProperty);
   if (rate == 1) return target;
   //vectors
   if (target instanceof Vector) return target.setScale(rate);
@@ -212,13 +223,26 @@ Component.prototype.applyLengthConversionRate = function (target, rate) {
   if ((typeof(target) === 'string') && (typeof(this[target]) === 'number')) return this[target] *= rate;
   //an array of objects: works just with properties and vectors, not useful with numbers
   if (target instanceof Array) {
-    for (var i = 0; i < target.length; i++) target[i] = this.applyLengthConversionRate(target[i], rate);
+    for (var i = 0; i < target.length; i++) target[i] = this.applyConversionRate(null, null, target[i], rate);
     return target;
   }
   return target;
 };
 
+Component.prototype.applyLengthConversionRate = function (target, rate) {
+  return this.applyConversionRate('LENGTH', 'lengthUnits', target, rate);
+};
+
+Component.prototype.applyForceConversionRate = function (target, rate) {
+  return this.applyConversionRate('FORCE', 'forceUnits', target, rate);
+};
+
+Component.prototype.applyTorqueConversionRate = function (target, rate) {
+  return this.applyConversionRate('TORQUE', 'torqueUnits', target, rate);
+};
+
 Component.prototype.destroy = function () {
+  if (this.ammo) Ammo.destroy(this.ammo);
 };
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
@@ -273,7 +297,7 @@ Settings.prototype.types = {
       castShadow: true, //light cast shadows,
       shadowMapSize: 1024 //shadow map width and height,
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits));
+    this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH));
   },
   local: function (options) {
     this.include(options, {
@@ -283,26 +307,8 @@ Settings.prototype.types = {
       lengthUnits: undefined,
       forceUnits: undefined
     });
-    this.assertOneOf('lengthUnits', _.keys(this.availableLengthUnits), undefined);
+    this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH), undefined);
   }
-};
-
-Settings.prototype.availableLengthUnits = {
-  'm': 1,
-  'dm': 0.1,
-  'in': 0.0254,
-  'cm': 0.01,
-  'mm': 0.001
-};
-
-Settings.prototype.availableForceUnits = {
-  'N': 1,
-  'Kg': 9.81
-};
-
-Settings.prototype.availableTorqueUnits = {
-  'N.m': 1,
-  'Kg.cm': 9.81
 };
 
 extend(Settings, Component);

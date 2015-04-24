@@ -103,9 +103,6 @@ var test = {
       lengthUnits: 'm', webWorker: undefined
     }, 'local settings');
     var shape = mecanica.getSystem('child').getObject('shape', 'a');
-    testUtils.checkValues(shape, {
-      lengthConversionRate: 100
-    }, 'proper length conversion rate');
     var v = new lib.Vector({x: 2, y: 3, z: -1});
     shape.applyLengthConversionRate(v);
     testUtils.checkValues(v, {
