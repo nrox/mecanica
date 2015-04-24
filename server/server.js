@@ -17,6 +17,18 @@ function register(socket) {
     });
   });
 
+  socket.on('options', function (data) {
+    var channel = 'options';
+    console.log(channel, data);
+    var script = data.script;
+    try {
+      var obj = require(fileFor(script));
+      socket.emit(channel, {values: obj.defaultOptions});
+    } catch (e) {
+      socket.emit(STATUS, {channel: channel, message: e.message, type: 'error'});
+    }
+  });
+
   socket.on('load', function (data) {
     var channel = 'load';
     console.log(channel, data);

@@ -8,6 +8,8 @@ function MecanicaClient() {
     socket: undefined,
     lib: undefined,
     mecanica: undefined,
+    controls: undefined,
+    options: undefined,
     ui: undefined
   });
   this.initSocket();
@@ -48,24 +50,25 @@ MecanicaClient.prototype.buildInputs = function () {
   };
 
   //some simple controls
-  _.each(['load', 'start', 'stop', 'request', 'stream'], function (key) {
+  _.each(['options', 'load', 'ui', 'start', 'stop', 'request', 'stream'], function (key) {
     inputs[key] = function () {
-      var script = _this.ui.getValues().script;
+      var script = _this.controls.getValues().script;
       console.log(key, script);
-      _this.socket.emit(key, {script: script});
+      _this.socket.emit(key, {script: script, options: _this.options ? _this.options.getValues() : undefined});
     };
   });
 
   var template = {
     script: {type: 'list', values: list}
   };
-  this.ui = new this.lib.UserInterface({
+  this.controls = new this.lib.UserInterface({
     values: inputs, template: template, container: '#triggers'
   }, this.mecanica);
 };
 
 MecanicaClient.prototype.buildListeners = function () {
   this.lib = require('../dist/mecanica.js');
+  var _this = this;
   var me = this.mecanica = new this.lib.Mecanica({
     runsPhysics: false
   });
@@ -75,6 +78,18 @@ MecanicaClient.prototype.buildListeners = function () {
   me.import('./ware/monitor/satellite.js');
   this.socket.on('status', function (data) {
     console[data.type || 'log']('status for', data.channel, ' - ', data.message);
+  });
+  this.socket.on('options', function (data) {
+    if (!data.values) {
+      if (_this.options) _this.options.destroy();
+      return;
+    }
+    data.container = '#triggers';
+    if (_this.options) {
+      _this.options.reuseWith(data);
+    } else {
+      _this.options = new _this.lib.UserInterface(data, me);
+    }
   });
   this.socket.on('stream', function (data) {
     me.unpackPhysics(data.json);
