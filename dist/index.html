@@ -30,18 +30,17 @@
 
 <script id="script">
     //we use a synchronous, customized version of require
-    var file = 'ware/experiment/hand.js';
-    var utils = require('../dist/utils.js');
+    var file = './ware/experiment/hand.js';
     var lib = require('../dist/mecanica.js');
     var mecanica = new lib.Mecanica();
 
-    //add necessary stuff, scene, lights, monitor (camera and renderer)
+    //import settings, scene, lights, camera and renderer
     mecanica.import('ware/settings/tests.js', {axisHelper: false});
     mecanica.import('ware/scene/simple.js', {solver: 'pgs'});
     mecanica.import('ware/light/set3.js');
     mecanica.import('ware/monitor/satellite.js', {distance: 20});
 
-    //then add the object to scene/world
+    //add the object to scene/world
     var object = require(file);
     var system = mecanica.loadSystem(object.getObject(), file);
     mecanica.addToScene();

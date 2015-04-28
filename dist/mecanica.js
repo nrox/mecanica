@@ -1402,6 +1402,7 @@ Connector.prototype.types = {
           transparent: true,
           opacity: 0.5
         });
+        if (!this.body.shape.three.boundingSphere) this.body.shape.three.computeBoundingSphere();
         helper = Math.min(this.body.shape.three.boundingSphere.radius / 2, helper);
 
         var connectorHelperGeometry = new THREE.SphereGeometry(helper / 2, 6, 6);
