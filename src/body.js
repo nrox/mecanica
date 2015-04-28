@@ -185,5 +185,17 @@ Body.prototype.destroy = function (scene) {
   }
 };
 
+Body.prototype.updateOptions = function () {
+  this.position.updateOptions();
+  this.quaternion.updateOptions();
+  this._options.position = this.position.toJSON();
+  this._options.quaternion = this.quaternion.toJSON();
+  delete  this._options.rotation;
+  _.each(this._options.connector, function (connector, key) {
+    this.connector[key].updateOptions();
+    _.extend(connector, this.connector[key].options());
+  }, this)
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;

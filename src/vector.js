@@ -69,6 +69,15 @@ function Quaternion(options) {
   }
 }
 
+Vector.prototype.toJSON = function () {
+  return {x: this.x, y: this.y, z: this.z};
+};
+
+Vector.prototype.updateOptions = function () {
+  _.extend(this._options, {x: this.x, y: this.y, z: this.z});
+  delete this._options.scale;
+};
+
 Quaternion.prototype.fromAmmo = function (ammoVector) {
   var options = {};
   options.x = ammoVector.x();
@@ -102,6 +111,13 @@ Quaternion.prototype.destroy = function () {
   if (this.ammo) Ammo.destroy(this.ammo);
 };
 
+Quaternion.prototype.toJSON = function () {
+  return {x: this.x, y: this.y, z: this.z, w: this.w};
+};
+
+Quaternion.prototype.updateOptions = function () {
+  _.extend(this._options, {x: this.x, y: this.y, z: this.z, w: this.w});
+};
 
 extend(Vector, Component);
 extend(Quaternion, Component);

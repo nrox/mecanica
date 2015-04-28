@@ -19,6 +19,11 @@ Mecânica
 
 Experimental, but working
 
+#TODO
+
+- save and restore objects from databases
+- save objects states
+
 #Usage
 
 All you need is inside dist/ folder

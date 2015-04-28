@@ -124,5 +124,11 @@ Connector.prototype.approachConnector = function (fix) {
   Ammo.destroy(fixBodyTrans);
 };
 
+Connector.prototype.updateOptions = function () {
+  _.each(['base', 'up', 'front'], function (v) {
+    this._options[v] = this[v].toJSON();
+  }, this);
+};
+
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;

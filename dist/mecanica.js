@@ -259,6 +259,9 @@ Component.prototype.addRenderMethod = function (funName, reference) {
   }
 };
 
+Component.prototype.updateOptions = function () {
+};
+
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
@@ -940,6 +943,15 @@ function Quaternion(options) {
   }
 }
 
+Vector.prototype.toJSON = function () {
+  return {x: this.x, y: this.y, z: this.z};
+};
+
+Vector.prototype.updateOptions = function () {
+  _.extend(this._options, {x: this.x, y: this.y, z: this.z});
+  delete this._options.scale;
+};
+
 Quaternion.prototype.fromAmmo = function (ammoVector) {
   var options = {};
   options.x = ammoVector.x();
@@ -973,6 +985,13 @@ Quaternion.prototype.destroy = function () {
   if (this.ammo) Ammo.destroy(this.ammo);
 };
 
+Quaternion.prototype.toJSON = function () {
+  return {x: this.x, y: this.y, z: this.z, w: this.w};
+};
+
+Quaternion.prototype.updateOptions = function () {
+  _.extend(this._options, {x: this.x, y: this.y, z: this.z, w: this.w});
+};
 
 extend(Vector, Component);
 extend(Quaternion, Component);
@@ -1359,6 +1378,18 @@ Body.prototype.destroy = function (scene) {
   }
 };
 
+Body.prototype.updateOptions = function () {
+  this.position.updateOptions();
+  this.quaternion.updateOptions();
+  this._options.position = this.position.toJSON();
+  this._options.quaternion = this.quaternion.toJSON();
+  delete  this._options.rotation;
+  _.each(this._options.connector, function (connector, key) {
+    this.connector[key].updateOptions();
+    _.extend(connector, this.connector[key].options());
+  }, this)
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;
 
@@ -1490,6 +1521,12 @@ Connector.prototype.approachConnector = function (fix) {
   Ammo.destroy(moveBodyInvTrans);
   Ammo.destroy(fixConTrans);
   Ammo.destroy(fixBodyTrans);
+};
+
+Connector.prototype.updateOptions = function () {
+  _.each(['base', 'up', 'front'], function (v) {
+    this._options[v] = this[v].toJSON();
+  }, this);
 };
 
 extend(Connector, Component);

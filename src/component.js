@@ -253,6 +253,9 @@ Component.prototype.addRenderMethod = function (funName, reference) {
   }
 };
 
+Component.prototype.updateOptions = function () {
+};
+
 Component.prototype.toJSON = function () {
   return utils.deepCopy(this._options);
 };
