@@ -1,13 +1,23 @@
 Mecânica
 ========
 
-Mechanism simulation with Ammo.js and THREE.js.
+- Mechanisms simulation with Javascript, for the browser and Node.
+
+- 3D physics.
+
+- Uses WebGL/Three.js and Bullet/Ammo.js
+
+- Coherent axis system for constraints
+
+- Dantzig and Progressive Gauss-Seidel solvers
+
+- Objects definitions with json
 
 [experiments/tests](https://nrox.github.io/mecanica/)
 
 #Current state
 
-Beta
+Experimental, but working
 
 #Usage
 
@@ -48,6 +58,7 @@ All you need is inside dist/ folder
     mec.startRender()
     mec.stopRender();
 
+    //change simulation speed
     mec.setSpeed(speed);
 
 ###Insertion, removal
