@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>genetic Algorithm</title>
+    <style>
+        body {
+            padding: 1%;
+            font-size: 120%;
+            font-family: monospace;
+        }
+        button {
+            padding: 1%;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        div {
+            padding: 1%;
+            margin: 1%;
+        }
+        p {
+            margin-top: 1%;
+            margin-bottom: 1%;
+        }
+    </style>
+    <script src="../dist/lib/jquery.js"></script>
+    <script src="../dist/lib/underscore.js"></script>
+    <script src="./ga.js"></script>
+</head>
+<body>
+
+<a href="https://github.com/nrox/GA.js">GitHub repo</a>
+
+<p>
+    Trying to achieve the random x, y goal with the GA.
+    <br />
+    Fitness is the distance to the goal.
+    <br />
+    Stop criteria is 0.001;
+<p>
+
+<div id="buttons">
+    <button onclick="resetGoal(); displayGoal(); ga.reset(); ga.createPopulation(); displayResults(true);">reset</button>
+    <button onclick="ga.solve(); displayResults();">solve</button>
+</div>
+
+<div id='goal' ></div>
+<div id='result' ></div>
+
+<script src="./test.js"></script>
+
+</body>
+</html>
