@@ -1,4 +1,6 @@
-var testUtils = require('test-utils.js');
+var testUtils = require('./test-utils.js');
+var utils = require('../dist/utils.js');
+
 var ammo = require('../dist/lib/ammo.js');
 var three = require('../dist/lib/three.js');
 var _ = require('../dist/lib/underscore.js');
@@ -28,7 +30,8 @@ var test = {
     ], 'subsystem imported');
   },
   'mec.toJSON()': function () {
-    var me = new (require('../dist/mecanica.js').Mecanica)();
+    var lib = require('../dist/mecanica.js');
+    var me = new lib.Mecanica();
     me.import('../ware/settings/tests.js');
     me.import('../ware/scene/simple.js');
     me.import('../ware/light/simple.js');
@@ -36,7 +39,7 @@ var test = {
     me.importSystem('../ware/experiment/basic2.js', 'basic2');
 
     var json = me.toJSON();
-    console.log('import basic2.js, and then .toJSON');
+
     testUtils.checkKeys(json, [
       'light', 'system', 'scene', 'settings'
     ], 'json top properties');
@@ -49,6 +52,7 @@ var test = {
     testUtils.checkKeys(json.system.basic2.system.subsystem.body.body2, [
       'position'
     ], 'subsystem included');
+
   },
   'mec.start/stop()': function () {
     var lib = require('../dist/mecanica.js');

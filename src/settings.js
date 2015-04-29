@@ -37,6 +37,8 @@ Settings.prototype.types = {
 
 Settings.prototype.toJSON = function () {
   var json = utils.deepCopy(this._options);
+  delete json.id;
+  delete json.group;
   //lengths are converted on Component.construct, so this system is already converted to root units
   json.lengthUnits = this.rootSystem.globalSettings().lengthUnits;
   return json;
