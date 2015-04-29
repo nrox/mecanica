@@ -105,7 +105,7 @@ var test = {
       dz: 10,
       dy: 1
     });
-    me.import('../ware/monitor/tracker.js', {distance: 20, lookAt: me.getSystem('basic2').getBody('id6')});
+    me.import('../ware/monitor/simple.js');
     me.addToScene();
     me.start();
   },

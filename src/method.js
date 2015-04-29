@@ -18,9 +18,11 @@ Method.prototype.types = {
 };
 
 Method.prototype.toJSON = function () {
-  var copy = utils.deepCopy(this._options);
-  copy.method = "" + this.method;
-  return copy;
+  var json = utils.deepCopy(this._options);
+  json.method = "" + this.method;
+  delete json.id;
+  delete json.group;
+  return json;
 };
 
 Method.prototype.destroy = function () {

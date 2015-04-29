@@ -74,20 +74,34 @@ System.prototype.applyTransform = function (ammoTransform) {
  * @returns {*}
  */
 System.prototype.getObject = function () {
-  if (arguments[0] instanceof Array) {
-    return this.getObject.apply(this, arguments[0]);
-  }
-  //TODO make this recursive
-  var obj = this.objects;
-  for (var i = 0; i < arguments.length; i++) {
-    if ((obj instanceof System) || (obj instanceof Mecanica)) {
-      obj = obj.objects[arguments[i]];
-    } else {
-      obj = obj[arguments[i]];
+  try {
+    var arg0 = arguments[0];
+    if (arg0 instanceof Array) {
+      return this.getObject.apply(this, arg0);
     }
-    if (!obj) break;
+    if ((typeof arg0 == 'object') && arg0.group && arg0.id) {
+      var sys = this;
+      if (arg0.system) {
+        for (var s = 0; s < arg0.system.length; s++) {
+          sys = sys.getSystem(arg0.system[s]);
+        }
+      }
+      return sys.getObject(arg0.group, arg0.id);
+    }
+    var obj = this.objects;
+    for (var i = 0; i < arguments.length; i++) {
+      if ((obj instanceof System) || (obj instanceof Mecanica)) {
+        obj = obj.objects[arguments[i]];
+      } else {
+        obj = obj[arguments[i]];
+      }
+      if (!obj) break;
+    }
+    return obj;
+  } catch (e) {
+    console.log('error in system.', this.id, '.geObject with arguments', arguments);
+    throw e;
   }
-  return obj;
 };
 
 System.prototype.getSome = function (group) {
@@ -99,15 +113,13 @@ System.prototype.getSystem = function (id) {
   return this.getObject('system', id);
 };
 
-System.prototype.getBody = function (id) {
-  var sys = this;
-  if ((typeof id == 'object') && id.system && id.body) {
-    for (var i = 0; i < id.system.length; i++) {
-      sys = sys.getSystem(id.system[i]);
-    }
-    id = id.body;
+System.prototype.getBody = function (idOrMap) {
+  if (typeof idOrMap == 'string') {
+    idOrMap = {id: idOrMap};
   }
-  return sys.getObject('body', id);
+  idOrMap.group = 'body';
+  idOrMap.system = idOrMap.system || [];
+  return this.getObject(idOrMap);
 };
 
 System.prototype.getConstraint = function (id) {
@@ -278,6 +290,7 @@ System.prototype.toJSON = function () {
       json[groupName][objectId] = object.toJSON();
     });
   });
+  //no need to set position and rotation as the system is already transformed
   return json;
 };
 

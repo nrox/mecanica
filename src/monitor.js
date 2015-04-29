@@ -1,9 +1,9 @@
-function Monitor(options, system){
+function Monitor(options, system) {
   this.construct(options, system, 'complete');
 }
 
 Monitor.prototype.types = {
-  complete: function (options, system) {
+  complete: function (options) {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
@@ -17,8 +17,12 @@ Monitor.prototype.types = {
     });
     var o = this.optionsWithoutId();
     o.aspect = o.width / o.height;
-    this.renderer = system.make('renderer', o.renderer, o);
-    this.camera = system.make('camera', o.camera, o);
+    var cameraOptions = utils.deepCopy(o);
+    cameraOptions.type = o.camera;
+    var rendererOptions = utils.deepCopy(o);
+    rendererOptions.type = o.renderer;
+    this.renderer = new Renderer(rendererOptions, this.rootSystem);
+    this.camera = new Camera(cameraOptions, this.rootSystem);
   }
 };
 

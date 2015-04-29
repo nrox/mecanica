@@ -48,6 +48,11 @@ Vector.prototype.destroy = function () {
   if (this.ammo) Ammo.destroy(this.ammo);
 };
 
+Vector.prototype.toJSON = function () {
+  //don't include scale, because it's already scaled
+  return {x: this.x, y: this.y, z: this.z};
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -68,15 +73,6 @@ function Quaternion(options) {
     this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
   }
 }
-
-Vector.prototype.toJSON = function () {
-  return {x: this.x, y: this.y, z: this.z};
-};
-
-Vector.prototype.updateOptions = function () {
-  _.extend(this._options, {x: this.x, y: this.y, z: this.z});
-  delete this._options.scale;
-};
 
 Quaternion.prototype.fromAmmo = function (ammoVector) {
   var options = {};
@@ -113,10 +109,6 @@ Quaternion.prototype.destroy = function () {
 
 Quaternion.prototype.toJSON = function () {
   return {x: this.x, y: this.y, z: this.z, w: this.w};
-};
-
-Quaternion.prototype.updateOptions = function () {
-  _.extend(this._options, {x: this.x, y: this.y, z: this.z, w: this.w});
 };
 
 extend(Vector, Component);

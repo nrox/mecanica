@@ -29,7 +29,7 @@ function getObject(options) {
   var constraint = function (system) {
     return {
       type: 'servo', maxBinary: 1, maxVelocity: 1, lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2,
-      bodyA: 'hand', bodyB: {system: [system], body: 'base'},
+      bodyA: 'hand', bodyB: {system: [system], id: 'base'},
       connectorA: system, connectorB: 'bottom',
       angle: 0
     };

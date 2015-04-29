@@ -50,7 +50,7 @@ Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
-    'id', 'group', 'type', 'comment', 'lengthUnits', 'forceUnits'
+    'id', 'group', 'type', 'comment', 'lengthUnits'
   ]));
   _.extend(target, options);
   if (!target._options) target._options = {};
@@ -253,11 +253,11 @@ Component.prototype.addRenderMethod = function (funName, reference) {
   }
 };
 
-Component.prototype.updateOptions = function () {
-};
-
 Component.prototype.toJSON = function () {
-  return utils.deepCopy(this._options);
+  var json = utils.deepCopy(this._options);
+  delete json.id;
+  delete json.group;
+  return json;
 };
 
 Component.prototype.destroy = function () {

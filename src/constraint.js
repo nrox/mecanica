@@ -361,5 +361,13 @@ Constraint.prototype.methods = {
   }
 };
 
+Constraint.prototype.toJSON = function () {
+  var json = utils.deepCopy(this._options);
+  delete json.id;
+  delete json.group;
+  _.extend(json, _.pick(this, 'angle', 'position'));
+  return json;
+};
+
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;

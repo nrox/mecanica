@@ -56,7 +56,7 @@ Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
-    'id', 'group', 'type', 'comment', 'lengthUnits', 'forceUnits'
+    'id', 'group', 'type', 'comment', 'lengthUnits'
   ]));
   _.extend(target, options);
   if (!target._options) target._options = {};
@@ -259,11 +259,11 @@ Component.prototype.addRenderMethod = function (funName, reference) {
   }
 };
 
-Component.prototype.updateOptions = function () {
-};
-
 Component.prototype.toJSON = function () {
-  return utils.deepCopy(this._options);
+  var json = utils.deepCopy(this._options);
+  delete json.id;
+  delete json.group;
+  return json;
 };
 
 Component.prototype.destroy = function () {
@@ -289,7 +289,6 @@ Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
       lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      forceUnits: 'N', //Newton
       wireframe: false, //show wireframes
       axisHelper: 0, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
@@ -312,11 +311,18 @@ Settings.prototype.types = {
       wireframe: undefined,
       axisHelper: undefined,
       connectorHelper: undefined,
-      lengthUnits: undefined,
-      forceUnits: undefined
+      lengthUnits: undefined
     });
     this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH), undefined);
   }
+};
+
+
+Settings.prototype.toJSON = function () {
+  var json = utils.deepCopy(this._options);
+  //lengths are converted on Component.construct, so this system is already converted to root units
+  json.lengthUnits = this.rootSystem.globalSettings().lengthUnits;
+  return json;
 };
 
 extend(Settings, Component);
@@ -401,20 +407,34 @@ System.prototype.applyTransform = function (ammoTransform) {
  * @returns {*}
  */
 System.prototype.getObject = function () {
-  if (arguments[0] instanceof Array) {
-    return this.getObject.apply(this, arguments[0]);
-  }
-  //TODO make this recursive
-  var obj = this.objects;
-  for (var i = 0; i < arguments.length; i++) {
-    if ((obj instanceof System) || (obj instanceof Mecanica)) {
-      obj = obj.objects[arguments[i]];
-    } else {
-      obj = obj[arguments[i]];
+  try {
+    var arg0 = arguments[0];
+    if (arg0 instanceof Array) {
+      return this.getObject.apply(this, arg0);
     }
-    if (!obj) break;
+    if ((typeof arg0 == 'object') && arg0.group && arg0.id) {
+      var sys = this;
+      if (arg0.system) {
+        for (var s = 0; s < arg0.system.length; s++) {
+          sys = sys.getSystem(arg0.system[s]);
+        }
+      }
+      return sys.getObject(arg0.group, arg0.id);
+    }
+    var obj = this.objects;
+    for (var i = 0; i < arguments.length; i++) {
+      if ((obj instanceof System) || (obj instanceof Mecanica)) {
+        obj = obj.objects[arguments[i]];
+      } else {
+        obj = obj[arguments[i]];
+      }
+      if (!obj) break;
+    }
+    return obj;
+  } catch (e) {
+    console.log('error in system.', this.id, '.geObject with arguments', arguments);
+    throw e;
   }
-  return obj;
 };
 
 System.prototype.getSome = function (group) {
@@ -426,15 +446,13 @@ System.prototype.getSystem = function (id) {
   return this.getObject('system', id);
 };
 
-System.prototype.getBody = function (id) {
-  var sys = this;
-  if ((typeof id == 'object') && id.system && id.body) {
-    for (var i = 0; i < id.system.length; i++) {
-      sys = sys.getSystem(id.system[i]);
-    }
-    id = id.body;
+System.prototype.getBody = function (idOrMap) {
+  if (typeof idOrMap == 'string') {
+    idOrMap = {id: idOrMap};
   }
-  return sys.getObject('body', id);
+  idOrMap.group = 'body';
+  idOrMap.system = idOrMap.system || [];
+  return this.getObject(idOrMap);
 };
 
 System.prototype.getConstraint = function (id) {
@@ -605,6 +623,7 @@ System.prototype.toJSON = function () {
       json[groupName][objectId] = object.toJSON();
     });
   });
+  //no need to set position and rotation as the system is already transformed
   return json;
 };
 
@@ -850,9 +869,11 @@ Method.prototype.types = {
 };
 
 Method.prototype.toJSON = function () {
-  var copy = utils.deepCopy(this._options);
-  copy.method = "" + this.method;
-  return copy;
+  var json = utils.deepCopy(this._options);
+  json.method = "" + this.method;
+  delete json.id;
+  delete json.group;
+  return json;
 };
 
 Method.prototype.destroy = function () {
@@ -922,6 +943,11 @@ Vector.prototype.destroy = function () {
   if (this.ammo) Ammo.destroy(this.ammo);
 };
 
+Vector.prototype.toJSON = function () {
+  //don't include scale, because it's already scaled
+  return {x: this.x, y: this.y, z: this.z};
+};
+
 function Quaternion(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, w: undefined
@@ -942,15 +968,6 @@ function Quaternion(options) {
     this.three = new THREE.Quaternion(this.x, this.y, this.z, this.w);
   }
 }
-
-Vector.prototype.toJSON = function () {
-  return {x: this.x, y: this.y, z: this.z};
-};
-
-Vector.prototype.updateOptions = function () {
-  _.extend(this._options, {x: this.x, y: this.y, z: this.z});
-  delete this._options.scale;
-};
 
 Quaternion.prototype.fromAmmo = function (ammoVector) {
   var options = {};
@@ -987,10 +1004,6 @@ Quaternion.prototype.destroy = function () {
 
 Quaternion.prototype.toJSON = function () {
   return {x: this.x, y: this.y, z: this.z, w: this.w};
-};
-
-Quaternion.prototype.updateOptions = function () {
-  _.extend(this._options, {x: this.x, y: this.y, z: this.z, w: this.w});
 };
 
 extend(Vector, Component);
@@ -1378,16 +1391,16 @@ Body.prototype.destroy = function (scene) {
   }
 };
 
-Body.prototype.updateOptions = function () {
-  this.position.updateOptions();
-  this.quaternion.updateOptions();
-  this._options.position = this.position.toJSON();
-  this._options.quaternion = this.quaternion.toJSON();
-  delete  this._options.rotation;
-  _.each(this._options.connector, function (connector, key) {
-    this.connector[key].updateOptions();
-    _.extend(connector, this.connector[key].options());
-  }, this)
+Body.prototype.toJSON = function () {
+  this.syncPhysics();
+  var json = _.pick(this._options, 'type', 'shape', 'material');
+  json.position = this.position.toJSON();
+  json.quaternion = this.quaternion.toJSON();
+  json.connector = {};
+  _.each(this.connector, function (connector, key) {
+    json.connector[key] = connector.toJSON();
+  });
+  return json;
 };
 
 extend(Body, Component);
@@ -1523,10 +1536,12 @@ Connector.prototype.approachConnector = function (fix) {
   Ammo.destroy(fixBodyTrans);
 };
 
-Connector.prototype.updateOptions = function () {
+Connector.prototype.toJSON = function () {
+  var json = _.pick(this._options, 'type', 'body');
   _.each(['base', 'up', 'front'], function (v) {
-    this._options[v] = this[v].toJSON();
+    json[v] = this[v].toJSON();
   }, this);
+  return json;
 };
 
 extend(Connector, Component);
@@ -1898,6 +1913,14 @@ Constraint.prototype.methods = {
   }
 };
 
+Constraint.prototype.toJSON = function () {
+  var json = utils.deepCopy(this._options);
+  delete json.id;
+  delete json.group;
+  _.extend(json, _.pick(this, 'angle', 'position'));
+  return json;
+};
+
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
 // src/constraint.js ends
@@ -2118,12 +2141,12 @@ Component.prototype.maker.camera = Camera;
 
 ;// src/monitor.js begins
 
-function Monitor(options, system){
+function Monitor(options, system) {
   this.construct(options, system, 'complete');
 }
 
 Monitor.prototype.types = {
-  complete: function (options, system) {
+  complete: function (options) {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
@@ -2137,8 +2160,12 @@ Monitor.prototype.types = {
     });
     var o = this.optionsWithoutId();
     o.aspect = o.width / o.height;
-    this.renderer = system.make('renderer', o.renderer, o);
-    this.camera = system.make('camera', o.camera, o);
+    var cameraOptions = utils.deepCopy(o);
+    cameraOptions.type = o.camera;
+    var rendererOptions = utils.deepCopy(o);
+    rendererOptions.type = o.renderer;
+    this.renderer = new Renderer(rendererOptions, this.rootSystem);
+    this.camera = new Camera(cameraOptions, this.rootSystem);
   }
 };
 

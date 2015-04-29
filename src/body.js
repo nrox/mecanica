@@ -185,16 +185,16 @@ Body.prototype.destroy = function (scene) {
   }
 };
 
-Body.prototype.updateOptions = function () {
-  this.position.updateOptions();
-  this.quaternion.updateOptions();
-  this._options.position = this.position.toJSON();
-  this._options.quaternion = this.quaternion.toJSON();
-  delete  this._options.rotation;
-  _.each(this._options.connector, function (connector, key) {
-    this.connector[key].updateOptions();
-    _.extend(connector, this.connector[key].options());
-  }, this)
+Body.prototype.toJSON = function () {
+  this.syncPhysics();
+  var json = _.pick(this._options, 'type', 'shape', 'material');
+  json.position = this.position.toJSON();
+  json.quaternion = this.quaternion.toJSON();
+  json.connector = {};
+  _.each(this.connector, function (connector, key) {
+    json.connector[key] = connector.toJSON();
+  });
+  return json;
 };
 
 extend(Body, Component);
