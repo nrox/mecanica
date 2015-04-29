@@ -13,7 +13,9 @@ Body.prototype.types = {
       connector: {}
     });
     this.notifyUndefined(['mass', 'shape', 'material']);
-
+    if (this.settingsFor('freeze')) {
+      this.mass = 0;
+    }
     var shape;
     var _this = this;
     if (typeof this.shape == 'string') { //get from objects with id
@@ -37,7 +39,7 @@ Body.prototype.types = {
 
     if (this.runsRender()) {
       this.three = new THREE.Mesh(shape.three, material.three);
-      var axisHelper = this.getSettings().axisHelper;
+      var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
         shape.three.computeBoundingSphere();
         var r = shape.three.boundingSphere.radius * 1.5;

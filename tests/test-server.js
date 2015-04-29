@@ -3,7 +3,7 @@ var testUtils = require('./test-utils.js');
 
 var tests = {
   'require ware/template.js': function () {
-    var template = require('../dist/ware/template.js');
+    var template = require('../dist/ware/template/template.js');
     testUtils.checkKeys(template, [
       'getObject', 'defaultOptions'
     ], 'require returned valid object');

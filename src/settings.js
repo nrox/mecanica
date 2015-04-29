@@ -7,7 +7,7 @@ Settings.prototype.types = {
     this.include(options, {
       lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
       wireframe: false, //show wireframes
-      axisHelper: 0, //show an axis helper in the scene and all bodies
+      axisHelper: false, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
       connectorColor: 0x888822,
       canvasContainer: 'body', //container for renderer,
@@ -19,7 +19,8 @@ Settings.prototype.types = {
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024 //shadow map width and height,
+      shadowMapSize: 1024, //shadow map width and height,
+      freeze: false //if override objects mass with 0
     });
     this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH));
   },
@@ -28,7 +29,8 @@ Settings.prototype.types = {
       wireframe: undefined,
       axisHelper: undefined,
       connectorHelper: undefined,
-      lengthUnits: undefined
+      lengthUnits: undefined,
+      freeze: false
     });
     this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH), undefined);
   }

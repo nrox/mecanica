@@ -38,10 +38,13 @@
         location.href = '';
     }
     function loadList() {
+        var allow = ['dist/ware/actuator', 'dist/ware/experiment', 'dist/ware/template'];
         var list = _.filter(availablePaths(), function (p) {
-            if ((p.indexOf('dist/ware/') == 0) && p.indexOf('.js') > 0) {
-                return p;
-            }
+            return _.some(allow, function (folder) {
+                if ((p.indexOf(folder) == 0) && p.indexOf('.js') > 0) {
+                    return p;
+                }
+            });
         });
         return list.sort();
     }

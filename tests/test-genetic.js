@@ -1,7 +1,6 @@
 var testUtils = require('./test-utils.js');
 var utils = require('../dist/utils.js');
-
-var Ammo = require('../dist/lib/ammo.js');
+var lib = require('../dist/mecanica.js');
 var _ = require('../dist/lib/underscore.js');
 var genetic = require('../intel/ga.js');
 
@@ -55,7 +54,6 @@ var test = {
     testUtils.checkAproximateValues(result.best, goal, 'goal is achieved', 0.0001);
   },
   'cube volume': function () {
-    var lib = require('../dist/mecanica.js');
     var me = new lib.Mecanica();
     var goal = {volume: 5};
     console.log('target volume: ', utils.stringify(goal));
@@ -93,7 +91,13 @@ var test = {
     console.log('got: ', utils.stringify(result));
 
     var volume = result.best.dx * result.best.dy * result.best.dz;
+    me.destroy();
+
     testUtils.checkAproximateValues(goal, {volume: volume}, 'goal is achieved', 0.001);
+  },
+  'with simulation': function () {
+    console.warn('TODO');
+    var me = new lib.Mecanica();
   }
 };
 

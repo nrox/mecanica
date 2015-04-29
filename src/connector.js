@@ -25,7 +25,7 @@ Connector.prototype.types = {
       this.front = new Vector(this.front);
       //check for orthogonality
       var settings = this.getSettings();
-      var helper = settings.connectorHelper;
+      var helper = this.settingsFor('connectorHelper');
       if (THREE && helper) {
         helper = this.applyLengthConversionRate(helper);
         //TODO reuse material and geometry

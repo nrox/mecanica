@@ -30,7 +30,6 @@ function getObject(options) {
   return objects;
 }
 
-
 function userInterface(options) {
   options = _.defaults(options || {}, {
     system: undefined,
