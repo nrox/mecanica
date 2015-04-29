@@ -13,11 +13,13 @@ Shape.prototype.types = {
   },
   box: function (options) {
     this.include(options, {
-      dx: 1, dy: 1, dz: 1, segments: 1
+      dx: 1, dy: 1, dz: 1, segments: 1,
+      gap: 0 //make this object a bit smaller on each side if gap
     });
     this.useConversion();
-    if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2, this.dy / 2, this.dz / 2));
-    if (this.runsRender()) this.three = new THREE.BoxGeometry(this.dx, this.dy, this.dz, this.segments, this.segments, this.segments);
+    if (this.runsPhysics()) this.ammo = new Ammo.btBoxShape(new Ammo.btVector3(this.dx / 2 - this.gap, this.dy / 2 - this.gap, this.dz / 2 - this.gap));
+    if (this.runsRender()) this.three = new THREE.BoxGeometry(this.dx - 2 * this.gap, this.dy - 2 * this.gap, this.dz - 2 * this.gap,
+      this.segments, this.segments, this.segments);
   },
   cylinder: function (options) {
     this.include(options, {
@@ -84,7 +86,7 @@ Shape.prototype.types = {
 };
 
 Shape.prototype.useConversion = function (scale) {
-  this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz'], scale);
+  this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz', 'gap'], scale);
 };
 
 extend(Shape, Component);
