@@ -27,7 +27,8 @@ function getObject(options) {
         type: 'box',
         dx: options.caseLength,
         dy: options.caseHeight,
-        dz: options.caseWidth
+        dz: options.caseWidth,
+        gap: options.tolerance
       },
       shaft: {
         type: 'cylinder',
@@ -54,11 +55,11 @@ function getObject(options) {
         mass: options.shaftMass, shape: 'shaft', material: 'shaft',
         position: {
           x: options.caseLength / 2 - options.shaftMargin,
-          y: (options.caseHeight / 2 + options.shaftHeight / 2 + options.tolerance)
+          y: (options.caseHeight / 2 + options.shaftHeight / 2)
         },
         connector: {
           toCase: {
-            base: {y: -(options.shaftHeight / 2 + options.tolerance)},
+            base: {y: -(options.shaftHeight / 2)},
             up: {y: 1}, front: {z: 1}
           }
         }

@@ -6,7 +6,8 @@ Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
       solver: 'sequential', //pgs, dantzig
-      gravity: {y: -9.81}
+      gravity: {y: -9.81},
+      lengthUnits: 'm'
     });
     this.showAxisHelper();
     this.createWorld();
