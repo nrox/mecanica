@@ -168,7 +168,12 @@ System.prototype.make = function () {
     if (!options.id) options.id = this.nextId(type);
     options.group = group;
     options.type = type;
-    //console.log('make ', group, type, options.id);
+    if (options.skip) {
+      if (this.debug) console.warn('skip', group, options.id);
+      return undefined;
+    } else {
+      if (this.debug) console.log('make ', group, options.id);
+    }
     try {
       obj = new cons(options, this);
       if (!options._dontSave && this.objects[group]) {

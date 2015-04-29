@@ -56,7 +56,7 @@ Component.prototype.include = function (options, defaults) {
   var target = this;
   //target._originalOptions = options;
   options = _.extend(defaults, _.pick(options || {}, _.keys(defaults), [
-    'id', 'group', 'type', 'comment', 'lengthUnits'
+    'id', 'group', 'type', 'debug', 'comment', 'lengthUnits'
   ]));
   _.extend(target, options);
   if (!target._options) target._options = {};
@@ -140,10 +140,6 @@ Component.prototype.isRoot = function () {
 Component.prototype.types = {};
 
 Component.prototype.maker = {};
-
-Component.prototype.debug = function () {
-  return false;
-};
 
 Component.prototype.getSettings = function () {
   return this.globalSettings();
@@ -503,7 +499,12 @@ System.prototype.make = function () {
     if (!options.id) options.id = this.nextId(type);
     options.group = group;
     options.type = type;
-    //console.log('make ', group, type, options.id);
+    if (options.skip) {
+      if (this.debug) console.warn('skip', group, options.id);
+      return undefined;
+    } else {
+      if (this.debug) console.log('make ', group, options.id);
+    }
     try {
       obj = new cons(options, this);
       if (!options._dontSave && this.objects[group]) {
@@ -1222,7 +1223,7 @@ Body.prototype.types = {
       quaternion: undefined, rotation: undefined,
       connector: {}
     });
-    this.notifyUndefined(['shape', 'material']);
+    this.notifyUndefined(['mass', 'shape', 'material']);
 
     var shape;
     var _this = this;
@@ -1409,6 +1410,7 @@ Body.prototype.toJSON = function () {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
+
 
 // src/body.js ends
 

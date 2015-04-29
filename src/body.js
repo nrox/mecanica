@@ -12,7 +12,7 @@ Body.prototype.types = {
       quaternion: undefined, rotation: undefined,
       connector: {}
     });
-    this.notifyUndefined(['shape', 'material']);
+    this.notifyUndefined(['mass', 'shape', 'material']);
 
     var shape;
     var _this = this;
@@ -199,3 +199,4 @@ Body.prototype.toJSON = function () {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
+

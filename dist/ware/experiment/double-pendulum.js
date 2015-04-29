@@ -1,40 +1,66 @@
 var _ = require('../lib/underscore.js');
 
 var defaultOptions = {
-  depth: 1,
-  mass1: 1,
-  mass2: 0.5,
-  length1: 5,
-  length2: 3,
-  y: 10
+  angle: 170,
+  mass1: 0.5,
+  mass2: 0.2,
+  length1: 3,
+  length2: 2
 };
 
 function getObject(o) {
   o = _.defaults(o || {}, defaultOptions);
-  var d = o.dispersion;
+  o.dx = 0.5;
+  o.dz = 1;
+  o.dy = o.dz / 2;
   return {
+    position: {y: (o.length1 + o.length2) / 2},
+    rotation: {x: Math.PI * o.angle / 180},
     shape: {
-      support: { type: 'box', dx: o.depth, dy: o.depth, dz: o.depth},
-      beam1: { type: 'box', dx: o.depth, dy: o.length1, dz: o.depth},
-      beam2: { type: 'box', dx: o.depth, dy: o.length2, dz: o.depth}
+      support: { type: 'box', dx: o.dx, dy: 2 * o.dy, dz: o.dz, gap: 0.01},
+      beam1: { type: 'box', dx: o.dx, dy: o.length1, dz: o.dz, gap: 0.01},
+      beam2: { type: 'box', dx: o.dx, dy: o.length2, dz: o.dz, gap: 0.01}
     },
     material: {
-      support: {type: 'phong', color: 0x772277 },
-      beam1: {type: 'phong', color: 0x772222 },
-      beam2: {type: 'phong', color: 0x227722 }
+      support: {type: 'phong', color: 0x222277},
+      beam1: {type: 'phong', color: 0x772222},
+      beam2: {type: 'phong', color: 0x227722}
     },
     body: {
-      support: {position: {y: o.y}, mass: 0, shape: 'support', material: 'support', connector: {c: {base: {}}}},
-      sphere: {position: {y: -d, z: d}, mass: o.mass, shape: 'sphere', material: 'red', connector: {c: {base: {y: d}}}},
-      cone: { position: {y: -d, z: -d}, mass: o.mass, shape: 'cone', material: 'red', connector: {c: {base: {y: d}}}},
-      cylinder: { position: {y: -d, z: d, x: d}, mass: o.mass, shape: 'cylinder', material: 'blue', connector: {c: {base: {y: d}}}},
-      compound: { position: {y: -d, z: d, x: -d}, mass: o.mass, shape: 'compound', material: 'blue', connector: {c: {base: {y: d}}}}
+      support: {
+        mass: 0, shape: 'support', material: 'support', connector: {
+          c1: {
+            base: {x: o.dx / 2},
+            up: {x: 1},
+            front: {z: 1}
+          }
+        }},
+      beam1: {
+        position: {y: -o.length1 / 2 + o.dy, x: o.dx},
+        mass: o.mass1, shape: 'beam1', material: 'beam1', connector: {
+          c1: {
+            base: {x: -o.dx / 2, y: o.length1 / 2 - o.dy},
+            up: {x: 1},
+            front: {z: 1}
+          },
+          c2: {
+            base: {x: o.dx / 2, y: -o.length1 / 2 + o.dy},
+            up: {x: 1},
+            front: {z: 1}
+          }
+        }},
+      beam2: {
+        position: {y: -o.length1 - o.length2 / 2 + 3 * o.dy, x: 2 * o.dx}, mass: o.mass2, shape: 'beam2', material: 'beam2', connector: {
+          c2: {
+            base: {x: -o.dx / 2, y: o.length2 / 2 - o.dy},
+            up: {x: 1},
+            front: {z: 1}
+          }
+        }}
     },
     constraint: {
-      c1: { bodyA: 'box', bodyB: 'sphere', connectorA: 'c', connectorB: 'c'},
-      c2: { bodyA: 'box', bodyB: 'cone', connectorA: 'c', connectorB: 'c'},
-      c3: { bodyA: 'box', bodyB: 'cylinder', connectorA: 'c', connectorB: 'c'},
-      c4: { bodyA: 'box', bodyB: 'compound', connectorA: 'c', connectorB: 'c'}
+      c1: {type: 'hinge', bodyA: 'support', bodyB: 'beam1', connectorA: 'c1', connectorB: 'c1'},
+      c2: {type: 'hinge', bodyA: 'beam1', bodyB: 'beam2', connectorA: 'c2', connectorB: 'c2'}
     }
   }
 }
