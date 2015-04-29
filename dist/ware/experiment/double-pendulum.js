@@ -2,13 +2,14 @@ var _ = require('../lib/underscore.js');
 
 var defaultOptions = {
   angle: 170,
-  mass1: 0.5,
-  mass2: 0.2,
+  mass1: 0.05,
+  mass2: 0.02,
   length1: 3,
   length2: 2
 };
 
 function getObject(o) {
+  console.warn('pendulum energy seams decreasing with time. TODO: check default dampings');
   o = _.defaults(o || {}, defaultOptions);
   o.dx = 0.5;
   o.dz = 1;

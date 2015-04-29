@@ -82,6 +82,7 @@ System.prototype.getObject = function () {
     if ((typeof arg0 == 'object') && arg0.group && arg0.id) {
       var sys = this;
       if (arg0.system) {
+        if (typeof arg0.system == 'string') arg0.system = [arg0.system];
         for (var s = 0; s < arg0.system.length; s++) {
           sys = sys.getSystem(arg0.system[s]);
         }

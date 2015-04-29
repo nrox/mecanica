@@ -28,10 +28,7 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    if (this.lookAt instanceof Body) {
-    } else {
-      this.lookAt = this.parentSystem.getObject('body', this.lookAt);
-    }
+    this.lookAt = this.resolveLookAt(this.lookAt);
     if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
@@ -49,17 +46,24 @@ Camera.prototype.types = {
     });
     this.notifyUndefined(['lookAt']);
     this.axis = new Vector(this.axis);
-    if (this.lookAt instanceof Body) {
-    } else if (typeof(this.lookAt) == 'string') {
-      this.lookAt = this.parentSystem.getObject('body', this.lookAt);
-    } else {
-      this.lookAt = new Vector(this.lookAt);
-    }
+    this.lookAt = this.resolveLookAt(this.lookAt);
     if (this.runsRender()) {
       this.axis.three.normalize();
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
     this.addRenderMethod('move', Camera.prototype.methods.moveSatellite);
+  }
+};
+
+Camera.prototype.resolveLookAt = function (lookAt) {
+  if (lookAt instanceof Body) {
+    return lookAt;
+  } else if (typeof(this.lookAt) == 'string') {
+    return this.parentSystem.getObject('body', this.lookAt);
+  } else if ((typeof lookAt == 'object') && lookAt.id) {
+    return this.parentSystem.getObject(lookAt);
+  } else {
+    return new Vector(this.lookAt);
   }
 };
 

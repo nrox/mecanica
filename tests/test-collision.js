@@ -29,7 +29,7 @@ function makeTest(bodyOptions, floorOptions) {
     }, 'system');
 
     me.import('../ware/monitor/tracker.js', {
-      lookAt: me.getSystem('system').getBody('falling'),
+      lookAt: {id: 'falling', group: 'body', system: 'system'},
       distance: 30
     });
     me.addToScene();
