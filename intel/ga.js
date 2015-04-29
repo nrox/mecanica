@@ -1,3 +1,6 @@
+
+var _ = require('../dist/lib/underscore.js');
+
 function Feature(options) {
   _.extend(this, options || {});
 }
