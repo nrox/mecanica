@@ -111,20 +111,26 @@ System.prototype.getSome = function (group) {
 };
 
 System.prototype.getSystem = function (id) {
+  if (id == '.') return this;
+  if (id == '..') return this.parentSystem;
   return this.getObject('system', id);
 };
 
 System.prototype.getBody = function (idOrMap) {
+  return this.getObjectOfGroup('body', idOrMap);
+};
+
+System.prototype.getConstraint = function (idOrMap) {
+  return this.getObjectOfGroup('constraint', idOrMap);
+};
+
+System.prototype.getObjectOfGroup = function (group, idOrMap) {
   if (typeof idOrMap == 'string') {
     idOrMap = {id: idOrMap};
   }
-  idOrMap.group = 'body';
+  idOrMap.group = group;
   idOrMap.system = idOrMap.system || [];
   return this.getObject(idOrMap);
-};
-
-System.prototype.getConstraint = function (id) {
-  return this.getObject('constraint', id);
 };
 
 /**

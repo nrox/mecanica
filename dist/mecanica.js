@@ -444,20 +444,26 @@ System.prototype.getSome = function (group) {
 };
 
 System.prototype.getSystem = function (id) {
+  if (id == '.') return this;
+  if (id == '..') return this.parentSystem;
   return this.getObject('system', id);
 };
 
 System.prototype.getBody = function (idOrMap) {
+  return this.getObjectOfGroup('body', idOrMap);
+};
+
+System.prototype.getConstraint = function (idOrMap) {
+  return this.getObjectOfGroup('constraint', idOrMap);
+};
+
+System.prototype.getObjectOfGroup = function (group, idOrMap) {
   if (typeof idOrMap == 'string') {
     idOrMap = {id: idOrMap};
   }
-  idOrMap.group = 'body';
+  idOrMap.group = group;
   idOrMap.system = idOrMap.system || [];
   return this.getObject(idOrMap);
-};
-
-System.prototype.getConstraint = function (id) {
-  return this.getObject('constraint', id);
 };
 
 /**
@@ -711,7 +717,8 @@ function Mecanica(options) {
     scene: {}, //three scene + ammo world
     system: {}, //high level structure of objects, identified by keys
     light: {},
-    monitor: {} //set of camera + renderer
+    monitor: {}, //set of camera + renderer
+    method: {}
   };
   this.rootSystem = this;
   if (this.runsPhysics()) this.ammoTransform = new Ammo.btTransform;

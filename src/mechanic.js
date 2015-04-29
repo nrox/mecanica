@@ -10,7 +10,8 @@ function Mecanica(options) {
     scene: {}, //three scene + ammo world
     system: {}, //high level structure of objects, identified by keys
     light: {},
-    monitor: {} //set of camera + renderer
+    monitor: {}, //set of camera + renderer
+    method: {}
   };
   this.rootSystem = this;
   if (this.runsPhysics()) this.ammoTransform = new Ammo.btTransform;

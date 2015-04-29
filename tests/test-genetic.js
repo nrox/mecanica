@@ -20,7 +20,7 @@ var test = {
         return Math.sqrt(Math.pow(goal.x - c.x, 2) + Math.pow(goal.y - c.y, 2));
       },
       criteria: function () {
-        return this.bestFitness() < 0.00001;
+        return this.bestFitness() < 0.001;
       }
     });
 
@@ -51,7 +51,7 @@ var test = {
 
     console.log('got: ', utils.stringify(result));
 
-    testUtils.checkAproximateValues(result.best, goal, 'goal is achieved', 0.0001);
+    testUtils.checkAproximateValues(result.best, goal, 'goal is achieved', 0.001);
   },
   'cube volume': function () {
     var me = new lib.Mecanica();
