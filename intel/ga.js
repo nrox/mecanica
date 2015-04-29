@@ -1,4 +1,3 @@
-
 var _ = require('../dist/lib/underscore.js');
 
 function Feature(options) {
@@ -36,9 +35,14 @@ Genetic.prototype.reset = function (options) {
   this.features = f;
 };
 
-//override with options! should return a positive number. the lower the best.
+/**
+ *
+ * @param c1 chromosome
+ * @returns {Number}
+ */
 Genetic.prototype.fitness = function (c1) {
-  return Math.random();
+  throw new Error('fitness is not override');
+  return Infinity;
 };
 
 Genetic.prototype.criteria = function () {

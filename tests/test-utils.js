@@ -105,8 +105,9 @@ module.exports = {
    * @param title log text
    * @returns {boolean} true if all values match, false otherwise
    */
-  checkAproximateValues: function (obj, keyValue, title) {
+  checkAproximateValues: function (obj, keyValue, title, optionalTolerance) {
     this.logTitle(title);
+    var tolerance = optionalTolerance || 0.000001;
     var results = _.map(keyValue, function (value, property) {
       var objValue;
       if ((typeof obj[property] == 'function')) {
@@ -114,7 +115,7 @@ module.exports = {
       } else {
         objValue = obj[property];
       }
-      if (Math.abs(objValue - value) > 0.000001) {
+      if ((objValue === undefined) || (Math.abs(objValue - value) > tolerance)) {
         title && console.log('  mismatch: ' + property);
         title && console.log('      want: ' + value);
         title && console.log('       got: ' + objValue);
