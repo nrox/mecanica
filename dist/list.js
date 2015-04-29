@@ -53,6 +53,7 @@ availablePaths = [
 "./dist/ware/world",
 "./dist/ware/actuator/servo.js",
 "./dist/ware/experiment/basic2.js",
+"./dist/ware/experiment/double-pendulum2.js",
 "./dist/ware/experiment/double-pendulum.js",
 "./dist/ware/experiment/finger.js",
 "./dist/ware/experiment/hand.js",
