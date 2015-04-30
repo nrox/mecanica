@@ -17,7 +17,7 @@ function getObject(o) {
   o = _.defaults(o || {}, defaultOptions);
   o.gap = o.thickness;
   function radiusForMass(mass) {
-    return mass + 0.5;
+    return Math.pow(mass + 0.5, 1/3);
   }
 
   return {
@@ -44,7 +44,7 @@ function getObject(o) {
     body: {
       base: {
         mass: 0, shape: 'base', material: 'support',
-        position: {x: (o.length2 - o.length1) / 2},
+        position: {x: (o.length2 - o.length1) / 2}
       },
       support: {
         position: {y: o.height / 2},

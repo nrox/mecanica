@@ -31,10 +31,12 @@ function Component() {
 }
 
 Component.prototype.runsPhysics = function () {
+  if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
+  if (this.rootSystem) return this.rootSystem.runsRender();
   return RUNS_RENDER;
 };
 

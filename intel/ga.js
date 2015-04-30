@@ -66,6 +66,10 @@ Genetic.prototype.getChromosome = function (index) {
   return this.population[index];
 };
 
+Genetic.prototype.indexOfChromosome = function (chromossome) {
+  return this.population.indexOf(chromossome);
+};
+
 Genetic.prototype.createPopulation = function () {
   var c, count;
   this.size = Math.max(this.size, 3);
@@ -73,7 +77,7 @@ Genetic.prototype.createPopulation = function () {
   this.population = [];
   while (count--) {
     c = this.createChromosome();
-    c._fitness = this.fitness.call(this, c);
+    c._fitness = Infinity; //this.fitness.call(this, c);
     if (!this.best || (c._fitness < this.best._fitness)) {
       this.best = c;
     }
@@ -121,7 +125,19 @@ Genetic.prototype.bestFitness = function () {
   return this.best._fitness;
 };
 
+Genetic.prototype.computeAllFitness = function () {
+  _.each(this.population, function (c) {
+    c._fitness = this.fitness.call(this, c);
+    if (c._fitness < this.best._fitness) {
+      this.best = c;
+    }
+  }, this);
+};
+
 Genetic.prototype.step = function () {
+  if (this.stepCount === undefined) this.stepCount = -1;
+  this.stepCount++;
+  this.computeAllFitness();
   var winners = [], c;
   //select best, allow repetition
   while (winners.length < this.size) {
@@ -136,18 +152,14 @@ Genetic.prototype.step = function () {
     c = this.cross.apply(this, this.randomPair(winners));
     //mutation
     c = this.mutate.call(this, c);
-    //memo the fitness value
-    c._fitness = this.fitness.call(this, c);
-    if (c._fitness < this.best._fitness) {
-      this.best = c;
-    }
+    c._fitness = Infinity;
     this.population.push(c);
   }
 };
 
 Genetic.prototype.solve = function () {
   this.stepCount = 0;
-  while (!this.criteria.call(this) && (this.stepCount++ < this.steps)) {
+  while (!this.criteria.call(this) && (this.stepCount < this.steps)) {
     this.step();
   }
 };
@@ -156,10 +168,30 @@ Genetic.prototype.status = function () {
   var status = {};
   status.achieved = this.criteria();
   status.fitness = this.bestFitness();
-  status.steps = this.stepCount;
+  status.step = this.stepCount;
+  status.outrun = this.stepCount > this.steps;
   status.best = _.clone(this.best);
+  status.terminated = status.achieved || status.outrun;
   delete status.best._fitness;
   return status;
+};
+
+Genetic.prototype.logStatus = function (status) {
+  status = status || this.status();
+  var log = ['step:', status.step, ', fitness:', status.fitness, 'best: '];
+  _.each(status.best, function (featureValue, featureName) {
+    log.push(featureName + "=" + featureValue + ", ")
+  });
+  log.push('terminated: ' + status.terminated);
+  console.log.apply(console, log);
+};
+
+Genetic.prototype.getBest = function () {
+  return this.status().best;
+};
+
+Genetic.prototype.hasTerminated = function () {
+  return  this.status().terminated;
 };
 
 if ((typeof module != 'undefined') && (typeof module.exports != 'undefined')) {

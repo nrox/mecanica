@@ -96,32 +96,39 @@ var test = {
     testUtils.checkAproximateValues(goal, {volume: volume}, 'goal is achieved', 0.001);
   },
   'with simulation': function () {
-    console.log('finding the adequate weight to balance a symmetric lever');
+    console.log('finding the adequate weight to balance a symmetric lever with mass 1 KG in one side');
     console.log('using level.js, applying GA in mass2');
-
     var speed = 10;
     var timeout = 1000; //1 second, simulated = timeout * speed
+    var showBestAfterNumberOfSteps = 5;
     var populationSize = 20;
     var minMass = 0.1;
     var mass1 = 1;
     var length1 = 4;
     var length2 = 4;
+    var numSteps = 100;
+
+    console.log('max steps', numSteps);
+    console.log('best displayed each', showBestAfterNumberOfSteps, 'steps');
 
     //this Mecanica will make simulations, no rendering
     var simulator = new lib.Mecanica({useDefaults: true, runsRender: false, runsPhysics: true});
     simulator.setSpeed(speed);
 
     //this one will display the best results
-    //var show = new lib.Mecanica({useDefaults: true, runsRender: true, runsPhysics: true});
+    var show = new lib.Mecanica({useDefaults: true, runsRender: true, runsPhysics: true});
+    show.setSpeed(speed);
 
     var lever = require('../dist/ware/experiment/lever.js');
 
     var ga = new genetic.Genetic({
+      mutationProbability: 0.1,
       size: 20,
-      steps: 1000,
+      steps: numSteps,
       fitness: function (c) {
         //fitness is given by a non rotation of beam === perfect balance
-        var systemId = c.systemId;
+        var z = this.indexOfChromosome(c);
+        var systemId = 'z=' + z;
         var q = simulator.getSystem(systemId).getBody('beam').getQuaternion();
         //simple geometric distance to {x: 0, y: 0, z: 0, w: 1}
         return Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + (q.w - 1) * (q.w - 1));
@@ -137,9 +144,30 @@ var test = {
         return Math.abs(10 * Math.random() + minMass);
       },
       mutate: function (x) {
-        return Math.max(minMass, x * (1 + 0.1 * (0.5 - Math.random())));
+        return Math.abs(x + (0.5 - Math.random()));
       }
     }));
+
+    ga.createPopulation();
+
+    function options(mass2, i) {
+      return {
+        mass2: mass2,
+        position: {z: i * 10},
+        mass1: mass1, length1: length1, length2: length2
+      };
+    }
+
+    function showBest(mass2) {
+      var z = 0;
+      var id = "z=" + z;
+      show.stop();
+      var sys = show.getSystem(id);
+      if (sys) sys.destroy();
+      show.loadSystem(lever.getObject(options(mass2, z)), id);
+      show.addToScene();
+      show.start();
+    }
 
     function step() {
       simulator.stop();
@@ -147,12 +175,8 @@ var test = {
         sys.destroy();
       });
       for (var z = 0; z < populationSize; z++) {
-        var chromo = ga.getChromosome(z);
-        simulator.loadSystem(lever.getObject({
-          mass2: chromo.mass2,
-          position: {z: z * 10},
-          mass1: mass1, length1: length1, length2: length2
-        }), 'z=' + z);
+        var chromosome = ga.getChromosome(z);
+        simulator.loadSystem(lever.getObject(options(chromosome.mass2, z)), 'z=' + z);
       }
       simulator.addToScene();
       simulator.start();
@@ -160,9 +184,18 @@ var test = {
         simulator.stop();
         simulator.syncPhysics();
         ga.step();
-        console.log(ga.status());
+        var status = ga.status();
+        ga.logStatus(status);
+        if (status.terminated || (status.step % showBestAfterNumberOfSteps) === 0) {
+          showBest(status.best.mass2);
+        }
+        if (!status.terminated) {
+          step();
+        }
       }, timeout);
     }
+
+    step();
 
   }
 };

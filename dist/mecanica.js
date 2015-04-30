@@ -37,10 +37,12 @@ function Component() {
 }
 
 Component.prototype.runsPhysics = function () {
+  if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
+  if (this.rootSystem) return this.rootSystem.runsRender();
   return RUNS_RENDER;
 };
 
@@ -706,10 +708,12 @@ function Mecanica(options) {
 
   if (options.runsPhysics !== undefined) {
     RUNS_PHYSICS = !!options.runsPhysics;
+    this.RUNS_PHYSICS = RUNS_PHYSICS;
   }
 
   if (options.runsRender !== undefined) {
     RUNS_RENDER = !!options.runsRender;
+    this.RUNS_RENDER = RUNS_RENDER;
   }
 
   this.objects = {
@@ -737,6 +741,17 @@ Mecanica.prototype.types = {
     this.id = 'root';
     this.load(options);
   }
+};
+
+
+Mecanica.prototype.runsPhysics = function () {
+  if (this.RUNS_PHYSICS !== undefined) return this.RUNS_PHYSICS;
+  return RUNS_PHYSICS;
+};
+
+Mecanica.prototype.runsRender = function () {
+  if (this.RUNS_RENDER !== undefined) return this.RUNS_RENDER;
+  return RUNS_RENDER;
 };
 
 
