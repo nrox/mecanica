@@ -29,6 +29,13 @@ var test = {
       'body2'
     ], 'subsystem imported');
   },
+  'new Mecanica{useDefaults: true})': function () {
+    var lib = require('../dist/mecanica.js');
+    var me = new lib.Mecanica({useDefaults: true});
+    me.importSystem('../ware/template/template.js', 'template');
+    me.addToScene();
+    me.start();
+  },
   'mec.toJSON()': function () {
     var lib = require('../dist/mecanica.js');
     var me = new lib.Mecanica();

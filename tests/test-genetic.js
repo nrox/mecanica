@@ -96,7 +96,7 @@ var test = {
     testUtils.checkAproximateValues(goal, {volume: volume}, 'goal is achieved', 0.001);
   },
   'with simulation': function () {
-    console.warn('TODO');
+    console.log('finding the adequate weight to balance a symmetric lever');
     var me = new lib.Mecanica();
   }
 };

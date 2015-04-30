@@ -5,6 +5,10 @@ function Mecanica(options) {
     Component.prototype.RUNS_PHYSICS = !!options.runsPhysics;
   }
 
+  if (options.runsRender !== undefined) {
+    Component.prototype.RUNS_RENDER = !!options.runsRender;
+  }
+
   this.objects = {
     settings: {}, //preferences
     scene: {}, //three scene + ammo world
@@ -21,13 +25,51 @@ function Mecanica(options) {
 Mecanica.prototype.types = {
   empty: function (options) {
     this.include(options, {
-      id: 'root'
+      id: 'root',
+      useDefaults: false
     });
+    if (this.useDefaults) this.makeDefaults(this.useDefaults);
+  },
+  complete: function (options) {
+    this.id = 'root';
+    this.load(options);
   }
 };
 
-Mecanica.prototype.isRoot = function () {
-  return true;
+
+Mecanica.prototype.makeDefaults = function (options) {
+  if (typeof options !== 'object') options = {};
+  options.cameraDistance = options.cameraDistance || 20;
+  var defaults = {
+    settings: {
+      global: {
+        uiContainer: options.uiContainer || '#triggers',
+        canvasContainer: options.canvasContainer || '#container',
+        axisHelper: options.axisHelper !== undefined ? options.axisHelper : true,
+        connectorHelper: options.connectorHelper !== undefined ? options.connectorHelper : 0.75,
+        wireframe: !!options.wireframe
+      }
+    },
+    scene: {
+      use: {
+        solver: 'pgs'
+      }
+    },
+    light: {
+      l1: {position: {x: options.cameraDistance, z: -options.cameraDistance}},
+      l2: {position: {x: -1.3 * options.cameraDistance, y: options.cameraDistance * 1.1}, color: options.color2},
+      l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3}
+    },
+    monitor: {
+      use: {
+        camera: 'satellite',
+        lookAt: {},
+        axis: {x: 5, y: 7, z: 10},
+        distance: options.cameraDistance
+      }
+    }
+  };
+  this.load(defaults);
 };
 
 Mecanica.prototype.useMonitor = function (json) {
@@ -35,6 +77,10 @@ Mecanica.prototype.useMonitor = function (json) {
   json = json || {};
   json.id = 'use';
   this.make('monitor', json);
+};
+
+Mecanica.prototype.isRoot = function () {
+  return true;
 };
 
 Mecanica.prototype.startSimulation = function () {
