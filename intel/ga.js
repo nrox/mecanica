@@ -62,6 +62,10 @@ Genetic.prototype.createChromosome = function () {
   return c;
 };
 
+Genetic.prototype.getChromosome = function (index) {
+  return this.population[index];
+};
+
 Genetic.prototype.createPopulation = function () {
   var c, count;
   this.size = Math.max(this.size, 3);

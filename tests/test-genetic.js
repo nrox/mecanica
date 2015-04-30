@@ -101,7 +101,11 @@ var test = {
 
     var speed = 10;
     var timeout = 1000; //1 second, simulated = timeout * speed
-    var populationSize = 1;
+    var populationSize = 20;
+    var minMass = 0.1;
+    var mass1 = 1;
+    var length1 = 4;
+    var length2 = 4;
 
     //this Mecanica will make simulations, no rendering
     var simulator = new lib.Mecanica({useDefaults: true, runsRender: false, runsPhysics: true});
@@ -127,11 +131,39 @@ var test = {
       }
     });
 
-    for (var z = 0; z < populationSize; z++) {
-      simulator.loadSystem(lever.getObject({position: {z: z * 10}}));
+    ga.add(new genetic.Feature({
+      name: 'mass2',
+      random: function () {
+        return Math.abs(10 * Math.random() + minMass);
+      },
+      mutate: function (x) {
+        return Math.max(minMass, x * (1 + 0.1 * (0.5 - Math.random())));
+      }
+    }));
+
+    function step() {
+      simulator.stop();
+      _.each(simulator.getObject('system'), function (sys) {
+        sys.destroy();
+      });
+      for (var z = 0; z < populationSize; z++) {
+        var chromo = ga.getChromosome(z);
+        simulator.loadSystem(lever.getObject({
+          mass2: chromo.mass2,
+          position: {z: z * 10},
+          mass1: mass1, length1: length1, length2: length2
+        }), 'z=' + z);
+      }
+      simulator.addToScene();
+      simulator.start();
+      setTimeout(function () {
+        simulator.stop();
+        simulator.syncPhysics();
+        ga.step();
+        console.log(ga.status());
+      }, timeout);
     }
-    simulator.addToScene();
-    simulator.start();
+
   }
 };
 
