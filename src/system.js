@@ -145,6 +145,7 @@ System.prototype.getObjectOfGroup = function (group, idOrMap) {
  * @returns {object}
  */
 System.prototype.make = function () {
+  //TODO make this better
   var group, type, options;
   switch (arguments.length) {
     case 3:
@@ -164,9 +165,8 @@ System.prototype.make = function () {
       break;
   }
   if (!group) {
-    console.log('make', arguments);
-    console.error('group is not defined');
-    return undefined;
+    console.log('make', utils.argList(arguments));
+    throw new Error('group is not defined');
   }
   var cons = this.maker[group];
   var obj;
@@ -194,8 +194,8 @@ System.prototype.make = function () {
       throw e;
     }
   } else {
-    console.warn('incapable of making object:');
     console.log(JSON.stringify(arguments));
+    throw new Error('incapable of making object');
   }
   return obj;
 };

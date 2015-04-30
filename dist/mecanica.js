@@ -124,7 +124,7 @@ Component.prototype.construct = function (options, system, defaultType) {
     cons.call(this, options, system);
   } catch (e) {
     console.log('...................');
-    console.log('error in Component.construct ' + options.group + '.' + options.id + ':');
+    console.log('error in Component.construct ', utils.argList(arguments));
     console.log(e.message);
     console.log(options);
     console.log(this);
@@ -478,6 +478,7 @@ System.prototype.getObjectOfGroup = function (group, idOrMap) {
  * @returns {object}
  */
 System.prototype.make = function () {
+  //TODO make this better
   var group, type, options;
   switch (arguments.length) {
     case 3:
@@ -497,9 +498,8 @@ System.prototype.make = function () {
       break;
   }
   if (!group) {
-    console.log('make', arguments);
-    console.error('group is not defined');
-    return undefined;
+    console.log('make', utils.argList(arguments));
+    throw new Error('group is not defined');
   }
   var cons = this.maker[group];
   var obj;
@@ -527,8 +527,8 @@ System.prototype.make = function () {
       throw e;
     }
   } else {
-    console.warn('incapable of making object:');
     console.log(JSON.stringify(arguments));
+    throw new Error('incapable of making object');
   }
   return obj;
 };
@@ -768,6 +768,7 @@ Mecanica.prototype.makeDefaults = function (options) {
       l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3}
     },
     monitor: {
+      fail: 'fail',
       use: {
         camera: 'satellite',
         lookAt: {},

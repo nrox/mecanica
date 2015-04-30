@@ -118,7 +118,7 @@ Component.prototype.construct = function (options, system, defaultType) {
     cons.call(this, options, system);
   } catch (e) {
     console.log('...................');
-    console.log('error in Component.construct ' + options.group + '.' + options.id + ':');
+    console.log('error in Component.construct ', utils.argList(arguments));
     console.log(e.message);
     console.log(options);
     console.log(this);
