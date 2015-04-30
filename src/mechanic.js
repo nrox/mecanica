@@ -61,7 +61,6 @@ Mecanica.prototype.makeDefaults = function (options) {
       l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3}
     },
     monitor: {
-      fail: 'fail',
       use: {
         camera: 'satellite',
         lookAt: {},

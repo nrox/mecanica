@@ -97,7 +97,7 @@ var test = {
   },
   'with simulation': function () {
     console.log('finding the adequate weight to balance a symmetric lever');
-    var me = new lib.Mecanica();
+    var me = new lib.Mecanica({useDefaults: true});
   }
 };
 
