@@ -97,6 +97,7 @@ var test = {
   },
   'with simulation': function () {
     console.log('finding the adequate weight to balance a symmetric lever with mass 1 KG in one side');
+    console.log('fitness is given by computing distance of beam to a null rotation quaternion');
     console.log('using level.js, applying GA in mass2');
     var speed = 10;
     var timeout = 1000; //1 second, simulated = timeout * speed
