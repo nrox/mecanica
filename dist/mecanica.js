@@ -36,16 +36,12 @@ function extend(target, source) {
 function Component() {
 }
 
-Component.prototype.RUNS_PHYSICS = true;
-Component.prototype.RUNS_RENDER = !utils.isNode();
-
-
 Component.prototype.runsPhysics = function () {
-  return this.RUNS_PHYSICS;
+  return RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
-  return this.RUNS_RENDER;
+  return RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {
@@ -709,11 +705,11 @@ function Mecanica(options) {
   if (!options) options = {};
 
   if (options.runsPhysics !== undefined) {
-    Component.prototype.RUNS_PHYSICS = !!options.runsPhysics;
+    RUNS_PHYSICS = !!options.runsPhysics;
   }
 
   if (options.runsRender !== undefined) {
-    Component.prototype.RUNS_RENDER = !!options.runsRender;
+    RUNS_RENDER = !!options.runsRender;
   }
 
   this.objects = {
@@ -1466,6 +1462,14 @@ Body.prototype.toJSON = function () {
   return json;
 };
 
+Body.prototype.getPosition = function(){
+  return this.position;
+};
+
+Body.prototype.getQuaternion = function(){
+  return this.quaternion;
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;
 
@@ -1502,7 +1506,7 @@ Connector.prototype.types = {
       //check for orthogonality
       var settings = this.getSettings();
       var helper = this.settingsFor('connectorHelper');
-      if (THREE && helper) {
+      if (this.runsRender() && helper) {
         helper = this.applyLengthConversionRate(helper);
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
@@ -2227,14 +2231,16 @@ Monitor.prototype.types = {
       distance: 15, //distance to keep, in case of tracker
       inertia: 1
     });
-    var o = this.optionsWithoutId();
-    o.aspect = o.width / o.height;
-    var cameraOptions = utils.deepCopy(o);
-    cameraOptions.type = o.camera;
-    var rendererOptions = utils.deepCopy(o);
-    rendererOptions.type = o.renderer;
-    this.renderer = new Renderer(rendererOptions, this.rootSystem);
-    this.camera = new Camera(cameraOptions, this.rootSystem);
+    if (this.runsRender()) {
+      var o = this.optionsWithoutId();
+      o.aspect = o.width / o.height;
+      var cameraOptions = utils.deepCopy(o);
+      cameraOptions.type = o.camera;
+      var rendererOptions = utils.deepCopy(o);
+      rendererOptions.type = o.renderer;
+      this.renderer = new Renderer(rendererOptions, this.rootSystem);
+      this.camera = new Camera(cameraOptions, this.rootSystem);
+    }
   }
 };
 

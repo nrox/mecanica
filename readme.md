@@ -13,11 +13,9 @@ Mecânica
 
 - Objects definitions with json
 
-[experiments/tests](https://nrox.github.io/mecanica/)
-
 #Current state
 
-Experimental
+Experimental. [See available tests and experiments](https://nrox.github.io/mecanica/)
 
 #Quickstart
 
@@ -121,3 +119,4 @@ Or
 #TODO
 
 - tune simulation for length units in cm
+- tune servos and motors

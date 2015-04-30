@@ -26,7 +26,7 @@ Connector.prototype.types = {
       //check for orthogonality
       var settings = this.getSettings();
       var helper = this.settingsFor('connectorHelper');
-      if (THREE && helper) {
+      if (this.runsRender() && helper) {
         helper = this.applyLengthConversionRate(helper);
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({

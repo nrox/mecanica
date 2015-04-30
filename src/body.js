@@ -199,6 +199,14 @@ Body.prototype.toJSON = function () {
   return json;
 };
 
+Body.prototype.getPosition = function(){
+  return this.position;
+};
+
+Body.prototype.getQuaternion = function(){
+  return this.quaternion;
+};
+
 extend(Body, Component);
 Component.prototype.maker.body = Body;
 

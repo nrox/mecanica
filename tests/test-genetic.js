@@ -97,7 +97,41 @@ var test = {
   },
   'with simulation': function () {
     console.log('finding the adequate weight to balance a symmetric lever');
-    var me = new lib.Mecanica({useDefaults: true});
+    console.log('using level.js, applying GA in mass2');
+
+    var speed = 10;
+    var timeout = 1000; //1 second, simulated = timeout * speed
+    var populationSize = 1;
+
+    //this Mecanica will make simulations, no rendering
+    var simulator = new lib.Mecanica({useDefaults: true, runsRender: false, runsPhysics: true});
+    simulator.setSpeed(speed);
+
+    //this one will display the best results
+    //var show = new lib.Mecanica({useDefaults: true, runsRender: true, runsPhysics: true});
+
+    var lever = require('../dist/ware/experiment/lever.js');
+
+    var ga = new genetic.Genetic({
+      size: 20,
+      steps: 1000,
+      fitness: function (c) {
+        //fitness is given by a non rotation of beam === perfect balance
+        var systemId = c.systemId;
+        var q = simulator.getSystem(systemId).getBody('beam').getQuaternion();
+        //simple geometric distance to {x: 0, y: 0, z: 0, w: 1}
+        return Math.sqrt(q.x * q.x + q.y * q.y + q.z * q.z + (q.w - 1) * (q.w - 1));
+      },
+      criteria: function () {
+        return this.bestFitness() < 0.01;
+      }
+    });
+
+    for (var z = 0; z < populationSize; z++) {
+      simulator.loadSystem(lever.getObject({position: {z: z * 10}}));
+    }
+    simulator.addToScene();
+    simulator.start();
   }
 };
 

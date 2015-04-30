@@ -1,6 +1,7 @@
 var _ = require('../lib/underscore.js');
 
 var defaultOptions = {
+  position: {x: 0, y: -3, z: 0},
   height: 2,
   mass1: 0.5,
   mass2: 0.2,
@@ -9,7 +10,7 @@ var defaultOptions = {
   length2: 7,
   depth: 1,
   thickness: 0.5,
-  restitution: 0
+  restitution: 0.01
 };
 
 function getObject(o) {
@@ -26,7 +27,7 @@ function getObject(o) {
         axisHelper: false
       }
     },
-    position: {y: -3},
+    position: o.position,
     shape: {
       base: { type: 'box', dx: o.length1 + o.length2, dy: o.thickness, dz: o.depth},
       support: { type: 'box', dx: o.thickness, dy: o.height, dz: o.depth},

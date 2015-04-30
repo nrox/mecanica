@@ -15,14 +15,16 @@ Monitor.prototype.types = {
       distance: 15, //distance to keep, in case of tracker
       inertia: 1
     });
-    var o = this.optionsWithoutId();
-    o.aspect = o.width / o.height;
-    var cameraOptions = utils.deepCopy(o);
-    cameraOptions.type = o.camera;
-    var rendererOptions = utils.deepCopy(o);
-    rendererOptions.type = o.renderer;
-    this.renderer = new Renderer(rendererOptions, this.rootSystem);
-    this.camera = new Camera(cameraOptions, this.rootSystem);
+    if (this.runsRender()) {
+      var o = this.optionsWithoutId();
+      o.aspect = o.width / o.height;
+      var cameraOptions = utils.deepCopy(o);
+      cameraOptions.type = o.camera;
+      var rendererOptions = utils.deepCopy(o);
+      rendererOptions.type = o.renderer;
+      this.renderer = new Renderer(rendererOptions, this.rootSystem);
+      this.camera = new Camera(cameraOptions, this.rootSystem);
+    }
   }
 };
 

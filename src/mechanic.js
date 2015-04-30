@@ -2,11 +2,11 @@ function Mecanica(options) {
   if (!options) options = {};
 
   if (options.runsPhysics !== undefined) {
-    Component.prototype.RUNS_PHYSICS = !!options.runsPhysics;
+    RUNS_PHYSICS = !!options.runsPhysics;
   }
 
   if (options.runsRender !== undefined) {
-    Component.prototype.RUNS_RENDER = !!options.runsRender;
+    RUNS_RENDER = !!options.runsRender;
   }
 
   this.objects = {

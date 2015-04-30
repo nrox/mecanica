@@ -30,16 +30,12 @@ function extend(target, source) {
 function Component() {
 }
 
-Component.prototype.RUNS_PHYSICS = true;
-Component.prototype.RUNS_RENDER = !utils.isNode();
-
-
 Component.prototype.runsPhysics = function () {
-  return this.RUNS_PHYSICS;
+  return RUNS_PHYSICS;
 };
 
 Component.prototype.runsRender = function () {
-  return this.RUNS_RENDER;
+  return RUNS_RENDER;
 };
 
 Component.prototype.runsInWorker = function () {
