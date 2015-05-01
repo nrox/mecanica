@@ -282,22 +282,32 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
+
+      //simulation quality
       lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / 60, //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
+      gravity: {y: -9.81}, //in cm/s2
+      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
+
+      //development/debug
+      freeze: false, //if override objects mass with 0
       wireframe: false, //show wireframes
       axisHelper: false, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
       connectorColor: 0x888822,
+
+      //rendering
       canvasContainer: 'body', //container for renderer,
       uiContainer: 'body',
       reuseCanvas: true,
+
       webWorker: true, //use webworker if available
-      autoStart: true, //auto start simulation and rendering
-      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 30, //frequency to render canvas
-      simFrequency: 30, //frequency to run a simulation cycle,
+
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024, //shadow map width and height,
-      freeze: false //if override objects mass with 0
+      shadowMapSize: 1024 //shadow map width and height,
+
     });
     this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH));
   },
@@ -807,9 +817,10 @@ Mecanica.prototype.startSimulation = function () {
   this._simulationRunning = true;
   this._physicsDataReceived = false;
 
-  var settings = this.getSettings();
+  var settings = this.globalSettings();
   this.physicsPack = {};
   var scene = this.getScene();
+  var fixedTimeFrequency = 1 / settings.fixedTimeStep;
   var _this = this;
 
   //simulation loop function, done with setTimeout
@@ -827,7 +838,6 @@ Mecanica.prototype.startSimulation = function () {
 
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
-    var fixedTimeFrequency = 240;
     var maxSubSteps = ~~(2 * settings.simSpeed * fixedTimeFrequency * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps, 1 / fixedTimeFrequency);
 
@@ -2018,10 +2028,9 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: 'sequential', //pgs, dantzig
-      gravity: {y: -9.81},
-      lengthUnits: 'm'
+      solver: 'sequential' //pgs, dantzig
     });
+    this.gravity = this.globalSettings().gravity;
     this.showAxisHelper();
     this.createWorld();
   }
@@ -2040,7 +2049,6 @@ Scene.prototype.createWorld = function () {
       this.btDefaultCollisionConfiguration
     );
     this.gravity = new Vector(this.gravity);
-    this.applyLengthConversionRate(this.gravity);
     this.ammo.setGravity(this.gravity.ammo);
   }
 };

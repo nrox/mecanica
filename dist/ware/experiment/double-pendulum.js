@@ -1,11 +1,11 @@
 var _ = require('../lib/underscore.js');
 
 var defaultOptions = {
-  angle: 170,
-  mass1: 0.05,
-  mass2: 0.02,
+  angle: 179,
+  mass1: 0.2,
+  mass2: 0.2,
   length1: 3,
-  length2: 2
+  length2: 3
 };
 
 function getObject(o) {

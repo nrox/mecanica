@@ -5,22 +5,32 @@ function Settings(options, system) {
 Settings.prototype.types = {
   global: function (options) {
     this.include(options, {
+
+      //simulation quality
       lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / 60, //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
+      gravity: {y: -9.81}, //in cm/s2
+      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
+
+      //development/debug
+      freeze: false, //if override objects mass with 0
       wireframe: false, //show wireframes
       axisHelper: false, //show an axis helper in the scene and all bodies
       connectorHelper: 0,
       connectorColor: 0x888822,
+
+      //rendering
       canvasContainer: 'body', //container for renderer,
       uiContainer: 'body',
       reuseCanvas: true,
+
       webWorker: true, //use webworker if available
-      autoStart: true, //auto start simulation and rendering
-      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 30, //frequency to render canvas
-      simFrequency: 30, //frequency to run a simulation cycle,
+
       castShadow: true, //light cast shadows,
-      shadowMapSize: 1024, //shadow map width and height,
-      freeze: false //if override objects mass with 0
+      shadowMapSize: 1024 //shadow map width and height,
+
     });
     this.assertOneOf('lengthUnits', _.keys(this.CONVERSION.LENGTH));
   },

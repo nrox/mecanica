@@ -5,10 +5,9 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: 'sequential', //pgs, dantzig
-      gravity: {y: -9.81},
-      lengthUnits: 'm'
+      solver: 'sequential' //pgs, dantzig
     });
+    this.gravity = this.globalSettings().gravity;
     this.showAxisHelper();
     this.createWorld();
   }
@@ -27,7 +26,6 @@ Scene.prototype.createWorld = function () {
       this.btDefaultCollisionConfiguration
     );
     this.gravity = new Vector(this.gravity);
-    this.applyLengthConversionRate(this.gravity);
     this.ammo.setGravity(this.gravity.ammo);
   }
 };

@@ -102,9 +102,10 @@ Mecanica.prototype.startSimulation = function () {
   this._simulationRunning = true;
   this._physicsDataReceived = false;
 
-  var settings = this.getSettings();
+  var settings = this.globalSettings();
   this.physicsPack = {};
   var scene = this.getScene();
+  var fixedTimeFrequency = 1 / settings.fixedTimeStep;
   var _this = this;
 
   //simulation loop function, done with setTimeout
@@ -122,7 +123,6 @@ Mecanica.prototype.startSimulation = function () {
 
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
-    var fixedTimeFrequency = 240;
     var maxSubSteps = ~~(2 * settings.simSpeed * fixedTimeFrequency * dt + 2);
     if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps, 1 / fixedTimeFrequency);
 
