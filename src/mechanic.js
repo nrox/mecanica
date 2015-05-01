@@ -122,8 +122,9 @@ Mecanica.prototype.startSimulation = function () {
 
     //maxSubSteps > timeStep / fixedTimeStep
     //so, to be safe maxSubSteps = 2 * speed * 60 * dt + 2
-    var maxSubSteps = ~~(2 * settings.simSpeed * 60 * dt + 2);
-    if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps);
+    var fixedTimeFrequency = 240;
+    var maxSubSteps = ~~(2 * settings.simSpeed * fixedTimeFrequency * dt + 2);
+    if (_this.runsPhysics()) scene.ammo.stepSimulation(settings.simSpeed / settings.simFrequency, maxSubSteps, 1 / fixedTimeFrequency);
 
     _this.syncPhysics();
 
