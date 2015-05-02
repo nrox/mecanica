@@ -9980,7 +9980,7 @@ THREE.Geometry.prototype = {
 		var i, il, f, fl, face;
 
 		// save original normals
-		// - create temp variables on first access
+		// - create tests variables on first access
 		//   otherwise just copy (for faster repeated calls)
 
 		for ( f = 0, fl = this.faces.length; f < fl; f ++ ) {
@@ -10015,7 +10015,7 @@ THREE.Geometry.prototype = {
 
 		}
 
-		// use temp geometry to compute face and vertex normals for each morph
+		// use tests geometry to compute face and vertex normals for each morph
 
 		var tmpGeo = new THREE.Geometry();
 		tmpGeo.faces = this.faces;
@@ -34447,7 +34447,7 @@ THREE.LensFlarePlugin = function () {
 				screenPositionPixels.y > 0 &&
 				screenPositionPixels.y < viewportHeight ) ) {
 
-				// save current RGB to temp texture
+				// save current RGB to tests texture
 
 				_gl.activeTexture( _gl.TEXTURE1 );
 				_gl.bindTexture( _gl.TEXTURE_2D, _lensFlare.tempTexture );

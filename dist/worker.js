@@ -117,6 +117,11 @@
       url = httpRoot() + path;
     }
 
+    var backup;
+
+    if (typeof module != 'undefined') {
+      backup = module;
+    }
     //node.js stubs
     process = {
       //an argument is necessary for some test-....js scripts
@@ -126,7 +131,7 @@
     module = {
       exports: {}
     };
-    
+
     exports = module.exports;
     //in case of ammo remove stubs, or it will require fs and path
     if (isAmmo(script)) {
@@ -141,7 +146,12 @@
         return Ammo;
     }
 
-    return module.exports;
+    var ret = module.exports;
+    if (backup) {
+      module.exports = backup;
+    }
+    //console.log('after import', script);
+    return ret;
   };
 })(self, {});
 

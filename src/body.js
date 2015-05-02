@@ -61,6 +61,7 @@ Body.prototype.types = {
     this.syncPhysics();
   }
 };
+
 /**
  * updates ammo and three position and rotation from the objects position and rotation
  */

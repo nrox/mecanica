@@ -560,7 +560,11 @@ System.prototype.load = function (json) {
 System.prototype.importSystem = function (url, id, options) {
   try {
     console.log('System.importSystem: ' + id + ' @ ' + url);
-    var json = require(url).getObject(options);
+    var mod = require(url);
+    //console.log("" + mod.getObject);
+    //console.log( mod.defaultOptions);
+
+    var json = mod.getObject(options);
     return this.loadSystem(json, id);
   } catch (e) {
     console.log('in System.importSystem: ' + id + ' @ ' + url);
@@ -1456,6 +1460,7 @@ Body.prototype.types = {
     this.syncPhysics();
   }
 };
+
 /**
  * updates ammo and three position and rotation from the objects position and rotation
  */

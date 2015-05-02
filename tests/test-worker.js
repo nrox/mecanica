@@ -73,6 +73,80 @@ var test = {
       testUtils.assert(status, 'required mecanica.js');
       worker.destroy();
     });
+  },
+  'recursive require': function () {
+    var mecanica = new lib.Mecanica();
+    var worker = new lib.WebWorker({url: '../dist/worker.js'}, mecanica);
+
+    worker.execute(function () {
+      console.log('worker will require level0.js');
+      var result = require('./level0.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {older: undefined, previous: undefined, current: 0}, 'module.exports at level0.js have only local values"');
+    });
+
+    worker.execute(function () {
+      console.log('worker will require level0.js 2 times');
+      require('./level0.js');
+      var result = require('./level0.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {older: undefined, previous: undefined, current: 0}, 'module.exports at level0.js have only local values"');
+    });
+
+    worker.execute(function () {
+      console.log('worker will require level1.js');
+      var result = require('./level1.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {older: undefined, previous: undefined, current: 1}, 'module.exports at level1.js have only local values"');
+    });
+
+    worker.execute(function () {
+      console.log('worker will require level1.js 2 times');
+      require('./level1.js');
+      var result = require('./level1.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {older: undefined, previous: undefined, current: 1}, 'module.exports at level1.js have only local values"');
+    });
+
+    worker.execute(function () {
+      console.log('worker will require level2.js');
+      //require('../dist/ware/tests/level2.js');
+      var result = require('./level2.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {
+        older: undefined,
+        previous: undefined,
+        current: 2,
+        zero: 0,
+        one: 1
+      }, 'module.exports at level2.js have only local values"');
+    });
+
+    worker.execute(function () {
+      console.log('worker will require level2.js 2 times');
+      require('./level2.js');
+      var result = require('./level2.js');
+      return result;
+    }, function (result) {
+      testUtils.checkValues(result, {
+        older: undefined,
+        previous: undefined,
+        current: 2,
+        zero: 0,
+        one: 1
+      }, 'module.exports at level2.js have only local values"');
+    });
+
+    //just destroy worker after all executions
+    worker.execute(function () {
+    }, function () {
+      worker.destroy();
+    });
   }
 };
 
