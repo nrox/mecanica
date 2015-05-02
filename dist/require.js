@@ -1,4 +1,4 @@
-(function () {
+(function (window, $) {
 
   var availablePaths;
 
@@ -157,12 +157,12 @@
     });
     return module.exports;
   };
-})();
+})(window, $);
 
 /**
  * replace console
  */
-(function () {
+(function (window, $) {
   var $console;
   var direction = 'append';
   var remove = ':first';
@@ -217,4 +217,4 @@
     $console && $console.empty();
   };
 
-})();
+})(window, $);

@@ -10,7 +10,7 @@ var utils = require('../dist/utils.js');
 
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
-var RUNS_RENDER = !utils.isNode();
+var RUNS_RENDER = utils.isBrowserWindow();
 
 var Ammo, THREE, jQuery;
 

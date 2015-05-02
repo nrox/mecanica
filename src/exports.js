@@ -1,7 +1,6 @@
-
-
 module.exports = {
   Mecanica: Mecanica,
+  WebWorker: WebWorker,
   Component: Component,
   System: System,
   Vector: Vector,

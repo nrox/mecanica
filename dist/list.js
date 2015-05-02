@@ -23,6 +23,7 @@ availablePaths = [
 "./dist/styles",
 "./dist/utils.js",
 "./dist/ware",
+"./dist/worker.js",
 "./dist/images/gear2.png",
 "./dist/images/gear.png",
 "./dist/images/reference.md",
@@ -87,4 +88,5 @@ availablePaths = [
 "./tests/test-ui.js",
 "./tests/test-usage.js",
 "./tests/test-utils.js",
+"./tests/test-worker.js",
 ]

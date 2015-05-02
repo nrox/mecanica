@@ -1,9 +1,7 @@
 (function(){
 'use strict';
 
-
-;// src/component.js begins
-
+// src/component.js begins
 /**
  * component.js
  * super class
@@ -16,7 +14,7 @@ var utils = require('../dist/utils.js');
 
 var UNDEFINED = undefined;
 var RUNS_PHYSICS = true;
-var RUNS_RENDER = !utils.isNode();
+var RUNS_RENDER = utils.isBrowserWindow();
 
 var Ammo, THREE, jQuery;
 
@@ -272,9 +270,7 @@ Component.prototype.destroy = function () {
 
 
 // src/component.js ends
-
-;// src/settings.js begins
-
+// src/settings.js begins
 function Settings(options, system) {
   this.construct(options, system, system.isRoot() ? 'global' : 'local');
 }
@@ -336,9 +332,7 @@ Settings.prototype.toJSON = function () {
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
 // src/settings.js ends
-
-;// src/system.js begins
-
+// src/system.js begins
 function System(options, system) {
   this.objects = {
     settings: {},
@@ -710,9 +704,7 @@ System.prototype.callAfterStep = function () {
 extend(System, Component);
 Component.prototype.maker.system = System;
 // src/system.js ends
-
-;// src/mechanic.js begins
-
+// src/mechanic.js begins
 function Mecanica(options) {
   if (!options) options = {};
 
@@ -927,9 +919,95 @@ Mecanica.prototype.isSimulationRunning = function () {
 extend(Mecanica, System);
 
 // src/mechanic.js ends
+// src/webworker.js begins
+function WebWorker(options, system) {
+  this.construct(options, system, 'basic');
+}
 
-;// src/method.js begins
+WebWorker.prototype.types = {
+  basic: function (options) {
+    this.include(options, {
+      url: '../dist/worker.js'
+    });
+    if (!utils.isBrowserWindow())  throw new Error("WebWorker is not supported in this environment. Browser: false");
+    this.worker = new Worker(this.url);
+    this.callbacks = {};
+    this.createListeners();
+  }
+};
 
+WebWorker.prototype.callbacks = function () {
+};
+WebWorker.prototype.createListeners = function () {
+  var _this = this;
+  this.worker.addEventListener('message', function (e) {
+    var data = e.data;
+    var channel = data.channel;
+    if (channel == 'window') {
+      window[data.object][data.method].apply(window[data.object][data.method], data['arguments']);
+    } else if (channel == 'result') {
+      var callback = data.callback && _this.callbacks[data.callback];
+      if (typeof callback == 'function') {
+        callback.call(null, data.result);
+        delete _this.callbacks[data.callback];
+      }
+    } else if (channel == 'echo') {
+      console.log('worker echoed:', data.echo);
+    } else {
+      console.log('unregistered callback for worker message:', e.data);
+    }
+  }, false);
+};
+
+/**
+ * Executes in worker environment
+ * @param data: a function or {method: function [, object: this] [, callback: function] [,arguments: list ]
+ * @param callback: an optional function
+ */
+WebWorker.prototype.execute = function (data, callback) {
+  var callbackId;
+  if ((typeof data == 'function')) {
+    var message = {
+      channel: 'execute',
+      method: "" + data
+    };
+    if (callback) {
+      callbackId = this.nextId('callback');
+      this.callbacks[callbackId] = callback;
+      message.callback = callbackId;
+    }
+    this.postMessage(message);
+  } else if ((typeof data == 'object')
+    && data.method
+    && (!data['arguments'] || (data['arguments'] instanceof Array))
+    && (!data.object || (typeof data.object == 'string'))) {
+    if (callback = (callback || data.callback)) {
+      callbackId = this.nextId('callback');
+      this.callbacks[callbackId] = callback;
+      data.callback = callbackId;
+    }
+    data.channel = "execute";
+    this.postMessage(data);
+  } else {
+    console.log('error: ', data);
+    throw new Error('in WebWorker.execute');
+  }
+};
+
+WebWorker.prototype.postMessage = function (message) {
+  if (this.worker) this.worker.postMessage(message);
+};
+
+WebWorker.prototype.destroy = function () {
+  if (this.worker) this.worker.terminate();
+  delete this.worker;
+};
+
+
+extend(WebWorker, Component);
+
+// src/webworker.js ends
+// src/method.js begins
 function Method(options, system) {
   this.construct(options, system, 'extended');
 }
@@ -971,9 +1049,7 @@ extend(Method, Component);
 Component.prototype.maker.method = Method;
 
 // src/method.js ends
-
-;// src/vector.js begins
-
+// src/vector.js begins
 function Vector(options) {
   this.include(options, {
     x: 0, y: 0, z: 0, scale: undefined
@@ -1091,9 +1167,7 @@ extend(Vector, Component);
 extend(Quaternion, Component);
 
 // src/vector.js ends
-
-;// src/shape.js begins
-
+// src/shape.js begins
 function Shape(options, system) {
   this.construct(options, system, 'sphere');
 }
@@ -1188,9 +1262,7 @@ Shape.prototype.useConversion = function (scale) {
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
 // src/shape.js ends
-
-;// src/material.js begins
-
+// src/material.js begins
 function Material(options, system) {
   this.construct(options, system, 'phong');
 }
@@ -1232,9 +1304,7 @@ Component.prototype.maker.material = Material;
 
 
 // src/material.js ends
-
-;// src/light.js begins
-
+// src/light.js begins
 function Light(options, system) {
   this.construct(options, system, 'directional');
 }
@@ -1284,9 +1354,7 @@ Light.prototype.methods = {
 extend(Light, Component);
 Component.prototype.maker.light = Light;
 // src/light.js ends
-
-;// src/body.js begins
-
+// src/body.js begins
 function Body(options, system) {
   this.construct(options, system, 'basic');
 }
@@ -1501,9 +1569,7 @@ Component.prototype.maker.body = Body;
 
 
 // src/body.js ends
-
-;// src/connector.js begins
-
+// src/connector.js begins
 function Connector(options, system) {
   this.construct(options, system, 'relative');
 }
@@ -1641,9 +1707,7 @@ Connector.prototype.toJSON = function () {
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
 // src/connector.js ends
-
-;// src/constraint.js begins
-
+// src/constraint.js begins
 function Constraint(options, system) {
   this.construct(options, system, 'point');
 }
@@ -2018,9 +2082,7 @@ Constraint.prototype.toJSON = function () {
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
 // src/constraint.js ends
-
-;// src/scene.js begins
-
+// src/scene.js begins
 function Scene(options, system) {
   this.construct(options, system, 'basic');
 }
@@ -2101,9 +2163,7 @@ Scene.prototype.destroy = function () {
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
 // src/scene.js ends
-
-;// src/camera.js begins
-
+// src/camera.js begins
 function Camera(options, system) {
   this.construct(options, system, 'perspective');
 }
@@ -2235,9 +2295,7 @@ Camera.prototype.methods = {
 extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
 // src/camera.js ends
-
-;// src/monitor.js begins
-
+// src/monitor.js begins
 function Monitor(options, system) {
   this.construct(options, system, 'complete');
 }
@@ -2271,9 +2329,7 @@ Monitor.prototype.types = {
 extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
 // src/monitor.js ends
-
-;// src/renderer.js begins
-
+// src/renderer.js begins
 function Renderer(options, system) {
   this.construct(options, system, 'available');
 }
@@ -2330,9 +2386,7 @@ Renderer.prototype.types = {
 extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
 // src/renderer.js ends
-
-;// src/ui.js begins
-
+// src/ui.js begins
 var GET_VALUE = 'getValue';
 var SET_VALUE = 'setValue';
 var FOLDER_SYMBOL = "{...}";
@@ -2757,13 +2811,10 @@ Component.prototype.maker.ui = UserInterface;
 
 
 // src/ui.js ends
-
-;// src/exports.js begins
-
-
-
+// src/exports.js begins
 module.exports = {
   Mecanica: Mecanica,
+  WebWorker: WebWorker,
   Component: Component,
   System: System,
   Vector: Vector,

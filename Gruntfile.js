@@ -8,6 +8,7 @@ module.exports = function (grunt) {
           'src/settings.js',
           'src/system.js',
           'src/mechanic.js',
+          'src/webworker.js',
           'src/method.js',
           'src/vector.js',
           'src/shape.js',
@@ -30,7 +31,7 @@ module.exports = function (grunt) {
         banner: '(function(){\n\'use strict\';\n\n',
         footer: '\n})();',
         process: function (src, filePath) {
-          return "\n;// " + filePath + ' begins\n\n' + src + "\n// " + filePath + " ends";
+          return "// " + filePath + ' begins\n' + src + "\n// " + filePath + " ends";
         }
       }
     },
