@@ -714,12 +714,12 @@ function Mecanica(options) {
   if (!options) options = {};
 
   if (options.runsPhysics !== undefined) {
-    RUNS_PHYSICS = !!options.runsPhysics;
+    RUNS_PHYSICS = utils.isBrowserWorker() || utils.isNode() || !!options.runsPhysics;
     this.RUNS_PHYSICS = RUNS_PHYSICS;
   }
 
   if (options.runsRender !== undefined) {
-    RUNS_RENDER = !!options.runsRender;
+    RUNS_RENDER = utils.isBrowserWindow() && !!options.runsRender;
     this.RUNS_RENDER = RUNS_RENDER;
   }
 
