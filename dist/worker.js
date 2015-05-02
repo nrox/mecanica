@@ -126,6 +126,7 @@
     module = {
       exports: {}
     };
+    
     exports = module.exports;
     //in case of ammo remove stubs, or it will require fs and path
     if (isAmmo(script)) {

@@ -11,6 +11,7 @@ WebWorker.prototype.types = {
     this.worker = new Worker(this.url);
     this.callbacks = {};
     this.createListeners();
+    this.rootSystem.webWorker = this;
   }
 };
 
@@ -24,14 +25,14 @@ WebWorker.prototype.createListeners = function () {
     try {
       if (channel == 'window') {
         window[data.object][data.method].apply(window[data.object], data['arguments']);
+      } else if (channel == 'mecanica') {
+        this.rootSystem[data.method].apply(this.rootSystem, data['arguments']);
       } else if (channel == 'result') {
         var callback = data.callback && _this.callbacks[data.callback];
         if (typeof callback == 'function') {
           callback.call(null, data.result);
           delete _this.callbacks[data.callback];
         }
-      } else if (channel == 'echo') {
-        console.log('worker echoed:', data.echo);
       } else if ((channel == 'socket') && _this.socket) {
         _this.socket.trigger(data.emit, data.data);
       } else {
@@ -85,6 +86,7 @@ WebWorker.prototype.postMessage = function (message) {
 
 WebWorker.prototype.destroy = function () {
   if (this.worker) this.worker.terminate();
+  if (this.rootSystem.webWorker) delete this.rootSystem.webWorker;
   delete this.worker;
 };
 

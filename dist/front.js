@@ -1,5 +1,5 @@
 window.onload = function () {
-  new MecanicaClient(!isLocalhost());
+  new MecanicaClient(true || !isLocalhost());
 };
 
 

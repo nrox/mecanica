@@ -1,3 +1,4 @@
+
 var _ = require('../../lib/underscore.js');
 var utils = require('../../utils.js');
 var fingerData = require('../../ware/experiment/finger.js');
@@ -12,6 +13,7 @@ var defaultOptions = {
 };
 
 function getObject(options) {
+
   var o = _.defaults(options || {}, defaultOptions);
   var finger = function (angle) {
     var x = Math.sin(angle);
@@ -155,5 +157,4 @@ function userInterface(options) {
 module.exports.userInterface = userInterface;
 module.exports.defaultOptions = defaultOptions;
 module.exports.getObject = getObject;
-
 

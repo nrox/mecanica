@@ -257,6 +257,7 @@ System.prototype.destroy = function (scene) {
     });
   }, this);
   try {
+    if (this.webWorker) this.webWorker.destroy();
     if (this.ammoTransform) {
       Ammo.destroy(this.ammoTransform);
       delete this.ammoTransform;
