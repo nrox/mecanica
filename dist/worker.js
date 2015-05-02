@@ -78,6 +78,25 @@
     return ret;
   }
 
+  self.rememberEnvironment = function () {
+    self._environments = self._environments || [];
+    var keys = {};
+    for (var i in self) {
+      keys[i] = self[i];
+    }
+    self._environments.push(keys);
+  };
+
+  self.restoreEnvironment = function () {
+    var keys = self._environments.pop();
+    for (var i in self) {
+      if ((keys[i] !== undefined) && (keys[i] !== self[i])) {
+        //console.log('restore', i);
+        self[i] = keys[i];
+      }
+    }
+  };
+
   self.requireURL = function (script) {
     return httpRoot() + requiredPath(script);
   };
@@ -117,11 +136,8 @@
       url = httpRoot() + path;
     }
 
-    var backup;
+    self.rememberEnvironment();
 
-    if (typeof module != 'undefined') {
-      backup = module;
-    }
     //node.js stubs
     process = {
       //an argument is necessary for some test-....js scripts
@@ -138,8 +154,6 @@
       module = process = exports = undefined;
     }
 
-    //console.log('require', script);
-
     importScripts(url);
     if (isAmmo(script)) {
       if (typeof(Ammo) === 'object')
@@ -147,9 +161,9 @@
     }
 
     var ret = module.exports;
-    if (backup) {
-      module.exports = backup;
-    }
+
+    self.restoreEnvironment();
+
     //console.log('after import', script);
     return ret;
   };
