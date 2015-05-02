@@ -1,10 +1,9 @@
 window.onload = function () {
-  //setConsole('.console', false, 5);
-  var client = new MecanicaClient();
+  new MecanicaClient(!isLocalhost());
 };
 
 
-function MecanicaClient() {
+function MecanicaClient(inWorker) {
   _.extend(this, {
     socket: undefined,
     lib: undefined,
@@ -13,16 +12,26 @@ function MecanicaClient() {
     options: undefined,
     ui: undefined
   });
-  this.initSocket();
+  if (!inWorker) {
+    this.initSocket();
+  } else {
+    console.log('using web worker');
+    this.lib = require('../dist/mecanica.js');
+    this.mecanica = new this.lib.Mecanica({
+      runsPhysics: false
+    });
+    var worker = new this.lib.WebWorker({}, this.mecanica);
+    this.socket = worker.mockServer();
+    this.initSocket();
+    this.socket.emit('connect');
+  }
 }
 
 MecanicaClient.prototype.initSocket = function () {
   var url = location.href.substr(0, location.href.indexOf('/dist'));
-  console.log(url);
-  var socket = io.connect(url, {reconnection: false});
+  this.socket = this.socket || io.connect(url, {reconnection: false});
   var _this = this;
-  socket.on('connect', function () {
-    _this.socket = socket;
+  this.socket.on('connect', function () {
     console.log('websocket: connected');
     $('#loading').show();
     setTimeout(function () {
@@ -31,7 +40,7 @@ MecanicaClient.prototype.initSocket = function () {
       $('#loading').hide();
     }, 1);
   });
-  socket.on('error', function () {
+  _this.socket.on('error', function () {
     console.error(arguments);
   });
 };
@@ -66,11 +75,11 @@ MecanicaClient.prototype.buildInputs = function () {
 };
 
 MecanicaClient.prototype.buildListeners = function () {
-  this.lib = require('../dist/mecanica.js');
+  this.lib = this.lib || require('../dist/mecanica.js');
   var _this = this;
-  var me = this.mecanica = new this.lib.Mecanica({
+  var me = this.mecanica = (this.mecanica || new this.lib.Mecanica({
     runsPhysics: false
-  });
+  }));
   me.import('./ware/settings/tests.js');
   me.import('./ware/scene/simple.js');
   me.import('./ware/light/set3.js');

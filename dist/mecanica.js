@@ -233,15 +233,14 @@ Component.prototype.applyTorqueConversionRate = function (target, rate) {
   return this.applyConversionRate('TORQUE', 'torqueUnits', target, rate);
 };
 
+Component.prototype.void = function () {
+};
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
   if (this.runsPhysics()) {
     this[funName] = reference;
   } else {
-    //let it be executed in worker
-    this[funName] = function () {
-      post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
-    }
+    this[funName] = this.void;
   }
 };
 
@@ -616,6 +615,7 @@ System.prototype.addToScene = function (scene) {
   _.each(this.objects.constraint, function (cons) {
     cons.addToScene(scene);
   });
+
 };
 
 System.prototype.syncPhysics = function () {
@@ -734,7 +734,7 @@ function Mecanica(options) {
 Mecanica.prototype.types = {
   empty: function (options) {
     this.include(options, {
-      id: 'root',
+      id: this.nextId('mecanica'),
       useDefaults: false
     });
     if (this.useDefaults) this.makeDefaults(this.useDefaults);
@@ -921,11 +921,11 @@ extend(Mecanica, System);
 // src/mechanic.js ends
 // src/webworker.js begins
 function WebWorker(options, system) {
-  this.construct(options, system, 'basic');
+  this.construct(options, system, 'front');
 }
 
 WebWorker.prototype.types = {
-  basic: function (options) {
+  front: function (options) {
     this.include(options, {
       url: '../dist/worker.js'
     });
@@ -943,18 +943,25 @@ WebWorker.prototype.createListeners = function () {
   this.worker.addEventListener('message', function (e) {
     var data = e.data;
     var channel = data.channel;
-    if (channel == 'window') {
-      window[data.object][data.method].apply(window[data.object][data.method], data['arguments']);
-    } else if (channel == 'result') {
-      var callback = data.callback && _this.callbacks[data.callback];
-      if (typeof callback == 'function') {
-        callback.call(null, data.result);
-        delete _this.callbacks[data.callback];
+    try {
+      if (channel == 'window') {
+        window[data.object][data.method].apply(window[data.object], data['arguments']);
+      } else if (channel == 'result') {
+        var callback = data.callback && _this.callbacks[data.callback];
+        if (typeof callback == 'function') {
+          callback.call(null, data.result);
+          delete _this.callbacks[data.callback];
+        }
+      } else if (channel == 'echo') {
+        console.log('worker echoed:', data.echo);
+      } else if ((channel == 'socket') && _this.socket) {
+        _this.socket.trigger(data.emit, data.data);
+      } else {
+        console.log('unregistered callback for worker message:', e.data);
       }
-    } else if (channel == 'echo') {
-      console.log('worker echoed:', data.echo);
-    } else {
-      console.log('unregistered callback for worker message:', e.data);
+    } catch (err) {
+      console.log(err, e.data);
+      throw err;
     }
   }, false);
 };
@@ -1003,6 +1010,34 @@ WebWorker.prototype.destroy = function () {
   delete this.worker;
 };
 
+WebWorker.prototype.mockServer = function () {
+  var _this = this;
+  var socket;
+  socket = {
+    callbacks: {}, //should be an array
+    on: function (channel, callback) {
+      socket.callbacks[channel] = callback;
+    },
+    trigger: function (channel, data) {
+      if (typeof socket.callbacks[channel] == 'function') {
+        socket.callbacks[channel].call(null, data);
+      }
+    },
+    emit: function (channel, data) {
+      _this.worker.postMessage({
+        channel: 'socket',
+        emit: channel,
+        data: data || {}
+      });
+    }
+  };
+  this.socket = socket;
+  this.execute({
+    method: "mockServer",
+    arguments: ['../server/server.js']
+  });
+  return socket;
+};
 
 extend(WebWorker, Component);
 

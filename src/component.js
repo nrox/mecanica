@@ -229,15 +229,14 @@ Component.prototype.applyTorqueConversionRate = function (target, rate) {
   return this.applyConversionRate('TORQUE', 'torqueUnits', target, rate);
 };
 
+Component.prototype.void = function () {
+};
 
 Component.prototype.addPhysicsMethod = function (funName, reference) {
   if (this.runsPhysics()) {
     this[funName] = reference;
   } else {
-    //let it be executed in worker
-    this[funName] = function () {
-      post(['execMethod', [this.group, this.id], funName, utils.argList(arguments) ]);
-    }
+    this[funName] = this.void;
   }
 };
 

@@ -281,6 +281,7 @@ System.prototype.addToScene = function (scene) {
   _.each(this.objects.constraint, function (cons) {
     cons.addToScene(scene);
   });
+
 };
 
 System.prototype.syncPhysics = function () {

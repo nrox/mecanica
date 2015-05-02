@@ -71,6 +71,11 @@
     return ret;
   }
 
+  window.isLocalhost = function () {
+    return location.hostname == 'localhost';
+  };
+
+
   window.availablePaths = function () {
     return availablePaths;
   };
@@ -94,13 +99,8 @@
       return script.substr(script.lastIndexOf('/') + 1);
     }
 
-
     function isAmmo(script) {
       return fileName(script) == 'ammo.js';
-    }
-
-    function isLocalhost() {
-      return location.hostname == 'localhost';
     }
 
     if (script.lastIndexOf('.js') < 0) return;

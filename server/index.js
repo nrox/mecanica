@@ -40,7 +40,7 @@ app.get('/', function (req, res) {
 });
 
 io.on('connection', function (socket) {
-  require('./server.js')(socket);
+  require('./server.js').registerAll(socket);
 });
 
 

@@ -15,5 +15,4 @@ echo \] >> $LIST
 #sed -i '/\.\/\//d' $LIST
 sed -i '/\.\/src\//d' $LIST
 sed -i '/\.\/node_modules\//d' $LIST
-sed -i '/\.\/server\//d' $LIST
 

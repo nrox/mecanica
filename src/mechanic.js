@@ -27,7 +27,7 @@ function Mecanica(options) {
 Mecanica.prototype.types = {
   empty: function (options) {
     this.include(options, {
-      id: 'root',
+      id: this.nextId('mecanica'),
       useDefaults: false
     });
     if (this.useDefaults) this.makeDefaults(this.useDefaults);

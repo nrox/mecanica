@@ -1,9 +1,8 @@
 (function (self, $) {
-
   defineConsole();
 
   availablePaths = undefined;
-
+  socket = undefined;
   var url = ['./list.js', '../dist/list.js', '../../dist/list.js'];
 
   //load available paths
@@ -133,7 +132,7 @@
       module = process = exports = undefined;
     }
 
-    console.log('require', script);
+    //console.log('require', script);
 
     importScripts(url);
     if (isAmmo(script)) {
@@ -144,6 +143,8 @@
     return module.exports;
   };
 })(self, {});
+
+var _ = require('./lib/underscore.js');
 
 function defineConsole() {
   var types = ['log', 'info', 'warn', 'error'];
@@ -167,11 +168,41 @@ function defineConsole() {
   }
 }
 
+function mockServer(url) {
+  console.log('will mock server', url);
+  socket = {
+    callbacks: {}, //should be an array
+    on: function (channel, callback) {
+      socket.callbacks[channel] = callback;
+    },
+    trigger: function (channel, data) {
+      if (typeof socket.callbacks[channel] == 'function') {
+        socket.callbacks[channel].call(null, data);
+      }
+    },
+    emit: function (channel, data) {
+      self.postMessage({
+        channel: 'socket',
+        emit: channel,
+        data: data
+      });
+    },
+    volatile: {
+      emit: function (c, d) {
+        socket.emit(c, d);
+      }
+    }
+  };
+  require(url)(socket);
+}
+
 self.onmessage = function (e) {
   var data = e.data;
   var channel = data.channel;
   if (channel == 'echo') {
     self.postMessage(e.data);
+  } else if ((channel == 'socket') && socket) {
+    socket.trigger(data.emit, data.data);
   } else if (channel == 'execute') {
     try {
       var fun = eval('(' + data.method + ')');
@@ -184,6 +215,6 @@ self.onmessage = function (e) {
       throw e;
     }
   } else {
-    console.log('unregistered callback for message:', e.data);
+    console.log('worker has no callback for message:', e.data);
   }
 };

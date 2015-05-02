@@ -1,8 +1,7 @@
 var lib = require('../dist/mecanica.js');
 var utils = require('../dist/utils.js');
-var path = require('path');
-
-var _ = require('underscore');
+var path;
+var _ = require('../dist/lib/underscore.js');
 var VERBOSE = false;
 
 var simulations = {
@@ -12,6 +11,10 @@ var userInterfaces = {
 };
 
 function registerAll(socket) {
+
+  new Listener(socket, 'connect', function () {
+    this.emit();
+  });
 
   new Listener(socket, 'disconnect', function () {
     _.each(simulations, function (m) {
@@ -177,12 +180,18 @@ Responder.prototype.emitWarn = function (message) {
 };
 
 Responder.prototype.scriptPath = function () {
-  var root = path.join(__dirname, '..');
-  var clean = path.normalize(this.script);
-  var absolute = path.join(root, clean);
-  var ware = path.join(root, 'dist', 'ware');
-  if (absolute.indexOf(ware) !== 0) throw new Error('path ' + this.script + ' resolving to ' + absolute + ' was rejected');
-  return absolute;
+  if (utils.isNode()) {
+    //security checks
+    path = require('path');
+    var root = path.join(__dirname, '..');
+    var clean = path.normalize(this.script);
+    var absolute = path.join(root, clean);
+    var ware = path.join(root, 'dist', 'ware');
+    if (absolute.indexOf(ware) !== 0) throw new Error('path ' + this.script + ' resolving to ' + absolute + ' was rejected');
+    return absolute;
+  } else {//in webworker ?
+    return "../" + this.script;
+  }
 };
 
 Responder.prototype.require = function () {
