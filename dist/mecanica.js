@@ -1618,7 +1618,7 @@ Body.prototype.approachBody = function (approach) {
     targetBody = this.parentSystem.getBody(approach.targetBody);
     targetConnector = targetBody.connector[approach.targetConnector];
     connector.approachConnector(targetConnector);
-    //this.syncPhysics();
+    this.syncPhysics();
   } catch (e) {
     console.log('error while approaching ', this.id, 'to', approach);
     console.log('connector, targetBody, targetConnector :', connector, targetBody, targetConnector);
