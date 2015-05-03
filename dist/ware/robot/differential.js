@@ -5,7 +5,7 @@ var defaultOptions = {
   maxBinary: 1,
   bodyLength: 3,
   bodyWidth: 4,
-  bodyMass: 0,
+  bodyMass: 0.5,
   bodyHeight: 1,
   wheelDiameter: 4,
   wheelWidth: 0.5,
@@ -47,13 +47,13 @@ var getObject = function (o) {
         }
       },
       left: {
-        shape: 'wheel', material: 'blue', mass: o.wheelMass,
+        shape: 'wheel', material: 'blue', mass: o.wheelMass, friction: 1,
         connector: {
           axis: {}
         }
       },
       right: {
-        shape: 'wheel', material: 'blue', mass: o.wheelMass,
+        shape: 'wheel', material: 'blue', mass: o.wheelMass, friction: 1,
         connector: {
           axis: {}
         }

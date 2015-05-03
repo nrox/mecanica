@@ -5,6 +5,7 @@ var defaultOptions = {
   dy: 2,
   dz: 100,
   color: 0x444444,
+  opacity: 0.5,
   position: {y: -1}
 };
 
@@ -18,7 +19,7 @@ function getObject(options) {
     },
     material: {
       box: {
-        type: 'phong', color: options.color
+        type: 'phong', color: options.color, opacity: options.opacity, transparent: true, friction: 1
       }
     },
     body: {

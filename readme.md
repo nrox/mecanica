@@ -118,6 +118,7 @@ Or
 
 #TODO
 
+- use three.js camera controls as well
 - validator for json objects
 - tune servos and motors
 - use cm as default measure unit
