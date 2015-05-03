@@ -11,7 +11,7 @@ Settings.prototype.types = {
       fixedTimeStep: 1 / (60), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
       gravity: {y: -9.81}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 30, //frequency to render canvas
+      renderFrequency: 21, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
 
       //development/debug

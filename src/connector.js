@@ -94,7 +94,6 @@ Connector.prototype.normalize = function () {
   return t;
 };
 
-
 Connector.prototype.approachConnector = function (fix) {
   //move bodies to match connectors, which are already normalized, with computed transforms
   if (!ammoHelper) return;

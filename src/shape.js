@@ -57,7 +57,12 @@ Shape.prototype.types = {
     }
     _.each(this.children, function (childOptions) {
       childOptions._dontSave = true;
-      var child = new Shape(childOptions, this.parentSystem);
+      var child;
+      if (typeof childOptions.shape == 'string') {
+        child = this.parentSystem.getObject('shape', childOptions.shape);
+      } else {
+        child = new Shape(childOptions, this.parentSystem);
+      }
       var pos = new Vector(childOptions.position || {});
       this.applyLengthConversionRate(pos);
       var qua = new Quaternion(childOptions.rotation || {});

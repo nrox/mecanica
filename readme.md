@@ -118,7 +118,5 @@ Or
 
 #TODO
 
-- tune simulation for length units in cm
 - tune servos and motors
-- implement worker
 - use cm as default measure unit

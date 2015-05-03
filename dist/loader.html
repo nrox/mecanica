@@ -2,29 +2,29 @@
 <html>
 
 <head>
-    <title class='title'>Playground</title>
-    <link rel='stylesheet' type='text/css' href='styles/tests.css'/>
-    <link rel='stylesheet' type='text/css' href='styles/ui.css'/>
-    <link rel='icon' type='image/png' href='images/gear2.png'>
-    <script src='lib/jquery.js'></script>
-    <script src='lib/underscore.js'></script>
-    <script src='require.js'></script>
+  <title class='title'>Playground</title>
+  <link rel='stylesheet' type='text/css' href='styles/tests.css'/>
+  <link rel='stylesheet' type='text/css' href='styles/ui.css'/>
+  <link rel='icon' type='image/png' href='images/gear2.png'>
+  <script src='lib/jquery.js'></script>
+  <script src='lib/underscore.js'></script>
+  <script src='require.js'></script>
 </head>
 
 <body>
 <p>
-    <a href='../'>../</a> <a href=''>reload</a>
+  <a href='../'>../</a> <a href=''>reload</a>
 </p>
 
 <p class='small'>
-    Select an item from the list, change parameters, click load.
+  Select an item from the list, change parameters, click load.
 </p>
 
 <p>
-    <select id='list'>
-    </select>
-    <button onclick='loadFile();'>load</button>
-    <button onclick='removeFile();'>remove</button>
+  <select id='list'>
+  </select>
+  <button onclick='loadFile();'>load</button>
+  <button onclick='removeFile();'>remove</button>
 </p>
 
 
@@ -34,100 +34,95 @@
 <div class='console'></div>
 
 <script>
-    function reload() {
-        location.href = '';
+  function reload() {
+    location.href = '';
+  }
+  function loadList() {
+    var list = _.filter(availablePaths(), function (p) {
+      return p.indexOf('dist/ware') == 0 && (p.lastIndexOf('.js') == (p.length - 3));
+    });
+    return list.sort();
+  }
+  function makeList(list) {
+    var $list = $('#list');
+    var hash = location.hash;
+    if (hash) {
+      hash = hash.substr(1);
+      hash = decodeURIComponent(hash);
     }
-    function loadList() {
-        var allow = ['dist/ware/actuator', 'dist/ware/experiment', 'dist/ware/template'];
-        var list = _.filter(availablePaths(), function (p) {
-            return _.some(allow, function (folder) {
-                if ((p.indexOf(folder) == 0) && p.indexOf('.js') > 0) {
-                    return p;
-                }
-            });
+    _.each(list, function (file) {
+      var o = new Option(file, file, undefined, file === hash);
+      $list.append(o);
+    });
+    $list.on('change', function (e) {
+      var file = $(e.target).val();
+      location.hash = encodeURIComponent(file);
+      var obj = require(file).defaultOptions;
+      obj.load = loadFile;
+      ui.reuseWith({values: obj});
+    });
+    $list.trigger('change');
+  }
+  function loadFile() {
+    removeFile();
+    var file = $('#list').val();
+    if (mecanica.getSystem(file)) {
+      console.warn('system ' + file + ' already loaded');
+    } else {
+      var sys = mecanica.importSystem(file, file, ui.getValues());
+      mecanica.addToScene();
+      var controlsOptionsGenerator = require(file).userInterface;
+      if (controlsOptionsGenerator) {
+        var controlsOptions = controlsOptionsGenerator({
+          system: sys.options().id,
+          container: '#triggers',
+          title: 'Controls'
         });
-        return list.sort();
+        controls.reuseWith(controlsOptions);
+      } else {
+        controls.destroy();
+      }
     }
-    function makeList(list) {
-        var $list = $('#list');
-        var hash = location.hash;
-        if (hash) {
-            hash = hash.substr(1);
-            hash = decodeURIComponent(hash);
-        }
-        _.each(list, function (file) {
-            var o = new Option(file, file, undefined, file === hash);
-            $list.append(o);
-        });
-        $list.on('change', function (e) {
-            var file = $(e.target).val();
-            location.hash = encodeURIComponent(file);
-            var obj = require(file).defaultOptions;
-            obj.load = loadFile;
-            ui.reuseWith({values: obj});
-        });
-        $list.trigger('change');
-    }
-    function loadFile() {
-        removeFile();
-        var file = $('#list').val();
-        if (mecanica.getSystem(file)) {
-            console.warn('system ' + file + ' already loaded');
-        } else {
-            var sys = mecanica.importSystem(file, file, ui.getValues());
-            mecanica.addToScene();
-            var controlsOptionsGenerator = require(file).userInterface;
-            if (controlsOptionsGenerator) {
-                var controlsOptions = controlsOptionsGenerator({
-                    system: sys.options().id,
-                    container: '#triggers',
-                    title: 'Controls'
-                });
-                controls.reuseWith(controlsOptions);
-            } else {
-                controls.destroy();
-            }
-        }
-    }
-    function removeFile() {
-        var file = $('#list').val();
-        var system = mecanica.getSystem(file);
-        if (system) system.destroy();
-    }
+  }
+  function removeFile() {
+    var file = $('#list').val();
+    var system = mecanica.getSystem(file);
+    if (system) system.destroy();
+  }
 </script>
 <script>
-    setConsole('.console');
-    var utils = require('../dist/utils.js');
-    var lib = require('mecanica.js');
-    var mecanica = new lib.Mecanica();
-    mecanica.import('../ware/settings/tests.js');
-    mecanica.import('../ware/scene/simple.js', {solver: 'pgs'});
-    mecanica.import('../ware/light/set3.js');
-    mecanica.import('../ware/monitor/satellite.js', {distance: 20});
-    mecanica.addToScene();
-    mecanica.start();
-    var ui = new lib.UserInterface({
-        values: {load: loadFile},
-        container: '#triggers',
-        title: 'Options',
-        css: {
-            '.key': {
-                'text-align': 'right',
-                'min-width': '10em'
-            }
-        }
-    }, mecanica);
-    var controls = new lib.UserInterface({
-        container: '#triggers',
-        title: 'Controls',
-        css: {
-            '.key': {
-                'text-align': 'right',
-                'min-width': '10em'
-            }
-        }
-    }, mecanica);
-    makeList(loadList());
+  setConsole('.console');
+  var utils = require('../dist/utils.js');
+  var lib = require('mecanica.js');
+  var mecanica = new lib.Mecanica();
+  mecanica.import('../ware/settings/tests.js');
+  mecanica.import('../ware/scene/simple.js', {solver: 'pgs'});
+  mecanica.import('../ware/light/set3.js');
+  mecanica.import('../ware/monitor/satellite.js', {distance: 20});
+  mecanica.addToScene();
+  mecanica.start();
+  var ui = new lib.UserInterface({
+    values: {load: loadFile},
+    container: '#triggers',
+    title: 'Options',
+    css: {
+      '.key': {
+        'text-align': 'right',
+        'min-width': '10em'
+      }
+    }
+  }, mecanica);
+  var controls = new lib.UserInterface({
+    container: '#triggers',
+    title: 'Controls',
+    css: {
+      '.key': {
+        'text-align': 'right',
+        'min-width': '10em'
+      }
+    }
+  }, mecanica);
+  makeList(loadList());
 </script>
 </body>
 </html>

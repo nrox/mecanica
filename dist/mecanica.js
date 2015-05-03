@@ -283,7 +283,7 @@ Settings.prototype.types = {
       fixedTimeStep: 1 / (60), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
       gravity: {y: -9.81}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 30, //frequency to render canvas
+      renderFrequency: 21, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
 
       //development/debug
@@ -1269,7 +1269,12 @@ Shape.prototype.types = {
     }
     _.each(this.children, function (childOptions) {
       childOptions._dontSave = true;
-      var child = new Shape(childOptions, this.parentSystem);
+      var child;
+      if (typeof childOptions.shape == 'string') {
+        child = this.parentSystem.getObject('shape', childOptions.shape);
+      } else {
+        child = new Shape(childOptions, this.parentSystem);
+      }
       var pos = new Vector(childOptions.position || {});
       this.applyLengthConversionRate(pos);
       var qua = new Quaternion(childOptions.rotation || {});
@@ -1728,7 +1733,6 @@ Connector.prototype.normalize = function () {
   ammoHelper.destroy(wing);
   return t;
 };
-
 
 Connector.prototype.approachConnector = function (fix) {
   //move bodies to match connectors, which are already normalized, with computed transforms
