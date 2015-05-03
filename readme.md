@@ -122,3 +122,4 @@ Or
 - validator for json objects
 - tune servos and motors
 - use cm as default measure unit
+- user interfaces should be collapsable
