@@ -71,6 +71,7 @@ availablePaths = [
 "./dist/ware/scene/simple.js",
 "./dist/ware/settings/simple.js",
 "./dist/ware/settings/tests.js",
+"./dist/ware/template/approach.js",
 "./dist/ware/template/template.js",
 "./dist/ware/tests/level0.js",
 "./dist/ware/tests/level1.js",

@@ -280,7 +280,7 @@ Settings.prototype.types = {
 
       //simulation quality
       lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / 60, //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
+      fixedTimeStep: 1 / (60), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
       gravity: {y: -9.81}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
@@ -1407,8 +1407,8 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
-      position: {},
-      quaternion: undefined, rotation: undefined,
+      position: undefined, quaternion: undefined, rotation: undefined,
+      approach: undefined, //takes the form {connector:<id>, targetBody:<id,map>, targetConnector:<id>}
       connector: {}
     });
     this.notifyUndefined(['mass', 'shape', 'material']);
@@ -1448,16 +1448,19 @@ Body.prototype.types = {
     if (this.runsPhysics()) {
       this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
     }
-    this.applyParentSystemsTransform();
-    this.updateMotionState();
-    this.syncPhysics();
     _.each(this.connector, function (c, id) {
       c.bodyObject = _this;
       c.body = _this.id;
       c.id = id;
       new Connector(c, _this.parentSystem);
     });
-    this.syncPhysics();
+    if (this.approach) {
+      this.approachBody(this.approach);
+    } else {
+      this.applyParentSystemsTransform();
+      this.updateMotionState();
+      this.syncPhysics();
+    }
   }
 };
 
@@ -1483,6 +1486,7 @@ Body.prototype.updateMotionState = function () {
      rbInfo.m_linearDamping = 0.5;
      rbInfo.m_angularDamping = 0.5;
      */
+    if (this.ammo) Ammo.destroy(this.ammo);
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }
 };
@@ -1599,12 +1603,28 @@ Body.prototype.toJSON = function () {
   return json;
 };
 
-Body.prototype.getPosition = function(){
+Body.prototype.getPosition = function () {
   return this.position;
 };
 
-Body.prototype.getQuaternion = function(){
+Body.prototype.getQuaternion = function () {
   return this.quaternion;
+};
+
+Body.prototype.approachBody = function (approach) {
+  var connector, targetBody, targetConnector;
+  try {
+    connector = this.connector[approach.connector];
+    targetBody = this.parentSystem.getBody(approach.targetBody);
+    targetConnector = targetBody.connector[approach.targetConnector];
+    connector.approachConnector(targetConnector);
+    //this.syncPhysics();
+  } catch (e) {
+    console.log('error while approaching ', this.id, 'to', approach);
+    console.log('connector, targetBody, targetConnector :', connector, targetBody, targetConnector);
+    console.log('approach should be ', {connector: '{id}', targetBody: '{id,map}', targetConnector: '{id}'});
+    throw e;
+  }
 };
 
 extend(Body, Component);
