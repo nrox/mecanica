@@ -347,7 +347,10 @@ Constraint.prototype.methods = {
   },
   enable: function (velocity, binary) {
     if (this.runsPhysics()) {
-      this.ammo.enableAngularMotor(true, velocity, binary);
+      this.ammo.enableAngularMotor(true,
+        velocity == undefined ? this.maxVelocity : velocity,
+        binary == undefined ? this.maxBinary : binary
+      );
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
     }

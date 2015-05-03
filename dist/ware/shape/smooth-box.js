@@ -18,15 +18,15 @@ var getObject = function (o) {
 
   var json = {
     shape: {
-      box: {type: 'box', dx: bx, dy: by, dz: bz},
+      center: {type: 'box', dx: bx, dy: by, dz: bz},
+      side: {type: 'box', dx: bx, dy: by, dz: bz},
       cylinderX: {type: 'cylinder', r: r, dy: bx},
       cylinderY: {type: 'cylinder', r: r, dy: by},
       cylinderZ: {type: 'cylinder', r: r, dy: bz},
       sphere: {type: 'sphere', r: r},
-      side: {type: 'box', dx: bx, dy: by, dz: bz},
       smooth: {
         type: 'compound',
-        parent: 'box',
+        parent: 'center',
         children: {
           cylinderY0: {shape: 'cylinderY', position: {x: -bx / 2, z: -bz / 2}},
           cylinderY1: {shape: 'cylinderY', position: {x: -bx / 2, z: bz / 2}},

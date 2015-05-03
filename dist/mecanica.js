@@ -1302,12 +1302,14 @@ Shape.prototype.types = {
   }
 };
 
+
 Shape.prototype.useConversion = function (scale) {
   this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz', 'gap'], scale);
 };
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
+
 // src/shape.js ends
 // src/material.js begins
 function Material(options, system) {
@@ -2124,7 +2126,10 @@ Constraint.prototype.methods = {
   },
   enable: function (velocity, binary) {
     if (this.runsPhysics()) {
-      this.ammo.enableAngularMotor(true, velocity, binary);
+      this.ammo.enableAngularMotor(true,
+        velocity == undefined ? this.maxVelocity : velocity,
+        binary == undefined ? this.maxBinary : binary
+      );
       this.bodyA.ammo.activate();
       this.bodyB.ammo.activate();
     }

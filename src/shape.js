@@ -90,6 +90,7 @@ Shape.prototype.types = {
   }
 };
 
+
 Shape.prototype.useConversion = function (scale) {
   this.applyLengthConversionRate(['r', 'dx', 'dy', 'dz', 'gap'], scale);
 };
