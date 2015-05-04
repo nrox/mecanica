@@ -120,6 +120,7 @@ Or
 
 - use three.js camera controls as well
 - validator for json objects
-- tune servos and motors
+- tune servos and motorss
 - use cm as default measure unit
-- user interfaces should be collapsable
+- user interfaces should be collapsible
+- remove class monitor and use isolated camera and renderer, for more flexibility

@@ -63,11 +63,7 @@ var test = {
   },
   'mec.start/stop()': function () {
     var lib = require('../dist/mecanica.js');
-    var me = new lib.Mecanica();
-    me.import('../ware/settings/tests.js');
-    me.import('../ware/scene/simple.js');
-    me.import('../ware/light/simple.js');
-    me.import('../ware/monitor/simple.js');
+    var me = new lib.Mecanica({useDefaults: true});
     me.importSystem('../ware/experiment/basic2.js', 'basic2', {coneRadius: 1, coneY: 2.5});
     me.addToScene();
     me.start();
@@ -87,7 +83,7 @@ var test = {
       }
     };
     var template = {
-      speed: {type: 'range', min: 0, max: 20, step: 0.1, onChange: setSpeed}
+      speed: {type: 'range', min: 0, max: 20, step: 0.1, change: setSpeed}
     };
 
     function setSpeed() {

@@ -279,12 +279,12 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*2*2) for dm, 1/(60*2*2*2*2*2) for cm
-      gravity: {y: -9.81}, //in cm/s2
-      simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
+      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 32), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -981}, //in cm/s2
+      simSpeed: 0.1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 21, //frequency to render canvas
-      simFrequency: 30, //frequency to run a simulation cycle,
+      simFrequency: 21, //frequency to run a simulation cycle,
 
       //development/debug
       freeze: false, //if override objects mass with 0
@@ -321,6 +321,8 @@ Settings.prototype.types = {
 
 Settings.prototype.toJSON = function () {
   var json = utils.deepCopy(this._options);
+  //TODO update values from this to _options, uncomment and test it
+  //_.extend(json, _.pick(this, _.keys(json)));
   delete json.id;
   delete json.group;
   //lengths are converted on Component.construct, so this system is already converted to root units
@@ -909,7 +911,7 @@ Mecanica.prototype.stop = function () {
 };
 
 Mecanica.prototype.setSpeed = function (speed) {
-  this.getSettings().simSpeed = Number(speed);
+  this.globalSettings().simSpeed = Number(speed);
 };
 
 Mecanica.prototype.physicsDataReceived = function (arg) {

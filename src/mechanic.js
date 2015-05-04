@@ -197,7 +197,7 @@ Mecanica.prototype.stop = function () {
 };
 
 Mecanica.prototype.setSpeed = function (speed) {
-  this.getSettings().simSpeed = Number(speed);
+  this.globalSettings().simSpeed = Number(speed);
 };
 
 Mecanica.prototype.physicsDataReceived = function (arg) {
