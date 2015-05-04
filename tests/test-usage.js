@@ -115,6 +115,7 @@ var test = {
     me.import('../ware/monitor/simple.js');
     me.addToScene();
     me.start();
+    console.log(me);
   },
   'import/destroy()': function () {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
