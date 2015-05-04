@@ -25,7 +25,7 @@ function getObject(o) {
   var constraint = function (bodyA, bodyB) {
     return {
       type: 'servo', bodyA: bodyA, bodyB: bodyB, connectorA: 'top', connectorB: 'bottom',
-      lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2
+      lowerLimit: -Math.PI / 2, upperLimit: Math.PI / 2, maxBinary: 0.5
     };
   };
 

@@ -118,7 +118,6 @@ Or
 
 #TODO
 
-- use three.js camera controls as well
 - validator for json objects
 - tune servos and motorss
 - user interfaces should be collapsible
