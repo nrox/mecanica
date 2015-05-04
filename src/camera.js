@@ -52,6 +52,24 @@ Camera.prototype.types = {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
     this.addRenderMethod('move', Camera.prototype.methods.moveSatellite);
+  },
+  orbital: function (options) {
+    this.include(options, {
+      fov: 45, aspect: 1, near: 0.1, far: 1000,
+      damping: 0.2, //distance to keep
+      position: {x: 0, y: 1, z: -20},
+      lookAt: null
+    });
+    this.notifyUndefined(['lookAt', 'damping']);
+    this.addRenderMethod('move', this.void);
+    if (this.runsRender()) {
+      this.position = new Vector(this.position);
+      this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+      this.three.position.copy(this.position.three);
+      //this.three.lookAt(new Vector(this.lookAt).three);
+      var controls = new THREE.OrbitControls(this.three);
+      controls.damping = this.damping;
+    }
   }
 };
 

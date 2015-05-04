@@ -71,11 +71,12 @@ Mecanica.prototype.makeDefaults = function (options) {
     light: {
       l1: {position: {x: options.cameraDistance, z: -options.cameraDistance}},
       l2: {position: {x: -1.3 * options.cameraDistance, y: options.cameraDistance * 1.1}, color: options.color2},
-      l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3}
+      //l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3},
+      l4: {type: 'ambient'}
     },
     monitor: {
       use: {
-        camera: 'satellite',
+        camera: 'orbital',
         lookAt: {},
         axis: {x: 5, y: 7, z: 10},
         distance: options.cameraDistance

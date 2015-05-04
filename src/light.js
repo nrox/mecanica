@@ -30,6 +30,15 @@ Light.prototype.types = {
       this.three = light;
     }
     this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
+  },
+  ambient: function (options) {
+    this.include(options, {
+      color: 0x332211
+    });
+    if (this.runsRender()) {
+      this.three = new THREE.AmbientLight(this.color);
+    }
+    this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
   }
 };
 

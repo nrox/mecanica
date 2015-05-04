@@ -785,11 +785,12 @@ Mecanica.prototype.makeDefaults = function (options) {
     light: {
       l1: {position: {x: options.cameraDistance, z: -options.cameraDistance}},
       l2: {position: {x: -1.3 * options.cameraDistance, y: options.cameraDistance * 1.1}, color: options.color2},
-      l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3}
+      //l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3},
+      l4: {type: 'ambient'}
     },
     monitor: {
       use: {
-        camera: 'satellite',
+        camera: 'orbital',
         lookAt: {},
         axis: {x: 5, y: 7, z: 10},
         distance: options.cameraDistance
@@ -1386,6 +1387,15 @@ Light.prototype.types = {
         light.shadowDarkness = 0.35;
       }
       this.three = light;
+    }
+    this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
+  },
+  ambient: function (options) {
+    this.include(options, {
+      color: 0x332211
+    });
+    if (this.runsRender()) {
+      this.three = new THREE.AmbientLight(this.color);
     }
     this.addRenderMethod('addToScene', Light.prototype.methods.addToScene);
   }
@@ -2294,6 +2304,24 @@ Camera.prototype.types = {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
     }
     this.addRenderMethod('move', Camera.prototype.methods.moveSatellite);
+  },
+  orbital: function (options) {
+    this.include(options, {
+      fov: 45, aspect: 1, near: 0.1, far: 1000,
+      damping: 0.2, //distance to keep
+      position: {x: 0, y: 1, z: -20},
+      lookAt: null
+    });
+    this.notifyUndefined(['lookAt', 'damping']);
+    this.addRenderMethod('move', this.void);
+    if (this.runsRender()) {
+      this.position = new Vector(this.position);
+      this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
+      this.three.position.copy(this.position.three);
+      //this.three.lookAt(new Vector(this.lookAt).three);
+      var controls = new THREE.OrbitControls(this.three);
+      controls.damping = this.damping;
+    }
   }
 };
 
