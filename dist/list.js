@@ -31,6 +31,7 @@ availablePaths = [
 "./dist/lib/ammo.js",
 "./dist/lib/jquery.js",
 "./dist/lib/licenses",
+"./dist/lib/OrbitControls.js",
 "./dist/lib/readme.md",
 "./dist/lib/socket.io.js",
 "./dist/lib/three.js",

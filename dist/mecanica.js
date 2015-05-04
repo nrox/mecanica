@@ -2167,8 +2167,8 @@ Scene.prototype.types = {
       solver: 'sequential' //pgs, dantzig
     });
     this.gravity = this.globalSettings().gravity;
-    this.showAxisHelper();
     this.createWorld();
+    this.showAxisHelper();
   }
 };
 
@@ -2186,6 +2186,9 @@ Scene.prototype.createWorld = function () {
     );
     this.gravity = new Vector(this.gravity);
     this.ammo.setGravity(this.gravity.ammo);
+  }
+  if (this.runsRender()) {
+    this.three = new THREE.Scene();
   }
 };
 
@@ -2212,7 +2215,6 @@ Scene.prototype.makeConstraintsSolver = function () {
 Scene.prototype.showAxisHelper = function () {
   var settings = this.getSettings();
   if (this.runsRender()) {
-    this.three = new THREE.Scene();
     if (settings.axisHelper) {
       if (this.runsRender()) this.three.add(new THREE.AxisHelper(settings.axisHelper));
     }
