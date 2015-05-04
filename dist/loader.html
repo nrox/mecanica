@@ -94,11 +94,7 @@
   setConsole('.console');
   var utils = require('../dist/utils.js');
   var lib = require('mecanica.js');
-  var mecanica = new lib.Mecanica();
-  mecanica.import('../ware/settings/tests.js');
-  mecanica.import('../ware/scene/simple.js', {solver: 'pgs'});
-  mecanica.import('../ware/light/set3.js');
-  mecanica.import('../ware/monitor/satellite.js', {distance: 20});
+  var mecanica = new lib.Mecanica({useDefaults: true});
   mecanica.addToScene();
   mecanica.start();
   var ui = new lib.UserInterface({

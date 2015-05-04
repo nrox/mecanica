@@ -100,10 +100,10 @@ var test = {
   'mec.load(json)': function () {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");
     console.log("using importSystem, 2 files are imported");
-    var me = new (require('../dist/mecanica.js').Mecanica)();
-    me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
-    me.import('../ware/scene/simple.js');
-    me.import('../ware/light/simple.js');
+    var me = new (require('../dist/mecanica.js').Mecanica)({useDefaults: true});
+    //me.import('../ware/settings/simple.js', {canvasContainer: '#container'});
+    //me.import('../ware/scene/simple.js');
+    //me.import('../ware/light/simple.js');
     me.importSystem('../ware/experiment/basic2.js', 'basic2');
     me.importSystem('../ware/world/surface.js', 'surf', {
       position: {y: -5},
@@ -112,10 +112,9 @@ var test = {
       dz: 10,
       dy: 1
     });
-    me.import('../ware/monitor/simple.js');
+    //me.import('../ware/monitor/simple.js');
     me.addToScene();
     me.start();
-    console.log(me);
   },
   'import/destroy()': function () {
     console.log("settings, scene, monitor and lights are all imported into a new Mecanica()");

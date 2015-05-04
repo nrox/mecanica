@@ -5,7 +5,7 @@ var defaultOptions = {
   maxBinary: 1,
   bodyLength: 3,
   bodyWidth: 4,
-  bodyMass: 0.5,
+  bodyMass: 0,
   bodyHeight: 1,
   wheelDiameter: 4,
   wheelWidth: 0.5,

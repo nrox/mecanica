@@ -71,27 +71,18 @@ Mecanica.prototype.makeDefaults = function (options) {
     light: {
       l1: {position: {x: options.cameraDistance, z: -options.cameraDistance}},
       l2: {position: {x: -1.3 * options.cameraDistance, y: options.cameraDistance * 1.1}, color: options.color2},
-      //l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3},
+      l3: {position: {y: -10 * options.cameraDistance, z: 10 * options.cameraDistance / 5, x: 13 * options.cameraDistance}, color: options.color3},
       l4: {type: 'ambient'}
     },
     monitor: {
       use: {
-        camera: 'orbital',
-        lookAt: {},
-        axis: {x: 5, y: 7, z: 10},
-        distance: options.cameraDistance
+        camera: 'orbital'
       }
     }
   };
   this.load(defaults);
 };
 
-Mecanica.prototype.useMonitor = function (json) {
-  if (this.getSome('monitor')) return;
-  json = json || {};
-  json.id = 'use';
-  this.make('monitor', json);
-};
 
 Mecanica.prototype.isRoot = function () {
   return true;
@@ -157,7 +148,7 @@ Mecanica.prototype.startRender = function () {
 
   var settings = this.getSettings();
   var scene = this.getScene();
-  this.useMonitor(this.monitor);
+  //this.useMonitor(this.monitor);
   var monitor = this.getSome('monitor');
   var _this = this;
   _.each(this.objects.light, function (light) {

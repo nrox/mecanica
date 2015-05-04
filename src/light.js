@@ -33,7 +33,7 @@ Light.prototype.types = {
   },
   ambient: function (options) {
     this.include(options, {
-      color: 0x332211
+      color: 0x222222
     });
     if (this.runsRender()) {
       this.three = new THREE.AmbientLight(this.color);

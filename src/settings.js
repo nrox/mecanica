@@ -8,11 +8,11 @@ Settings.prototype.types = {
 
       //simulation quality
       lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 32), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      fixedTimeStep: 1 / (60 * 64), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
       gravity: {y: -981}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 21, //frequency to render canvas
-      simFrequency: 21, //frequency to run a simulation cycle,
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
 
       //development/debug
       freeze: false, //if override objects mass with 0

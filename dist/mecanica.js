@@ -280,11 +280,11 @@ Settings.prototype.types = {
 
       //simulation quality
       lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 32), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      fixedTimeStep: 1 / (60 * 64), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
       gravity: {y: -981}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
-      renderFrequency: 21, //frequency to render canvas
-      simFrequency: 21, //frequency to run a simulation cycle,
+      renderFrequency: 30, //frequency to render canvas
+      simFrequency: 30, //frequency to run a simulation cycle,
 
       //development/debug
       freeze: false, //if override objects mass with 0
@@ -785,27 +785,18 @@ Mecanica.prototype.makeDefaults = function (options) {
     light: {
       l1: {position: {x: options.cameraDistance, z: -options.cameraDistance}},
       l2: {position: {x: -1.3 * options.cameraDistance, y: options.cameraDistance * 1.1}, color: options.color2},
-      //l3: {position: {y: -options.cameraDistance, z: options.cameraDistance / 5}, color: options.color3},
+      l3: {position: {y: -10 * options.cameraDistance, z: 10 * options.cameraDistance / 5, x: 13 * options.cameraDistance}, color: options.color3},
       l4: {type: 'ambient'}
     },
     monitor: {
       use: {
-        camera: 'orbital',
-        lookAt: {},
-        axis: {x: 5, y: 7, z: 10},
-        distance: options.cameraDistance
+        camera: 'orbital'
       }
     }
   };
   this.load(defaults);
 };
 
-Mecanica.prototype.useMonitor = function (json) {
-  if (this.getSome('monitor')) return;
-  json = json || {};
-  json.id = 'use';
-  this.make('monitor', json);
-};
 
 Mecanica.prototype.isRoot = function () {
   return true;
@@ -871,7 +862,7 @@ Mecanica.prototype.startRender = function () {
 
   var settings = this.getSettings();
   var scene = this.getScene();
-  this.useMonitor(this.monitor);
+  //this.useMonitor(this.monitor);
   var monitor = this.getSome('monitor');
   var _this = this;
   _.each(this.objects.light, function (light) {
@@ -1392,7 +1383,7 @@ Light.prototype.types = {
   },
   ambient: function (options) {
     this.include(options, {
-      color: 0x332211
+      color: 0x222222
     });
     if (this.runsRender()) {
       this.three = new THREE.AmbientLight(this.color);
@@ -2319,7 +2310,7 @@ Camera.prototype.types = {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
       this.three.position.copy(this.position.three);
       //this.three.lookAt(new Vector(this.lookAt).three);
-      var controls = new THREE.OrbitControls(this.three);
+      var controls = new THREE.OrbitControls(this.three, $(this.globalSettings().canvasContainer).get()[0]);
       controls.damping = this.damping;
     }
   }

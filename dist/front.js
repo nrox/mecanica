@@ -18,7 +18,7 @@ function MecanicaClient(inWorker) {
     console.log('using web worker');
     this.lib = require('../dist/mecanica.js');
     this.mecanica = new this.lib.Mecanica({
-      runsPhysics: false
+      useDefaults: true, runsPhysics: false
     });
     var worker = new this.lib.WebWorker({}, this.mecanica);
     this.socket = worker.mockServer();
@@ -78,12 +78,12 @@ MecanicaClient.prototype.buildListeners = function () {
   this.lib = this.lib || require('../dist/mecanica.js');
   var _this = this;
   var me = this.mecanica = (this.mecanica || new this.lib.Mecanica({
-    runsPhysics: false
+    useDefaults: true, runsPhysics: false
   }));
-  me.import('./ware/settings/tests.js');
-  me.import('./ware/scene/simple.js');
-  me.import('./ware/light/set3.js');
-  me.import('./ware/monitor/satellite.js');
+  //me.import('./ware/settings/tests.js');
+  //me.import('./ware/scene/simple.js');
+  //me.import('./ware/light/set3.js');
+  //me.import('./ware/monitor/satellite.js');
 
   this.socket.on('status', function (message) {
     console[message.type || 'log']('response', message.channel, message.script, message.status);

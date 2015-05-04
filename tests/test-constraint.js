@@ -12,12 +12,8 @@ function clearObjects() {
 
 function makeTest(system, inputOptions) {
   return function () {
-    var me = new lib.Mecanica();
-    me.import('../dist/ware/settings/tests.js');
-    me.import('../dist/ware/scene/simple.js');
-    me.import('../dist/ware/light/set3.js');
+    var me = new lib.Mecanica({useDefaults: true});
     me.loadSystem(system, 'system');
-    me.import('../dist/ware/monitor/satellite.js');
     me.addToScene();
     if (inputOptions) new lib.UserInterface(inputOptions, me);
     me.start();

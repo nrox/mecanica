@@ -67,7 +67,7 @@ Camera.prototype.types = {
       this.three = new THREE.PerspectiveCamera(this.fov, this.aspect, this.near, this.far);
       this.three.position.copy(this.position.three);
       //this.three.lookAt(new Vector(this.lookAt).three);
-      var controls = new THREE.OrbitControls(this.three);
+      var controls = new THREE.OrbitControls(this.three, $(this.globalSettings().canvasContainer).get()[0]);
       controls.damping = this.damping;
     }
   }
