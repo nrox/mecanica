@@ -9,9 +9,9 @@ var defaultOptions = {
   bodyHeight: 1,
   wheelDiameter: 4,
   wheelWidth: 0.5,
-  wheelMass: 0.02,
+  wheelMass: 0.05,
   wheelMargin: 0.1,
-  supportMass: 0.1
+  supportMass: 0.05
 };
 
 var getObject = function (o) {

@@ -8,6 +8,8 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
+      angularDamping: 0.3,
+      linearDamping: 0.1,
       mask: undefined,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined, //takes the form {connector:<id>, targetBody:<id,map>, targetConnector:<id>}
@@ -77,10 +79,8 @@ Body.prototype.updateMotionState = function () {
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     rbInfo.set_m_friction(this.material.getFriction());
     rbInfo.set_m_restitution(this.material.getRestitution());
-    /*
-     rbInfo.m_linearDamping = 0.5;
-     rbInfo.m_angularDamping = 0.5;
-     */
+    rbInfo.m_linearDamping = this.linearDamping;
+    rbInfo.m_angularDamping = this.angularDamping;
     if (this.ammo) Ammo.destroy(this.ammo);
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }

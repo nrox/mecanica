@@ -46,7 +46,6 @@ Settings.prototype.types = {
   }
 };
 
-
 Settings.prototype.toJSON = function () {
   var json = utils.deepCopy(this._options);
   //TODO update values from this to _options, uncomment and test it

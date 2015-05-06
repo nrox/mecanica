@@ -318,7 +318,6 @@ Settings.prototype.types = {
   }
 };
 
-
 Settings.prototype.toJSON = function () {
   var json = utils.deepCopy(this._options);
   //TODO update values from this to _options, uncomment and test it
@@ -1321,7 +1320,7 @@ Material.prototype.types = {
       color: 0x333333, opacity: 1, transparent: false,
       wireframe: this.getSettings().wireframe || false
     });
-    this.transparent = !!((this.opacity != undefined) && (this.opacity < 1));
+    this.options().transparent = !!((this.opacity != undefined) && (this.opacity < 1));
     this.notifyUndefined(['friction', 'restitution']);
   },
   basic: function (options) {
@@ -1349,7 +1348,6 @@ Material.prototype.getRestitution = function () {
 
 extend(Material, Component);
 Component.prototype.maker.material = Material;
-
 
 // src/material.js ends
 // src/light.js begins
@@ -1423,6 +1421,8 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
+      angularDamping: 0.3,
+      linearDamping: 0.1,
       mask: undefined,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined, //takes the form {connector:<id>, targetBody:<id,map>, targetConnector:<id>}
@@ -1492,10 +1492,8 @@ Body.prototype.updateMotionState = function () {
     var rbInfo = new Ammo.btRigidBodyConstructionInfo(this.mass, motionState, this.shape.ammo, inertia);
     rbInfo.set_m_friction(this.material.getFriction());
     rbInfo.set_m_restitution(this.material.getRestitution());
-    /*
-     rbInfo.m_linearDamping = 0.5;
-     rbInfo.m_angularDamping = 0.5;
-     */
+    rbInfo.m_linearDamping = this.linearDamping;
+    rbInfo.m_angularDamping = this.angularDamping;
     if (this.ammo) Ammo.destroy(this.ammo);
     this.ammo = new Ammo.btRigidBody(rbInfo);
   }
@@ -2160,6 +2158,7 @@ Constraint.prototype.toJSON = function () {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
+
 // src/constraint.js ends
 // src/scene.js begins
 function Scene(options, system) {

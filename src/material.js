@@ -9,7 +9,7 @@ Material.prototype.types = {
       color: 0x333333, opacity: 1, transparent: false,
       wireframe: this.getSettings().wireframe || false
     });
-    this.transparent = !!((this.opacity != undefined) && (this.opacity < 1));
+    this.options().transparent = !!((this.opacity != undefined) && (this.opacity < 1));
     this.notifyUndefined(['friction', 'restitution']);
   },
   basic: function (options) {
@@ -37,4 +37,3 @@ Material.prototype.getRestitution = function () {
 
 extend(Material, Component);
 Component.prototype.maker.material = Material;
-
