@@ -16,15 +16,8 @@ Body.prototype.types = {
     if (this.settingsFor('freeze')) {
       this.mass = 0;
     }
-    var shape;
     var _this = this;
-    if (typeof this.shape == 'string') { //get from objects with id
-      shape = this.parentSystem.getObject('shape', this.shape);
-    } else { //make from options
-      shape = new Shape(this.shape, this.parentSystem);
-    }
-    this.shape = shape;
-
+    this.shape = this.parentSystem.getShape(this.shape) || new Shape(this.shape, this.parentSystem);
     var material;
     if (typeof this.material == 'string') { //get from objects with id
       material = this.parentSystem.getObject('material', this.material);
@@ -38,11 +31,11 @@ Body.prototype.types = {
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
-      this.three = new THREE.Mesh(shape.three, material.three);
+      this.three = new THREE.Mesh(this.shape.three, material.three);
       var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
-        shape.three.computeBoundingSphere();
-        var r = shape.three.boundingSphere.radius * 1.5;
+        this.shape.three.computeBoundingSphere();
+        var r = this.shape.three.boundingSphere.radius * 1.5;
         this.three.add(new THREE.AxisHelper(r));
       }
     }

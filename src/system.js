@@ -1,10 +1,10 @@
 function System(options, system) {
   this.objects = {
     settings: {},
+    system: {}, //high level structure of objects, identified by keys
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
     body: {}, //shape + mesh
-    system: {}, //high level structure of objects, identified by keys
     constraint: {}, //point, slider, hinge ...
     method: {} //methods available to the system
   };
@@ -120,6 +120,10 @@ System.prototype.getBody = function (idOrMap) {
   return this.getObjectOfGroup('body', idOrMap);
 };
 
+System.prototype.getShape = function (idOrMap) {
+  return this.getObjectOfGroup('shape', idOrMap);
+};
+
 System.prototype.getConstraint = function (idOrMap) {
   return this.getObjectOfGroup('constraint', idOrMap);
 };
@@ -129,7 +133,6 @@ System.prototype.getObjectOfGroup = function (group, idOrMap) {
     idOrMap = {id: idOrMap};
   }
   idOrMap.group = group;
-  idOrMap.system = idOrMap.system || [];
   return this.getObject(idOrMap);
 };
 

@@ -279,9 +279,9 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 32), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
-      gravity: {y: -981}, //in cm/s2
+      lengthUnits: 'dm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 8), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -98.1}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
@@ -337,10 +337,10 @@ Component.prototype.maker.settings = Settings;
 function System(options, system) {
   this.objects = {
     settings: {},
+    system: {}, //high level structure of objects, identified by keys
     shape: {}, //sphere, box, cylinder, cone ...
     material: {}, //basic, phong, lambert ? ...
     body: {}, //shape + mesh
-    system: {}, //high level structure of objects, identified by keys
     constraint: {}, //point, slider, hinge ...
     method: {} //methods available to the system
   };
@@ -456,6 +456,10 @@ System.prototype.getBody = function (idOrMap) {
   return this.getObjectOfGroup('body', idOrMap);
 };
 
+System.prototype.getShape = function (idOrMap) {
+  return this.getObjectOfGroup('shape', idOrMap);
+};
+
 System.prototype.getConstraint = function (idOrMap) {
   return this.getObjectOfGroup('constraint', idOrMap);
 };
@@ -465,7 +469,6 @@ System.prototype.getObjectOfGroup = function (group, idOrMap) {
     idOrMap = {id: idOrMap};
   }
   idOrMap.group = group;
-  idOrMap.system = idOrMap.system || [];
   return this.getObject(idOrMap);
 };
 
@@ -1405,6 +1408,7 @@ Light.prototype.methods = {
 
 extend(Light, Component);
 Component.prototype.maker.light = Light;
+
 // src/light.js ends
 // src/body.js begins
 function Body(options, system) {
@@ -1425,15 +1429,8 @@ Body.prototype.types = {
     if (this.settingsFor('freeze')) {
       this.mass = 0;
     }
-    var shape;
     var _this = this;
-    if (typeof this.shape == 'string') { //get from objects with id
-      shape = this.parentSystem.getObject('shape', this.shape);
-    } else { //make from options
-      shape = new Shape(this.shape, this.parentSystem);
-    }
-    this.shape = shape;
-
+    this.shape = this.parentSystem.getShape(this.shape) || new Shape(this.shape, this.parentSystem);
     var material;
     if (typeof this.material == 'string') { //get from objects with id
       material = this.parentSystem.getObject('material', this.material);
@@ -1447,11 +1444,11 @@ Body.prototype.types = {
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
-      this.three = new THREE.Mesh(shape.three, material.three);
+      this.three = new THREE.Mesh(this.shape.three, material.three);
       var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
-        shape.three.computeBoundingSphere();
-        var r = shape.three.boundingSphere.radius * 1.5;
+        this.shape.three.computeBoundingSphere();
+        var r = this.shape.three.boundingSphere.radius * 1.5;
         this.three.add(new THREE.AxisHelper(r));
       }
     }
