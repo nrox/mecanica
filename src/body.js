@@ -8,6 +8,7 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
+      mask: undefined,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined, //takes the form {connector:<id>, targetBody:<id,map>, targetConnector:<id>}
       connector: {}
@@ -94,7 +95,11 @@ Body.prototype.addToScene = function (scene) {
     this._added = true;
     if (this.runsRender()) scene.three.add(this.three);
     if (this.runsPhysics()) {
-      scene.ammo.addRigidBody(this.ammo);
+      if (this.mask) {
+        scene.ammo.addRigidBody(this.ammo, parseInt(this.mask, 2), parseInt(this.mask, 2));
+      } else {
+        scene.ammo.addRigidBody(this.ammo);
+      }
       if (!this.ammo.isInWorld()) {
         console.error(this.id + ' failed to be added to world');
       }
@@ -187,7 +192,7 @@ Body.prototype.destroy = function (scene) {
 
 Body.prototype.toJSON = function () {
   this.syncPhysics();
-  var json = _.pick(this._options, 'type', 'shape', 'material');
+  var json = _.pick(this._options, 'type', 'shape', 'material', 'mask');
   json.position = this.position.toJSON();
   json.quaternion = this.quaternion.toJSON();
   json.connector = {};

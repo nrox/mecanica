@@ -6,15 +6,16 @@ var defaultOptions = {
   dx: 5,
   dy: 4,
   dz: 6,
+  gap: 0.01,
   removeSides: false
 };
 
 var getObject = function (o) {
   o = _.defaults(o || {}, defaultOptions);
   var r = o.r;
-  var bx = o.dx - 2 * r;
-  var by = o.dy - 2 * r;
-  var bz = o.dz - 2 * r;
+  var bx = o.dx - 2 * r - 2 * o.gap;
+  var by = o.dy - 2 * r - 2 * o.gap;
+  var bz = o.dz - 2 * r - 2 * o.gap;
 
   var json = {
     shape: {

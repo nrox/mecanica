@@ -60,6 +60,6 @@ module.exports = {
     return new Date().getTime() - (from || 0);
   },
   seconds: function (from) {
-    return this.time(from) / 1000.0;
+    return this.time((from || 0) * 1000) / 1000.0;
   }
 };

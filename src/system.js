@@ -16,10 +16,11 @@ System.prototype.types = {
   basic: function (options) {
     this.include(options, {
       position: undefined,
-      rotation: undefined
+      rotation: undefined,
+      json: undefined
     });
     this.buildSystemPosition(options);
-    this.load(options);
+    this.load(this.json || options);
   },
   imported: function (options) {
     this.include(options, {
