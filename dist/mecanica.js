@@ -279,9 +279,9 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'dm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 8), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
-      gravity: {y: -98.1}, //in cm/s2
+      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 2), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -9.81}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
@@ -2726,6 +2726,14 @@ UserInterface.prototype.templateFor = function (key, value, parentTemplate) {
   if (typeof value == 'function') {
     return {type: 'function'};
   }
+  //colors
+  if (typeof value == 'number' && (/color/i).test(key)) {
+    return {type: 'color'};
+  }
+  //opacity, ...
+  if ((typeof value == 'number') && (value >= 0 && value <= 1) && ((/opacity/i).test(key))) {
+    return {type: 'range', min: 0, max: 1, step: 0.1};
+  }
   if (value === true || value === false) {
     return {type: 'boolean'};
   }
@@ -2777,15 +2785,22 @@ UserInterface.prototype.inputs = {
     });
     var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
     e[GET_VALUE] = function () {
-      return e[specs.val || 'text']();
+      var val = e[specs.val || 'text']();
+      val = val.replace(/0x/gi, '');
+      val = val.replace(/#/, '');
+      return parseInt(val, 16);
     };
     e[SET_VALUE] = function (a) {
+      a = "0x" + a.toString(16);
       e[specs.val || 'text'](a);
     };
     e.on('keyup', function () {
-      e.css('background-color', e[GET_VALUE]());
+      var val = e[specs.val || 'text']();
+      val = val.replace(/0x/gi, '');
+      val = val.replace(/#/, '');
+      if (val.length == 6)  e.css('background-color', '#' + val);
     });
-    e.text(v);
+    e[SET_VALUE](v);
     setTimeout(function () {
       e.trigger('keyup');
     }, 0);
