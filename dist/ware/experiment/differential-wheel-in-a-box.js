@@ -21,7 +21,7 @@
           color: 0xaaeeee
         }),
         robot: robot.getObject({
-          bodyMass: o.bodyMass
+          bodyMass: o.bodyMass, bodyLength: 5
         })
       }
     };

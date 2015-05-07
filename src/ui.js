@@ -295,7 +295,7 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'color', tag: 'span'
     });
-    var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
+    var e = $('<' + specs.tag + ' />', {contenteditable: 'true', spellcheck: 'false'});
     e[GET_VALUE] = function () {
       var val = e[specs.val || 'text']();
       val = val.replace(/0x/gi, '');

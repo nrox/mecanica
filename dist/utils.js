@@ -61,5 +61,20 @@ module.exports = {
   },
   seconds: function (from) {
     return this.time((from || 0) * 1000) / 1000.0;
+  },
+  clearTimeoutsAndIntervals: function () {
+    if (!this.isBrowserWindow()) return;
+    var id = window.setTimeout(function () {
+    }, 0);
+
+    while (id--) {
+      window.clearTimeout(id); // will do nothing if no timeout with id is present
+    }
+    id = window.setInterval(function () {
+    }, 0);
+
+    while (id--) {
+      window.clearInterval(id); // will do nothing if no timeout with id is present
+    }
   }
 };

@@ -3,6 +3,9 @@ function Body(options, system) {
 }
 
 Body.prototype.types = {
+  copy: function(options){
+
+  },
   basic: function (options) {
     this.include(options, {
       shape: undefined,
@@ -21,20 +24,13 @@ Body.prototype.types = {
     }
     var _this = this;
     this.shape = this.parentSystem.getShape(this.shape) || new Shape(this.shape, this.parentSystem);
-    var material;
-    if (typeof this.material == 'string') { //get from objects with id
-      material = this.parentSystem.getObject('material', this.material);
-    } else { //make from options
-      material = new Material(this.material, this.parentSystem);
-    }
-    this.material = material;
-
+    this.material = this.parentSystem.getMaterial( this.material) || new Material(this.material, this.parentSystem);
     this.position = new Vector(this.position);
     this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
-      this.three = new THREE.Mesh(this.shape.three, material.three);
+      this.three = new THREE.Mesh(this.shape.three, this.material.three);
       var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
         this.shape.three.computeBoundingSphere();

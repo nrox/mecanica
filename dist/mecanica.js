@@ -279,9 +279,9 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 2), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
-      gravity: {y: -9.81}, //in cm/s2
+      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 8), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -9.81 * 100}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
@@ -462,6 +462,10 @@ System.prototype.getShape = function (idOrMap) {
 
 System.prototype.getConstraint = function (idOrMap) {
   return this.getObjectOfGroup('constraint', idOrMap);
+};
+
+System.prototype.getMaterial = function (idOrMap) {
+  return this.getObjectOfGroup('material', idOrMap);
 };
 
 System.prototype.getObjectOfGroup = function (group, idOrMap) {
@@ -1417,6 +1421,9 @@ function Body(options, system) {
 }
 
 Body.prototype.types = {
+  copy: function(options){
+
+  },
   basic: function (options) {
     this.include(options, {
       shape: undefined,
@@ -1435,20 +1442,13 @@ Body.prototype.types = {
     }
     var _this = this;
     this.shape = this.parentSystem.getShape(this.shape) || new Shape(this.shape, this.parentSystem);
-    var material;
-    if (typeof this.material == 'string') { //get from objects with id
-      material = this.parentSystem.getObject('material', this.material);
-    } else { //make from options
-      material = new Material(this.material, this.parentSystem);
-    }
-    this.material = material;
-
+    this.material = this.parentSystem.getMaterial( this.material) || new Material(this.material, this.parentSystem);
     this.position = new Vector(this.position);
     this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
 
     if (this.runsRender()) {
-      this.three = new THREE.Mesh(this.shape.three, material.three);
+      this.three = new THREE.Mesh(this.shape.three, this.material.three);
       var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
         this.shape.three.computeBoundingSphere();
@@ -2783,7 +2783,7 @@ UserInterface.prototype.inputs = {
     _.defaults(specs, {
       type: 'color', tag: 'span'
     });
-    var e = $('<' + specs.tag + ' />', {contenteditable: 'true'});
+    var e = $('<' + specs.tag + ' />', {contenteditable: 'true', spellcheck: 'false'});
     e[GET_VALUE] = function () {
       var val = e[specs.val || 'text']();
       val = val.replace(/0x/gi, '');

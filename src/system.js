@@ -129,6 +129,10 @@ System.prototype.getConstraint = function (idOrMap) {
   return this.getObjectOfGroup('constraint', idOrMap);
 };
 
+System.prototype.getMaterial = function (idOrMap) {
+  return this.getObjectOfGroup('material', idOrMap);
+};
+
 System.prototype.getObjectOfGroup = function (group, idOrMap) {
   if (typeof idOrMap == 'string') {
     idOrMap = {id: idOrMap};

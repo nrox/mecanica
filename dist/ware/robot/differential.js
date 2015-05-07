@@ -16,7 +16,7 @@ var defaultOptions = {
 
 var getObject = function (o) {
   o = _.defaults(o || {}, defaultOptions);
-  var sphereRadius = (o.wheelDiameter / 2 - o.bodyHeight / 2) / 2;
+  var sphereRadius = (o.wheelDiameter / 2 - o.bodyHeight / 2) / 4;
   return {
     position: {y: o.wheelDiameter / 2 + o.wheelMargin},
     shape: {
