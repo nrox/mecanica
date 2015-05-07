@@ -3,8 +3,18 @@ function Body(options, system) {
 }
 
 Body.prototype.types = {
-  copy: function(options){
-
+  copy: function (options) {
+    this.include(options, {
+      of: undefined,
+      mass: undefined,
+      position: undefined, quaternion: undefined, rotation: undefined,
+      approach: undefined
+    });
+    this.notifyUndefined(['of', 'mass']);
+    var of = this.parentSystem.getBody(this.of);
+    var json = of.toJSON();
+    _.extend(json, this.options());
+    Body.prototype.types.basic.call(this, json);
   },
   basic: function (options) {
     this.include(options, {
@@ -24,7 +34,7 @@ Body.prototype.types = {
     }
     var _this = this;
     this.shape = this.parentSystem.getShape(this.shape) || new Shape(this.shape, this.parentSystem);
-    this.material = this.parentSystem.getMaterial( this.material) || new Material(this.material, this.parentSystem);
+    this.material = this.parentSystem.getMaterial(this.material) || new Material(this.material, this.parentSystem);
     this.position = new Vector(this.position);
     this.applyLengthConversionRate(this.position);
     this.quaternion = new Quaternion(this.quaternion || this.rotation || {w: 1});
@@ -33,8 +43,11 @@ Body.prototype.types = {
       this.three = new THREE.Mesh(this.shape.three, this.material.three);
       var axisHelper = this.settingsFor('axisHelper');
       if (axisHelper) {
+        if (isNaN(axisHelper) || axisHelper === true) {
+          axisHelper = 1.5;
+        }
         this.shape.three.computeBoundingSphere();
-        var r = this.shape.three.boundingSphere.radius * 1.5;
+        var r = this.shape.three.boundingSphere.radius * axisHelper;
         this.three.add(new THREE.AxisHelper(r));
       }
     }
@@ -188,7 +201,7 @@ Body.prototype.destroy = function (scene) {
 
 Body.prototype.toJSON = function () {
   this.syncPhysics();
-  var json = _.pick(this._options, 'type', 'shape', 'material', 'mask');
+  var json = _.pick(this._options, 'type', 'shape', 'material', 'mask', 'of');
   json.position = this.position.toJSON();
   json.quaternion = this.quaternion.toJSON();
   json.connector = {};
