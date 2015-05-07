@@ -56,6 +56,7 @@ Shape.prototype.types = {
       compound.addChildShape(transParent, this.parent.ammo);
     }
     _.each(this.children, function (childOptions) {
+      if (childOptions.skip) return;
       childOptions._dontSave = true;
       var child;
       if (typeof childOptions.shape == 'string') {

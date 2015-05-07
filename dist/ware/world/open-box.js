@@ -8,7 +8,8 @@ var defaultOptions = {
   color: 0x555544,
   opacity: 0.5,
   position: {y: -1},
-  mass: 0
+  mass: 0,
+  close: false
 };
 
 function getObject(o) {
@@ -18,6 +19,9 @@ function getObject(o) {
       base: {
         type: 'box', dx: o.width, dy: o.thickness, dz: o.depth
       },
+      top: {
+        type: 'box', dx: o.width, dy: o.thickness, dz: o.depth, skip: !o.close
+      },
       sideZ: {
         type: 'box', dx: o.width, dy: o.height, dz: o.thickness
       },
@@ -26,10 +30,11 @@ function getObject(o) {
       },
       compound: {
         type: 'compound', parent: 'base', children: {
-          sideZ0: {shape: 'sideZ', position: {y: o.thickness, z: o.depth / 2 - o.thickness / 2}},
-          sideZ1: {shape: 'sideZ', position: {y: o.thickness, z: -o.depth / 2 + o.thickness / 2}},
-          sideX0: {shape: 'sideX', position: {y: o.thickness, x: o.width / 2 - o.thickness / 2}},
-          sideX1: {shape: 'sideX', position: {y: o.thickness, x: -o.width / 2 + o.thickness / 2}}
+          top: {shape: 'top', position: {y: o.height - o.thickness}, skip: !o.close},
+          sideZ0: {shape: 'sideZ', position: {y: o.height / 2 - o.thickness / 2, z: o.depth / 2 - o.thickness / 2}},
+          sideZ1: {shape: 'sideZ', position: {y: o.height / 2 - o.thickness / 2, z: -o.depth / 2 + o.thickness / 2}},
+          sideX0: {shape: 'sideX', position: {y: o.height / 2 - o.thickness / 2, x: o.width / 2 - o.thickness / 2}},
+          sideX1: {shape: 'sideX', position: {y: o.height / 2 - o.thickness / 2, x: -o.width / 2 + o.thickness / 2}}
         }
       }
     },
