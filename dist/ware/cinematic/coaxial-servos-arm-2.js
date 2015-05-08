@@ -2,11 +2,11 @@ var _ = require('../../lib/underscore.js');
 var utils = require('../../utils.js');
 
 var defaultOptions = {
-  opacity: 0.7,
+  opacity: 0.9,
   t: 0.2,
   dy: 3,
   dx: 1,
-  mass: 0.001
+  mass: 0.01
 };
 
 var getObject = function (o) {
@@ -34,7 +34,7 @@ var getObject = function (o) {
     body: {
       H: {
         isTemplate: true,
-        shape: 'H', material: 'blue', mass: o.mass, mask: '001', position: {x: 0, y: 0, z: 0},
+        shape: 'H', material: 'green', mass: o.mass, mask: '001', position: {x: 0, y: 0, z: 0},
         connector: {
           //left
           'x=-1,z=0': {
@@ -65,7 +65,7 @@ var getObject = function (o) {
       },
       V: {
         isTemplate: true,
-        shape: 'V', material: 'red', mass: o.mass, mask: '010', position: {x: 0, y: 0, z: 0},
+        shape: 'V', material: 'green', mass: o.mass, mask: '010', position: {x: 0, y: 0, z: 0},
         connector: {
           'y=1': {
             base: {y: o.dy / 2 - o.t / 2},
@@ -78,19 +78,19 @@ var getObject = function (o) {
         }
       },
       //level z=0
-      'H,z=0,y=0': {type: 'copy', of: 'H', mass: 0, position: {x: 0, y: 0, z: 0}},
-      'H,z=0,y=1': {type: 'copy', of: 'H', position: {x: 0, y: o.dy - o.t, z: 0}},
-      'V,z=0,x=-1': {type: 'copy', of: 'V', position: {x: -o.dx / 2, y: (o.dy - o.t) / 2, z: 0}},
-      'V,z=0,x=1': {type: 'copy', of: 'V', position: {x: o.dx / 2, y: (o.dy - o.t) / 2, z: 0}},
+      'H,z=0,y=0': {type: 'copy', of: 'H', material: 'red', mass: 0, position: {x: 0, y: 0, z: 0}},
+      'H,z=0,y=1': {type: 'copy', of: 'H', material: 'red', position: {x: 0, y: o.dy - o.t, z: 0}},
+      'V,z=0,x=-1': {type: 'copy', of: 'V', material: 'red', position: {x: -o.dx / 2, y: (o.dy - o.t) / 2, z: 0}},
+      'V,z=0,x=1': {type: 'copy', of: 'V', material: 'red', position: {x: o.dx / 2, y: (o.dy - o.t) / 2, z: 0}},
       //level z=-1, y=0
-      'H,z=-1,y=0': {type: 'copy', of: 'H', position: {x: 0, y: 0, z: -o.dz}},
-      'H,z=-1,y=1': {type: 'copy', of: 'H', position: {x: 0, y: o.dy - o.t, z: -o.dz}},
-      'V,z=-1,x=-1': {type: 'copy', of: 'V', position: {x: -o.dx / 2, y: (o.dy - o.t) / 2, z: -o.dz}},
-      'V,z=-1,x=1': {type: 'copy', of: 'V', position: {x: o.dx / 2, y: (o.dy - o.t) / 2, z: -o.dz}},
+      'H,z=-1,y=0': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: 0, z: -o.dz}},
+      'H,z=-1,y=1': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: o.dy - o.t, z: -o.dz}},
+      'V,z=-1,x=-1': {type: 'copy', of: 'V', material: 'blue', position: {x: -o.dx / 2, y: (o.dy - o.t) / 2, z: -o.dz}},
+      'V,z=-1,x=1': {type: 'copy', of: 'V', material: 'blue', position: {x: o.dx / 2, y: (o.dy - o.t) / 2, z: -o.dz}},
       //level z=-1, y=1
-      'H,z=-1,y=2': {type: 'copy', of: 'H', position: {x: 0, y: 2 * (o.dy - o.t), z: -o.dz}},
-      'V,z=-1,x=-1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: -o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -o.dz}},
-      'V,z=-1,x=1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -o.dz}},
+      'H,z=-1,y=2': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: 2 * (o.dy - o.t), z: -o.dz}},
+      'V,z=-1,x=-1,y=1': {type: 'copy', of: 'V', material: 'blue', mask: '100', position: {x: -o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -o.dz}},
+      'V,z=-1,x=1,y=1': {type: 'copy', of: 'V', material: 'blue', mask: '100', position: {x: o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -o.dz}},
       //level z=-2, y= 0
       'H,z=-2,y=0': {type: 'copy', of: 'H', position: {x: 0, y: 0, z: -2 * o.dz}},
       'H,z=-2,y=1': {type: 'copy', of: 'H', position: {x: 0, y: o.dy - o.t, z: -2 * o.dz}},
@@ -175,8 +175,13 @@ var userInterface = function (options) {
       'servo,z=0': 0, 'servo,z=-1': 0, 'servo,z=-2': 0,
       demo: function () {
         var _this = this;
+        if (this._demoRunning) {
+          clearInterval(this._demoRunning);
+          _this._demoRunning = false;
+          return;
+        }
         var time = utils.seconds();
-        setInterval(function () {
+        this._demoRunning = setInterval(function () {
           _.each(['servo,z=0', 'servo,z=-1', 'servo,z=-2'], function (servo, index) {
             var angle = 0.3 * Math.sin((1 + index * 0.5) * utils.seconds(time));
             angle += 0.4 * Math.sin((0.4 + index * 0.4) * utils.seconds(time))

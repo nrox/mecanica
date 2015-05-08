@@ -279,9 +279,9 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 4), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
-      gravity: {y: -9.81 * 1}, //in cm/s2
+      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 16), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -9.81 * 10}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
@@ -824,8 +824,6 @@ Mecanica.prototype.startSimulation = function () {
   //simulation loop function, done with setTimeout
   function simulate() {
     if (scene._destroyed) return;
-    //prepare next call
-    _this._stid = setTimeout(simulate, 1000 / settings.simFrequency);
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
@@ -848,6 +846,9 @@ Mecanica.prototype.startSimulation = function () {
       _this.physicsPack.time = _this._totalTime;
     }
     _this._physicsDataReceived = true;
+
+    //prepare next call
+    _this._stid = setTimeout(simulate, 1000 / settings.simFrequency);
 
   }
 
@@ -1432,7 +1433,7 @@ Body.prototype.types = {
     var of = this.parentSystem.getBody(this.of);
     var json = of.toJSON();
     _.extend(json, this.options());
-    _.each(['mass', 'mask', 'material'], function (property) {
+    _.each(['mass', 'mask', 'material', 'shape'], function (property) {
       if (options[property] != undefined) json[property] = options[property];
     });
     Body.prototype.types.basic.call(this, json);

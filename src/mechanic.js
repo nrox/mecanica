@@ -103,8 +103,6 @@ Mecanica.prototype.startSimulation = function () {
   //simulation loop function, done with setTimeout
   function simulate() {
     if (scene._destroyed) return;
-    //prepare next call
-    _this._stid = setTimeout(simulate, 1000 / settings.simFrequency);
     //compute time since last call
     var curTime = (new Date()).getTime() / 1000;
     var dt = curTime - _this._lastTime;
@@ -127,6 +125,9 @@ Mecanica.prototype.startSimulation = function () {
       _this.physicsPack.time = _this._totalTime;
     }
     _this._physicsDataReceived = true;
+
+    //prepare next call
+    _this._stid = setTimeout(simulate, 1000 / settings.simFrequency);
 
   }
 

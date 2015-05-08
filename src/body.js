@@ -14,7 +14,7 @@ Body.prototype.types = {
     var of = this.parentSystem.getBody(this.of);
     var json = of.toJSON();
     _.extend(json, this.options());
-    _.each(['mass', 'mask', 'material'], function (property) {
+    _.each(['mass', 'mask', 'material', 'shape'], function (property) {
       if (options[property] != undefined) json[property] = options[property];
     });
     Body.prototype.types.basic.call(this, json);
