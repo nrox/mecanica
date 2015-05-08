@@ -6,10 +6,7 @@ var defaultOptions = {
   beamThickness: 0.4,
   longBeamLength: 6,
   beamDistance: 1,
-  segmentMass: 0.01,
-  freeze: true,
-  axisHelper: 0,
-  connectorHelper: 0.5
+  segmentMass: 0.01
 };
 
 var getObject = function (o) {
@@ -17,10 +14,9 @@ var getObject = function (o) {
   var gap = 0.01;
   var object = {
     settings: {
-      local: {
-        freeze: o.freeze,
-        axisHelper: o.axisHelper,
-        connectorHelper: o.connectorHelper
+      debug: {
+        axisHelper: 0,
+        connectorHelper: 0
       }
     },
     shape: {
@@ -79,10 +75,10 @@ var getObject = function (o) {
     },
     constraint: {
       servo0: {
-        type: 'servo', bodyA: 'horizontal', bodyB: 'vertical', connectorA: 'center', connectorB: 'bottom'
+        type: 'servo', bodyA: 'horizontal', bodyB: 'vertical', connectorA: 'center', connectorB: 'bottom', angle: 0
       },
       servo1: {
-        type: 'servo', bodyA: 'horizontal', bodyB: 'farBottom', connectorA: 'far', connectorB: 'center'
+        type: 'servo', bodyA: 'horizontal', bodyB: 'farBottom', connectorA: 'far', connectorB: 'center', angle: 0
       },
       topCenter: {
         type: 'hinge', bodyA: 'top', bodyB: 'vertical', connectorA: 'center', connectorB: 'top'

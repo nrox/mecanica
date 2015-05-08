@@ -1321,7 +1321,7 @@ function Material(options, system) {
 Material.prototype.types = {
   _intro: function (options) {
     this.include(options, {
-      friction: 0.3, restitution: 0.2,
+      friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
       wireframe: this.getSettings().wireframe || false
     });
@@ -1424,15 +1424,17 @@ Body.prototype.types = {
   copy: function (options) {
     this.include(options, {
       of: undefined,
-      mass: undefined,
       isTemplate: false,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined
     });
-    this.notifyUndefined(['of', 'mass']);
+    this.notifyUndefined(['of']);
     var of = this.parentSystem.getBody(this.of);
     var json = of.toJSON();
     _.extend(json, this.options());
+    _.each(['mass', 'mask', 'material'], function (property) {
+      if (options[property] != undefined) json[property] = options[property];
+    });
     Body.prototype.types.basic.call(this, json);
   },
   basic: function (options) {
@@ -1621,7 +1623,9 @@ Body.prototype.destroy = function (scene) {
 
 Body.prototype.toJSON = function () {
   this.syncPhysics();
-  var json = _.pick(this._options, 'type', 'shape', 'material', 'mask', 'of');
+  var json = _.pick(this._options,
+    'type', 'mass', 'isTemplate', 'shape', 'material', 'mask', 'of', 'angularDamping', 'linearDamping'
+  );
   json.position = this.position.toJSON();
   json.quaternion = this.quaternion.toJSON();
   json.connector = {};

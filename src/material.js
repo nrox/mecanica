@@ -5,7 +5,7 @@ function Material(options, system) {
 Material.prototype.types = {
   _intro: function (options) {
     this.include(options, {
-      friction: 0.3, restitution: 0.2,
+      friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
       wireframe: this.getSettings().wireframe || false
     });
