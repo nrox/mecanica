@@ -297,6 +297,9 @@ Settings.prototype.types = {
       canvasContainer: 'body', //container for renderer,
       uiContainer: 'body',
       reuseCanvas: true,
+      clearColor: 0x000000,
+      canvasWidth: 600,
+      canvasHeight: 800,
 
       webWorker: true, //use webworker if available
 
@@ -1426,14 +1429,14 @@ Body.prototype.types = {
     this.include(options, {
       of: undefined,
       isTemplate: false,
-      position: undefined, quaternion: undefined, rotation: undefined,
+      //position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined
     });
     this.notifyUndefined(['of']);
     var of = this.parentSystem.getBody(this.of);
     var json = of.toJSON();
     _.extend(json, this.options());
-    _.each(['mass', 'mask', 'material', 'shape'], function (property) {
+    _.each(['mass', 'mask', 'material', 'shape', 'rotation', 'position', 'quaternion'], function (property) {
       if (options[property] != undefined) json[property] = options[property];
     });
     Body.prototype.types.basic.call(this, json);
@@ -2424,7 +2427,7 @@ Monitor.prototype.types = {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
-      width: 500, height: 500,
+      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'),
       fov: 35, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
       axis: {x: 5, y: 7, z: 10},
@@ -2463,7 +2466,7 @@ Renderer.prototype.types = {
   },
   _intro: function (options) {
     this.include(options, {
-      width: 500, height: 500, container: undefined
+      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'), container: undefined
     });
     if (jQuery && THREE) {
       if (this.getSettings().reuseCanvas) {
@@ -2484,19 +2487,20 @@ Renderer.prototype.types = {
       jQuery(settings.canvasContainer).append(this.three.domElement);
       jQuery(this.three.domElement).attr('monitor', this.id);
       this.three.setSize(this.width, this.height);
+      this.three.setClearColor(this.settingsFor('clearColor'));
     }
   },
   webgl: function (options) {
     Renderer.prototype.types._intro.call(this, options);
     if (this.runsRender()) {
-      this.three = new THREE.WebGLRenderer({canvas: this.canvas});
+      this.three = new THREE.WebGLRenderer({canvas: this.canvas, alpha: true});
     }
     Renderer.prototype.types._outro.call(this);
   },
   canvas: function (options) {
     Renderer.prototype.types._intro.call(this, options);
     if (this.runsRender()) {
-      this.three = new THREE.CanvasRenderer({canvas: this.canvas});
+      this.three = new THREE.CanvasRenderer({canvas: this.canvas, alpha: true});
     }
     Renderer.prototype.types._outro.call(this);
   }

@@ -23,7 +23,8 @@ var getObject = function (o) {
     },
     shape: {
       V: {type: 'box', dx: o.t, dy: o.dy, dz: o.t, gap: gap},
-      H: {type: 'box', dx: o.dx, dy: o.t, dz: o.t, gap: gap}
+      H: {type: 'box', dx: o.dx, dy: o.t, dz: o.t, gap: gap},
+      axis: {type: 'cylinder', r: o.t / 3, dy: 4 * o.dz}
     },
     material: {
       red: {color: 0x883333, opacity: o.opacity},
@@ -32,6 +33,13 @@ var getObject = function (o) {
       gray: {color: 0x666666, opacity: o.opacity}
     },
     body: {
+      axis: {
+        isTemplate: true,
+        shape: 'axis', material: 'gray', mass: o.mass, mask: '1000', rotation: {x: Math.PI / 2},
+        connector: {
+          center: {}
+        }
+      },
       H: {
         isTemplate: true,
         shape: 'H', material: 'green', mass: o.mass, mask: '001', position: {x: 0, y: 0, z: 0},
@@ -101,7 +109,11 @@ var getObject = function (o) {
       'V,z=-2,x=-1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: -o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -2 * o.dz}},
       'V,z=-2,x=1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: o.dx / 2, y: 3 * (o.dy - o.t) / 2, z: -2 * o.dz}},
       //tip
-      'V,z=-2,x=1,y=2': {type: 'copy', of: 'V', position: {x: 0, y: 5 * (o.dy - o.t) / 2, z: -2 * o.dz}}
+      'V,z=-2,x=1,y=2': {type: 'copy', of: 'V', position: {x: 0, y: 5 * (o.dy - o.t) / 2, z: -2 * o.dz}},
+      //axis
+      'A,y=0': {type: 'copy', of: 'axis'},
+      'A,y=1': {type: 'copy', of: 'axis'},
+      'A,y=2': {type: 'copy', of: 'axis'}
     },
     constraint: {
       //basic hinges level z=0
@@ -139,6 +151,10 @@ var getObject = function (o) {
       'hinge,z=-1/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'H,z=-2,y=2', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0'},
       //tip
       'fix-tip': {type: 'servo', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=1,y=2', connectorA: 'x=0,z=0', connectorB: 'y=0', angle: 0},
+      //axis
+      'axis0': {type: 'hinge', bodyA: 'H,z=-1,y=0', bodyB: 'A,y=0', connectorA: 'x=0,z=0', connectorB: 'center', approach: true},
+      'axis1': {type: 'hinge', bodyA: 'H,z=-1,y=1', bodyB: 'A,y=1', connectorA: 'x=0,z=0', connectorB: 'center', approach: true},
+      'axis2': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'A,y=2', connectorA: 'x=0,z=0', connectorB: 'center', approach: true},
       //servos
       'servo,z=0': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'V,z=0,x=1', connectorA: 'x=1,z=0', connectorB: 'y=0', angle: 0, maxBinary: 10},
       'servo,z=-1': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-1,y=0', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0', angle: 0, maxBinary: 10},

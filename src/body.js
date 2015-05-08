@@ -7,14 +7,14 @@ Body.prototype.types = {
     this.include(options, {
       of: undefined,
       isTemplate: false,
-      position: undefined, quaternion: undefined, rotation: undefined,
+      //position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined
     });
     this.notifyUndefined(['of']);
     var of = this.parentSystem.getBody(this.of);
     var json = of.toJSON();
     _.extend(json, this.options());
-    _.each(['mass', 'mask', 'material', 'shape'], function (property) {
+    _.each(['mass', 'mask', 'material', 'shape', 'rotation', 'position', 'quaternion'], function (property) {
       if (options[property] != undefined) json[property] = options[property];
     });
     Body.prototype.types.basic.call(this, json);

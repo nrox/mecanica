@@ -7,7 +7,7 @@ Monitor.prototype.types = {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
-      width: 500, height: 500,
+      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'),
       fov: 35, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
       axis: {x: 5, y: 7, z: 10},

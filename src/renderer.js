@@ -12,7 +12,7 @@ Renderer.prototype.types = {
   },
   _intro: function (options) {
     this.include(options, {
-      width: 500, height: 500, container: undefined
+      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'), container: undefined
     });
     if (jQuery && THREE) {
       if (this.getSettings().reuseCanvas) {
@@ -33,19 +33,20 @@ Renderer.prototype.types = {
       jQuery(settings.canvasContainer).append(this.three.domElement);
       jQuery(this.three.domElement).attr('monitor', this.id);
       this.three.setSize(this.width, this.height);
+      this.three.setClearColor(this.settingsFor('clearColor'));
     }
   },
   webgl: function (options) {
     Renderer.prototype.types._intro.call(this, options);
     if (this.runsRender()) {
-      this.three = new THREE.WebGLRenderer({canvas: this.canvas});
+      this.three = new THREE.WebGLRenderer({canvas: this.canvas, alpha: true});
     }
     Renderer.prototype.types._outro.call(this);
   },
   canvas: function (options) {
     Renderer.prototype.types._intro.call(this, options);
     if (this.runsRender()) {
-      this.three = new THREE.CanvasRenderer({canvas: this.canvas});
+      this.three = new THREE.CanvasRenderer({canvas: this.canvas, alpha: true});
     }
     Renderer.prototype.types._outro.call(this);
   }
