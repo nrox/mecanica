@@ -5,7 +5,7 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: 'sequential' //pgs, dantzig
+      solver: this.settingsFor('solver') //'sequential' //pgs, dantzig
     });
     this.gravity = this.globalSettings().gravity;
     this.createWorld();

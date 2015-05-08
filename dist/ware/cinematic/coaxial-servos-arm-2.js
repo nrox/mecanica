@@ -21,6 +21,7 @@ var getObject = function (o) {
         connectorHelper: 0
       }
     },
+    position: {y: -o.dy * 1.8},
     shape: {
       V: {type: 'box', dx: o.t, dy: o.dy, dz: o.t, gap: gap},
       H: {type: 'box', dx: o.dx, dy: o.t, dz: o.t, gap: gap},
@@ -156,9 +157,9 @@ var getObject = function (o) {
       'axis1': {type: 'hinge', bodyA: 'H,z=-1,y=1', bodyB: 'A,y=1', connectorA: 'x=0,z=0', connectorB: 'center', approach: true},
       'axis2': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'A,y=2', connectorA: 'x=0,z=0', connectorB: 'center', approach: true},
       //servos
-      'servo,z=0': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'V,z=0,x=1', connectorA: 'x=1,z=0', connectorB: 'y=0', angle: 0, maxBinary: 10},
-      'servo,z=-1': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-1,y=0', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0', angle: 0, maxBinary: 10},
-      'servo,z=-2': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-2', connectorB: 'x=0,z=0', angle: 0, maxBinary: 10}
+      'servo,z=0': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'V,z=0,x=1', connectorA: 'x=1,z=0', connectorB: 'y=0', angle: 0, maxBinary: 1000},
+      'servo,z=-1': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-1,y=0', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0', angle: 0, maxBinary: 1000},
+      'servo,z=-2': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-2', connectorB: 'x=0,z=0', angle: 0, maxBinary: 1000}
     }
   };
 
@@ -200,7 +201,7 @@ var userInterface = function (options) {
         this._demoRunning = setInterval(function () {
           _.each(['servo,z=0', 'servo,z=-1', 'servo,z=-2'], function (servo, index) {
             var angle = 0.3 * Math.sin((1 + index * 0.5) * utils.seconds(time));
-            angle += 0.4 * Math.sin((0.4 + index * 0.4) * utils.seconds(time))
+            angle += 0.35 * Math.sin((0.4 + index * 0.4) * utils.seconds(time))
             serve.call(_this, servo, angle);
           });
         }, 100);

@@ -65,7 +65,7 @@ Mecanica.prototype.makeDefaults = function (options) {
     },
     scene: {
       use: {
-        solver: 'pgs'
+        
       }
     },
     light: {

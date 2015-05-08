@@ -11,7 +11,7 @@
   };
 
   function getObject(o) {
-    console.warn('pendulum energy seams decreasing with time. TODO: check default dampings');
+    //console.warn('pendulum energy seams decreasing with time. TODO: check default dampings');
     o = _.defaults(o || {}, defaultOptions);
     o.dx = 0.5;
     o.dz = 1;
@@ -25,9 +25,9 @@
         beam2: { type: 'box', dx: o.dx, dy: o.length2, dz: o.dz, gap: 0.01}
       },
       material: {
-        support: {type: 'phong', color: 0x222277},
-        beam1: {type: 'phong', color: 0x772222},
-        beam2: {type: 'phong', color: 0x227722}
+        support: {type: 'phong', color: 0x222277, friction: 0},
+        beam1: {type: 'phong', color: 0x772222, friction: 0},
+        beam2: {type: 'phong', color: 0x227722, friction: 0}
       },
       body: {
         support: {
@@ -39,6 +39,7 @@
             }
           }},
         beam1: {
+          linearDamping: 0, angularDamping: 0,
           position: {y: -o.length1 / 2 + o.dy, x: o.dx},
           mass: o.mass1, shape: 'beam1', material: 'beam1', connector: {
             c1: {
@@ -53,6 +54,7 @@
             }
           }},
         beam2: {
+          linearDamping: 0, angularDamping: 0,
           position: {y: -o.length1 - o.length2 / 2 + 3 * o.dy, x: 2 * o.dx}, mass: o.mass2, shape: 'beam2', material: 'beam2', connector: {
             c2: {
               base: {x: -o.dx / 2, y: o.length2 / 2 - o.dy},
