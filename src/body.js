@@ -7,6 +7,7 @@ Body.prototype.types = {
     this.include(options, {
       of: undefined,
       mass: undefined,
+      isTemplate: false,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined
     });
@@ -21,6 +22,7 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
+      isTemplate: false,
       angularDamping: 0.3,
       linearDamping: 0.1,
       mask: undefined,
@@ -100,7 +102,7 @@ Body.prototype.applyParentSystemsTransform = function () {
 };
 
 Body.prototype.addToScene = function (scene) {
-  if (!this._added) {
+  if (!this._added && !this.isTemplate) {
     this._added = true;
     if (this.runsRender()) scene.three.add(this.three);
     if (this.runsPhysics()) {

@@ -279,9 +279,9 @@ Settings.prototype.types = {
     this.include(options, {
 
       //simulation quality
-      lengthUnits: 'cm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
-      fixedTimeStep: 1 / (60 * 8), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
-      gravity: {y: -9.81 * 100}, //in cm/s2
+      lengthUnits: 'm', //cm as length unit provides a good balance between bullet/ammo characteristics and mechanical devices
+      fixedTimeStep: 1 / (60 * 2), //1 / (60 * 2 * 2 * 2 * 2 * 2), // 1/(60*4) for dm, 1/(60*32) for cm
+      gravity: {y: -9.81 * 1}, //in cm/s2
       simSpeed: 1, //simulation speed factor, 1 is normal, 0.5 is half, 2 is double...
       renderFrequency: 30, //frequency to render canvas
       simFrequency: 30, //frequency to run a simulation cycle,
@@ -1425,6 +1425,7 @@ Body.prototype.types = {
     this.include(options, {
       of: undefined,
       mass: undefined,
+      isTemplate: false,
       position: undefined, quaternion: undefined, rotation: undefined,
       approach: undefined
     });
@@ -1439,6 +1440,7 @@ Body.prototype.types = {
       shape: undefined,
       material: undefined,
       mass: 0,
+      isTemplate: false,
       angularDamping: 0.3,
       linearDamping: 0.1,
       mask: undefined,
@@ -1518,7 +1520,7 @@ Body.prototype.applyParentSystemsTransform = function () {
 };
 
 Body.prototype.addToScene = function (scene) {
-  if (!this._added) {
+  if (!this._added && !this.isTemplate) {
     this._added = true;
     if (this.runsRender()) scene.three.add(this.three);
     if (this.runsPhysics()) {
