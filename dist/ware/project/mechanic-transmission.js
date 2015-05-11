@@ -21,14 +21,14 @@ var getObject = function (o) {
   o.density = 0.45; //Kg/dm^3
   o.vMass = o.density * o.vH * o.sW * o.sD;
   o.hMass = o.density * o.hW * o.sW * o.sD;
-  o.opacity = 0.7;
+  o.opacity = 1;
   var object = {
     settings: {
       local: {
         lengthUnits: 'dm',
         freeze: false,
-        axisHelper: 0.3,
-        connectorHelper: 0.2
+        axisHelper: 0,
+        connectorHelper: 0
       }
     },
     position: {},
@@ -46,14 +46,14 @@ var getObject = function (o) {
     body: {
       axis: {
         isTemplate: true,
-        shape: 'axis', material: 'gray', mass: o.mass, mask: '1000', rotation: {x: Math.PI / 2},
+        shape: 'axis', material: 'gray', mass: o.mass, rotation: {x: Math.PI / 2},
         connector: {
           center: {}
         }
       },
       H: {
         isTemplate: true,
-        shape: 'H', material: 'green', mass: o.hMass, mask: '001',
+        shape: 'H', material: 'green', mass: o.hMass,
         connector: {
           //left
           'x=-1,z=0': {
@@ -62,6 +62,10 @@ var getObject = function (o) {
           },
           'x=-1,z=-1': {
             base: {x: -o.hW / 2 + o.sW / 2, z: -o.sD},
+            up: {z: 1}, front: {x: 1}
+          },
+          'x=-1,z=-2': {
+            base: {x: -o.hW / 2 + o.sW / 2, z: -2 * o.sD},
             up: {z: 1}, front: {x: 1}
           },
           'x=-1,z=1': {
@@ -75,6 +79,10 @@ var getObject = function (o) {
           },
           'x=1,z=-1': {
             base: {x: o.hW / 2 - o.sW / 2, z: -o.sD},
+            up: {z: 1}, front: {x: 1}
+          },
+          'x=1,z=-2': {
+            base: {x: o.hW / 2 - o.sW / 2, z: -2*o.sD},
             up: {z: 1}, front: {x: 1}
           },
           'x=1,z=1': {
@@ -94,6 +102,10 @@ var getObject = function (o) {
             base: {x: 0, z: -2 * o.sD},
             up: {z: 1}, front: {x: 1}
           },
+          'x=0,z=-3': {
+            base: {x: 0, z: -3 * o.sD},
+            up: {z: 1}, front: {x: 1}
+          },
           'x=0,z=1': {
             base: {x: 0, z: o.sD},
             up: {z: 1}, front: {x: 1}
@@ -106,7 +118,7 @@ var getObject = function (o) {
       },
       V: {
         isTemplate: true,
-        shape: 'V', material: 'green', mass: o.vMass, mask: '010',
+        shape: 'V', material: 'green', mass: o.vMass,
         connector: {
           'y=1': {
             base: {y: o.vH / 2 - o.sW / 2},
@@ -129,20 +141,22 @@ var getObject = function (o) {
       'H,z=-1,y=1': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: o.vH - o.sW, z: -o.sD}},
       'V,z=-1,x=-1': {type: 'copy', of: 'V', material: 'blue', position: {x: -o.hW / 2 + o.sW / 2, y: (o.vH - o.sW) / 2, z: -2 * o.sD}},
       'V,z=-1,x=1': {type: 'copy', of: 'V', material: 'blue', position: {x: o.hW / 2 - o.sW / 2, y: (o.vH - o.sW) / 2, z: -2 * o.sD}},
+
+      //level z=-1, y=1
+      'H,z=-1,y=2': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: 2 * (o.vH - o.sW), z: -3 * o.sD}},
+      'V,z=-1,x=0,y=1': {type: 'copy', of: 'V', material: 'blue', position: {x: 0, y: 3 * (o.vH - o.sW) / 2, z: -2 * o.sD}},
+
+      //level z=-2, y= 0
+      'H,z=-2,y=0': {type: 'copy', of: 'H', position: {x: 0, y: 0, z: -3 * o.sD}},
+      'H,z=-2,y=1': {type: 'copy', of: 'H', position: {x: 0, y: o.vH - o.sW, z: -3 * o.sD}},
+      'V,z=-2,x=-1': {type: 'copy', of: 'V', position: {x: -o.hW / 2 + o.sW / 2, y: (o.vH - o.sW) / 2, z: -4 * o.sD}},
+      'V,z=-2,x=1': {type: 'copy', of: 'V', position: {x: o.hW / 2 - o.sW / 2, y: (o.vH - o.sW) / 2, z: -4 * o.sD}},
+
+      //level z=-2, y=1
+      'H,z=-2,y=2': {type: 'copy', of: 'H', position: {x: 0, y: 2 * (o.vH - o.sW), z: -4 * o.sD}},
+      'V,z=-2,x=-1,y=1': {type: 'copy', of: 'V', position: {x: -o.hW / 2 + o.sW / 2, y: 3 * (o.vH - o.sW) / 2, z: -5 * o.sD}},
+      'V,z=-2,x=1,y=1': {type: 'copy', of: 'V', position: {x: o.hW / 2 - o.sW / 2, y: 3 * (o.vH - o.sW) / 2, z: -5 * o.sD}},
       /*
-       //level z=-1, y=1
-       'H,z=-1,y=2': {type: 'copy', of: 'H', material: 'blue', position: {x: 0, y: 2 * (o.vH - o.sW), z: -o.sD}},
-       'V,z=-1,x=-1,y=1': {type: 'copy', of: 'V', material: 'blue', mask: '100', position: {x: -o.hW / 2, y: 3 * (o.vH - o.sW) / 2, z: -o.sD}},
-       'V,z=-1,x=1,y=1': {type: 'copy', of: 'V', material: 'blue', mask: '100', position: {x: o.hW / 2, y: 3 * (o.vH - o.sW) / 2, z: -o.sD}},
-       //level z=-2, y= 0
-       'H,z=-2,y=0': {type: 'copy', of: 'H', position: {x: 0, y: 0, z: -2 * o.sD}},
-       'H,z=-2,y=1': {type: 'copy', of: 'H', position: {x: 0, y: o.vH - o.sW, z: -2 * o.sD}},
-       'V,z=-2,x=-1': {type: 'copy', of: 'V', position: {x: -o.hW / 2, y: (o.vH - o.sW) / 2, z: -2 * o.sD}},
-       'V,z=-2,x=1': {type: 'copy', of: 'V', position: {x: o.hW / 2, y: (o.vH - o.sW) / 2, z: -2 * o.sD}},
-       //level z=-2, y=1
-       'H,z=-2,y=2': {type: 'copy', of: 'H', position: {x: 0, y: 2 * (o.vH - o.sW), z: -2 * o.sD}},
-       'V,z=-2,x=-1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: -o.hW / 2, y: 3 * (o.vH - o.sW) / 2, z: -2 * o.sD}},
-       'V,z=-2,x=1,y=1': {type: 'copy', of: 'V', mask: '100', position: {x: o.hW / 2, y: 3 * (o.vH - o.sW) / 2, z: -2 * o.sD}},
        //tip
        'V,z=-2,x=1,y=2': {type: 'copy', of: 'V', position: {x: 0, y: 5 * (o.vH - o.sW) / 2, z: -2 * o.sD}},
        //axis
@@ -165,33 +179,35 @@ var getObject = function (o) {
       'hinge,z=-1,x=1,y=0': {type: 'hinge', bodyA: 'H,z=-1,y=0', bodyB: 'V,z=-1,x=1', connectorA: 'x=1,z=-1', connectorB: 'y=0'},
       'hinge,z=-1,x=-1,y=1': {type: 'hinge', bodyA: 'H,z=-1,y=1', bodyB: 'V,z=-1,x=-1', connectorA: 'x=-1,z=-1', connectorB: 'y=1'},
       'hinge,z=-1,x=1,y=1': {type: 'hinge', bodyA: 'H,z=-1,y=1', bodyB: 'V,z=-1,x=1', connectorA: 'x=1,z=-1', connectorB: 'y=1'},
+      //fix level 2
+      'FIX,z=-1,x=-1,y=1/2': {type: 'servo', bodyA: 'H,z=-1,y=1', bodyB: 'V,z=-1,x=0,y=1', connectorA: 'x=0,z=-1', connectorB: 'y=0', angle: 0},
+      'FIX,z=-1,x=-1,y=2/3': {type: 'servo', bodyA: 'H,z=-1,y=2', bodyB: 'V,z=-1,x=0,y=1', connectorA: 'x=0,z=1', connectorB: 'y=1', angle: 0},
+
+      //basic hinges level z=-2(3), y=0
+      'hinge,z=-2,x=-1,y=0': {type: 'hinge', bodyA: 'H,z=-2,y=0', bodyB: 'V,z=-2,x=-1', connectorA: 'x=-1,z=-1', connectorB: 'y=0'},
+      'hinge,z=-2,x=1,y=0': {type: 'hinge', bodyA: 'H,z=-2,y=0', bodyB: 'V,z=-2,x=1', connectorA: 'x=1,z=-1', connectorB: 'y=0'},
+      'hinge,z=-2,x=-1,y=1': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=-1', connectorA: 'x=-1,z=-1', connectorB: 'y=1'},
+      'hinge,z=-2,x=1,y=1': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=1', connectorA: 'x=1,z=-1', connectorB: 'y=1'},
+      //hinges from z=0 to z=-2
+      'hinge,z=0/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-3', connectorB: 'x=0,z=0'},
+      'hinge,z=0/-2,x=0,y=1': {type: 'hinge', bodyA: 'H,z=0,y=1', bodyB: 'H,z=-2,y=1', connectorA: 'x=0,z=-3', connectorB: 'x=0,z=0'},
+
+      //basic hinges level z=-2, y=2
+      'hinge,z=-2,x=-1,y=1/2': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=-1,y=1', connectorA: 'x=-1,z=-2', connectorB: 'y=0'},
+      'hinge,z=-2,x=1,y=1/2': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=1,y=1', connectorA: 'x=1,z=-2', connectorB: 'y=0'},
+      'hinge,z=-2,x=-1,y=2/2': {type: 'hinge', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=-1,y=1', connectorA: 'x=-1,z=-1', connectorB: 'y=1'},
+      'hinge,z=-2,x=1,y=2/2': {type: 'hinge', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=1,y=1', connectorA: 'x=1,z=-1', connectorB: 'y=1'},
+
+      //hinges from z=-1 to z=-2
+      'hinge,z=-1/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'H,z=-2,y=2', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0'},
+
       //servos
       'servo,z=0': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'V,z=0,x=1', connectorA: 'x=1,z=1', connectorB: 'y=0', angle: 0, maxBinary: 1000},
       'servo,z=-1': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-1,y=0', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0', angle: 0, maxBinary: 1000},
-      //'servo,z=-2': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-2', connectorB: 'x=0,z=0', angle: 0, maxBinary: 1000}
+      'servo,z=-2': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-3', connectorB: 'x=0,z=0', angle: 0, maxBinary: 1000}
     },
 
-    //basic hinges level z=-1, y=1
-    'FIX,z=-1,x=-1,y=1/2': {type: 'servo', bodyA: 'H,z=-1,y=1', bodyB: 'V,z=-1,x=-1,y=1', connectorA: 'x=-1,z=0', connectorB: 'y=0', angle: 0},
-    'hinge,z=-1,x=1,y=1/2': {type: 'hinge', bodyA: 'H,z=-1,y=1', bodyB: 'V,z=-1,x=1,y=1', connectorA: 'x=1,z=0', connectorB: 'y=0'},
-    'hinge,z=-1,x=-1,y=2/2': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'V,z=-1,x=-1,y=1', connectorA: 'x=-1,z=0', connectorB: 'y=1'},
-    'hinge,z=-1,x=1,y=2/2': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'V,z=-1,x=1,y=1', connectorA: 'x=1,z=0', connectorB: 'y=1'},
-    //basic hinges level z=-2
-    'hinge,z=-2,x=-1,y=0': {type: 'hinge', bodyA: 'H,z=-2,y=0', bodyB: 'V,z=-2,x=-1', connectorA: 'x=-1,z=0', connectorB: 'y=0'},
-    'hinge,z=-2,x=1,y=0': {type: 'hinge', bodyA: 'H,z=-2,y=0', bodyB: 'V,z=-2,x=1', connectorA: 'x=1,z=0', connectorB: 'y=0'},
-    'hinge,z=-2,x=-1,y=1': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=-1', connectorA: 'x=-1,z=0', connectorB: 'y=1'},
-    'hinge,z=-2,x=1,y=1': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=1', connectorA: 'x=1,z=0', connectorB: 'y=1'},
-    //basic hinges level z=-2, y=1
-    'hinge,z=-2,x=-1,y=1/2': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=-1,y=1', connectorA: 'x=-1,z=0', connectorB: 'y=0'},
-    'hinge,z=-2,x=1,y=1/2': {type: 'hinge', bodyA: 'H,z=-2,y=1', bodyB: 'V,z=-2,x=1,y=1', connectorA: 'x=1,z=0', connectorB: 'y=0'},
-    'hinge,z=-2,x=-1,y=2/2': {type: 'hinge', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=-1,y=1', connectorA: 'x=-1,z=0', connectorB: 'y=1'},
-    'hinge,z=-2,x=1,y=2/2': {type: 'hinge', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=1,y=1', connectorA: 'x=1,z=0', connectorB: 'y=1'},
 
-    //hinges from z=0 to z=-2
-    'hinge,z=0/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=0,y=0', bodyB: 'H,z=-2,y=0', connectorA: 'x=0,z=-2', connectorB: 'x=0,z=0'},
-    'hinge,z=0/-2,x=0,y=1': {type: 'hinge', bodyA: 'H,z=0,y=1', bodyB: 'H,z=-2,y=1', connectorA: 'x=0,z=-2', connectorB: 'x=0,z=0'},
-    //hinges from z=-1 to z=-2
-    'hinge,z=-1/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'H,z=-2,y=2', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0'},
     //tip
     'fix-tip': {type: 'servo', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=1,y=2', connectorA: 'x=0,z=0', connectorB: 'y=0', angle: 0},
     //axis
@@ -217,7 +233,7 @@ var userInterface = function (options) {
   }
 
   function servoUI(servo) {
-    return {type: 'range', min: -45, max: 45, step: 1,
+    return {type: 'range', min: -130, max: 130, step: 1, speed: 5,
       change: function () {
         var angle = Math.PI * this.getValues()[servo] / 180;
         //console.log(this.getValues());
