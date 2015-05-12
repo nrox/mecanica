@@ -10,9 +10,7 @@ var defaultOptions = {
   sW: 0.46, //segment width
   sD: 0.21, //segment depth
   vH: 4, //vertical segment height
-  hW: 3, //horizontal segment span
-  dx: 1,
-  mass: 0.01
+  hW: 3 //horizontal segment span
 };
 
 var getObject = function (o) {
@@ -21,7 +19,8 @@ var getObject = function (o) {
   o.density = 0.45; //Kg/dm^3
   o.vMass = o.density * o.vH * o.sW * o.sD;
   o.hMass = o.density * o.hW * o.sW * o.sD;
-  o.opacity = 1;
+  o.opacity = 1;7
+  o.mass = 0.01;
   var object = {
     settings: {
       local: {
@@ -82,7 +81,7 @@ var getObject = function (o) {
             up: {z: 1}, front: {x: 1}
           },
           'x=1,z=-2': {
-            base: {x: o.hW / 2 - o.sW / 2, z: -2*o.sD},
+            base: {x: o.hW / 2 - o.sW / 2, z: -2 * o.sD},
             up: {z: 1}, front: {x: 1}
           },
           'x=1,z=1': {
@@ -156,9 +155,11 @@ var getObject = function (o) {
       'H,z=-2,y=2': {type: 'copy', of: 'H', position: {x: 0, y: 2 * (o.vH - o.sW), z: -4 * o.sD}},
       'V,z=-2,x=-1,y=1': {type: 'copy', of: 'V', position: {x: -o.hW / 2 + o.sW / 2, y: 3 * (o.vH - o.sW) / 2, z: -5 * o.sD}},
       'V,z=-2,x=1,y=1': {type: 'copy', of: 'V', position: {x: o.hW / 2 - o.sW / 2, y: 3 * (o.vH - o.sW) / 2, z: -5 * o.sD}},
+
+      //tip
+      'V,z=-2,x=1,y=2': {type: 'copy', of: 'V', position: {x: 0, y: 5 * (o.vH - o.sW) / 2, z: -5 * o.sD}},
+      'H,z=-2,y=3': {type: 'copy', of: 'H', position: {x: 0, y: 3 * (o.vH - o.sW), z: -4 * o.sD}},
       /*
-       //tip
-       'V,z=-2,x=1,y=2': {type: 'copy', of: 'V', position: {x: 0, y: 5 * (o.vH - o.sW) / 2, z: -2 * o.sD}},
        //axis
        'A,y=0': {type: 'copy', of: 'axis'},
        'A,y=1': {type: 'copy', of: 'axis'},
@@ -200,6 +201,10 @@ var getObject = function (o) {
 
       //hinges from z=-1 to z=-2
       'hinge,z=-1/-2,x=0,y=0': {type: 'hinge', bodyA: 'H,z=-1,y=2', bodyB: 'H,z=-2,y=2', connectorA: 'x=0,z=-1', connectorB: 'x=0,z=0'},
+
+      //fix level 3
+      'FIX,z=-2,x=-1,y=2/3': {type: 'servo', bodyA: 'H,z=-2,y=2', bodyB: 'V,z=-2,x=1,y=2', connectorA: 'x=0,z=-1', connectorB: 'y=0', angle: 0},
+      'FIX,z=-2,x=-1,y=3/4': {type: 'servo', bodyA: 'H,z=-2,y=3', bodyB: 'V,z=-2,x=1,y=2', connectorA: 'x=0,z=-1', connectorB: 'y=1', angle: 0},
 
       //servos
       'servo,z=0': {type: 'servo', bodyA: 'H,z=0,y=0', bodyB: 'V,z=0,x=1', connectorA: 'x=1,z=1', connectorB: 'y=0', angle: 0, maxBinary: 1000},
