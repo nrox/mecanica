@@ -12,8 +12,14 @@ Renderer.prototype.types = {
   },
   _intro: function (options) {
     this.include(options, {
-      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'), container: undefined
+      width: undefined, height: undefined, container: undefined
     });
+    if (this.options().width === undefined) {
+      this.options().width = this.width = this.globalSettings().canvasWidth;
+    }
+    if (this.options().height === undefined) {
+      this.options().height = this.height = this.globalSettings().canvasHeight;
+    }
     if (jQuery && THREE) {
       if (this.getSettings().reuseCanvas) {
         this.canvas = jQuery('canvas[monitor=""]').first();

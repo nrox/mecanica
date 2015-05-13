@@ -6,9 +6,12 @@ Light.prototype.types = {
   directional: function (options) {
     this.include(options, {
       color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
-      lookAt: {}, castShadow: this.getSettings().castShadow,
+      lookAt: {}, castShadow: undefined,
       shadowDistance: 20
     });
+    if (this.options().castShadow === undefined) {
+      this.options().castShadow = this.castShadow = this.globalSettings().castShadow;
+    }
     if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
       light.position.copy(this.applyLengthConversionRate(new Vector(this.position)).three);

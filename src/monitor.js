@@ -7,7 +7,7 @@ Monitor.prototype.types = {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
-      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'),
+      width: undefined, height: undefined,
       fov: 35, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
       axis: {x: 5, y: 7, z: 10},
@@ -15,6 +15,12 @@ Monitor.prototype.types = {
       distance: 15, //distance to keep, in case of tracker
       inertia: 1
     });
+    if (this.options().width === undefined) {
+      this.options().width = this.width = this.globalSettings().width;
+    }
+    if (this.options().height === undefined) {
+      this.options().height = this.height = this.globalSettings().height;
+    }
     if (this.runsRender()) {
       var o = this.optionsWithoutId();
       o.aspect = o.width / o.height;

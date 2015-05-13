@@ -11,12 +11,15 @@ UserInterface.prototype.types = {
     this.include(options, {
       values: undefined,
       template: {},
-      container: this.getSettings().uiContainer,
+      container: undefined,
       title: 'User Interface',
       overrideCallbacks: false,
       css: undefined
     });
     if (this.runsRender()) {
+      if (this.options().container === undefined) {
+        this.options().container = this.container = this.globalSettings().uiContainer;
+      }
       this.notifyUndefined(['container']);
       if (typeof $ === 'undefined') {
         $ = jQuery;

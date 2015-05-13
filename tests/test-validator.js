@@ -69,6 +69,42 @@ var test = {
     testUtils.checkList(servoRequired, ['connectorA', 'bodyB', 'maxBinary', 'maxVelocity'], 'constraint servo has expected required options');
     var connectorRequired = valid.requiredFor('connector', 'basic');
     testUtils.checkList(connectorRequired, ['up', 'front', 'base'], 'connector basic required options has expected entries');
+  },
+  reportErrors: function () {
+    var valid = new Validator();
+    var json = {
+      garbage: {},
+      system: {
+        shape: {
+          shape1: {},
+          shape2: {}
+        },
+        body: {
+          body1: {type: 'wrong'},
+          body2: {mass: 0}
+        }
+      }
+    };
+    var expected = {
+      garbage: valid.STATUS.UNKNOWN,
+      system: {
+        shape: {
+          shape1: valid.STATUS.OK,
+          shape2: valid.STATUS.OK
+        },
+        body: {
+          body1: [valid.STATUS.WRONG_TYPE, 'wrong'],
+          body2: [valid.STATUS.UNDEFINED, ['shape', 'material']]
+        }
+      }
+    };
+    var report = valid.reportErrors(json);
+    testUtils.assert(report.garbage === expected.garbage, 'expected "garbage" as unknown group');
+    testUtils.checkValues(report.system.shape, expected.system.shape, 'expected shape result');
+    testUtils.checkList(report.system.body.body1, expected.system.body.body1, 'expected body1 result');
+    testUtils.checkList(report.system.body.body2[1], expected.system.body.body2[1], 'expected body2 result for undefined types');
+    var resume = valid.resumeErrors(report);
+    console.log(resume);
   }
 };
 

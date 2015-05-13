@@ -1358,8 +1358,11 @@ Material.prototype.types = {
     this.include(options, {
       friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: this.getSettings().wireframe || false
+      wireframe: undefined
     });
+    if (this.options().wireframe === undefined) {
+      this.options().wireframe = this.wireframe = this.globalSettings().wireframe;
+    }
     this.options().transparent = !!((this.opacity != undefined) && (this.opacity < 1));
     this.notifyUndefined(['friction', 'restitution']);
   },
@@ -1400,9 +1403,12 @@ Light.prototype.types = {
   directional: function (options) {
     this.include(options, {
       color: 0xbbbbbb, position: {x: 10, y: 5, z: 3},
-      lookAt: {}, castShadow: this.getSettings().castShadow,
+      lookAt: {}, castShadow: undefined,
       shadowDistance: 20
     });
+    if (this.options().castShadow === undefined) {
+      this.options().castShadow = this.castShadow = this.globalSettings().castShadow;
+    }
     if (this.runsRender()) {
       var light = new THREE.DirectionalLight(this.color);
       light.position.copy(this.applyLengthConversionRate(new Vector(this.position)).three);
@@ -2230,8 +2236,11 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: this.settingsFor('solver') //'sequential' //pgs, dantzig
+      solver: undefined //'sequential' //pgs, dantzig
     });
+    if (this.options().solver === undefined) {
+      this.options().solver = this.solver = this.globalSettings().solver;
+    }
     this.gravity = this.globalSettings().gravity;
     this.createWorld();
     this.showAxisHelper();
@@ -2469,7 +2478,7 @@ Monitor.prototype.types = {
     this.include(options, {
       renderer: 'available',
       camera: 'perspective',
-      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'),
+      width: undefined, height: undefined,
       fov: 35, near: 0.1, far: 1000,
       position: {x: 5, y: 7, z: 10},
       axis: {x: 5, y: 7, z: 10},
@@ -2477,6 +2486,12 @@ Monitor.prototype.types = {
       distance: 15, //distance to keep, in case of tracker
       inertia: 1
     });
+    if (this.options().width === undefined) {
+      this.options().width = this.width = this.globalSettings().width;
+    }
+    if (this.options().height === undefined) {
+      this.options().height = this.height = this.globalSettings().height;
+    }
     if (this.runsRender()) {
       var o = this.optionsWithoutId();
       o.aspect = o.width / o.height;
@@ -2510,8 +2525,14 @@ Renderer.prototype.types = {
   },
   _intro: function (options) {
     this.include(options, {
-      width: this.settingsFor('canvasWidth'), height: this.settingsFor('canvasHeight'), container: undefined
+      width: undefined, height: undefined, container: undefined
     });
+    if (this.options().width === undefined) {
+      this.options().width = this.width = this.globalSettings().canvasWidth;
+    }
+    if (this.options().height === undefined) {
+      this.options().height = this.height = this.globalSettings().canvasHeight;
+    }
     if (jQuery && THREE) {
       if (this.getSettings().reuseCanvas) {
         this.canvas = jQuery('canvas[monitor=""]').first();
@@ -2569,12 +2590,15 @@ UserInterface.prototype.types = {
     this.include(options, {
       values: undefined,
       template: {},
-      container: this.getSettings().uiContainer,
+      container: undefined,
       title: 'User Interface',
       overrideCallbacks: false,
       css: undefined
     });
     if (this.runsRender()) {
+      if (this.options().container === undefined) {
+        this.options().container = this.container = this.globalSettings().uiContainer;
+      }
       this.notifyUndefined(['container']);
       if (typeof $ === 'undefined') {
         $ = jQuery;
@@ -2998,6 +3022,19 @@ Component.prototype.defaultType.ui = 'basic';
 // src/ui.js ends
 // src/util/validator.js begins
 function Validator() {
+  var allOptions = {};
+  var allRequired = {};
+  _.each(this.listGroups(), function (group) {
+    allOptions[group] = {};
+    allRequired[group] = {};
+    _.each(this.listTypes(group), function (type) {
+      if (type[0] == '_') return;
+      allOptions[group][type] = this.optionsFor(group, type);
+      allRequired[group][type] = this.requiredFor(group, type);
+    }, this);
+  }, this);
+  this.allOptions = allOptions;
+  this.allRequired = allRequired;
 }
 
 Validator.prototype.parseOptions = function (typeConstructor) {
@@ -3007,6 +3044,9 @@ Validator.prototype.parseOptions = function (typeConstructor) {
   if (!match) return {};
   match = match[0];
   match = "(" + match.match(/\{[\W\w]*/);
+  if (match.lastIndexOf('})') != match.indexOf('})')) {
+    match = match.substr(0, match.indexOf('})') + 3);
+  }
   return eval(match);
 };
 
@@ -3067,13 +3107,67 @@ Validator.prototype.requiredFor = function (group, type) {
   return required;
 };
 
-Validator.prototype.validateJSON = function (json, warnUnusedOptions) {
+Validator.prototype.reportErrors = function (json, report) {
+  report = report || {};
   //at system level
-  _.each(json, function (groupObjects, groupName) {
+  var groupsList = this.listGroups();
+  _.each(json, function (groupObjects, group) {
+    if (groupsList.indexOf(group) < 0) {
+      //TODO check system options
+      report[group] = this.STATUS.UNKNOWN;
+      return;
+    }
+    if (group == 'system') {
+      report[group] = {};
+      this.reportErrors(groupObjects, report[group]);
+      return;
+    }
+    report[group] = {};
     _.each(groupObjects, function (options, id) {
+      var type = options.type || Component.prototype.defaultType[group];
+      if (!type) {
+        report[group][id] = this.STATUS.NO_TYPE;
+      } else if (this.allOptions[group][type] === undefined) {
+        report[group][id] = [this.STATUS.WRONG_TYPE, type];
+      } else {
+        var required = this.requiredFor(group, type);
+        var notPresent = _.filter(required, function (option) {
+          return (options[option] == undefined);
+        });
+        if (notPresent.length > 0) {
+          report[group][id] = [this.STATUS.UNDEFINED, notPresent];
+        } else {
+          report[group][id] = this.STATUS.OK;
+        }
+      }
+    }, this);
+  }, this);
+  return report;
+};
 
-    });
-  });
+Validator.prototype.resumeErrors = function (report, resume, path) {
+  resume || (resume = []);
+  if (path == undefined) path = "";
+  _.each(report, function (groupObject, groupName) {
+    if (groupName == 'system') {
+      this.resumeErrors(report, resume, path + ".system");
+    } else {
+      _.each(groupObject, function (result, id) {
+        if (result != this.STATUS.OK) {
+          resume.push([path + '.' + id, result]);
+        }
+      });
+    }
+  }, this);
+  return resume;
+};
+
+Validator.prototype.STATUS = {
+  UNKNOWN: 'unknown group',
+  OK: 'ok',
+  NO_TYPE: 'no type specified',
+  WRONG_TYPE: 'unknown type',
+  UNDEFINED: 'undefined values'
 };
 
 

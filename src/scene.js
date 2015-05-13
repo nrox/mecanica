@@ -5,8 +5,11 @@ function Scene(options, system) {
 Scene.prototype.types = {
   basic: function (options) {
     this.include(options, {
-      solver: this.settingsFor('solver') //'sequential' //pgs, dantzig
+      solver: undefined //'sequential' //pgs, dantzig
     });
+    if (this.options().solver === undefined) {
+      this.options().solver = this.solver = this.globalSettings().solver;
+    }
     this.gravity = this.globalSettings().gravity;
     this.createWorld();
     this.showAxisHelper();

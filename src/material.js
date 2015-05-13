@@ -7,8 +7,11 @@ Material.prototype.types = {
     this.include(options, {
       friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: this.getSettings().wireframe || false
+      wireframe: undefined
     });
+    if (this.options().wireframe === undefined) {
+      this.options().wireframe = this.wireframe = this.globalSettings().wireframe;
+    }
     this.options().transparent = !!((this.opacity != undefined) && (this.opacity < 1));
     this.notifyUndefined(['friction', 'restitution']);
   },
