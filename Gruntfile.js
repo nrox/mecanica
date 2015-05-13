@@ -4,6 +4,7 @@ module.exports = function (grunt) {
     concat: {
       basic: {
         src: [
+          'src/util/exception.js',
           'src/component.js',
           'src/settings.js',
           'src/system.js',
@@ -22,6 +23,8 @@ module.exports = function (grunt) {
           'src/monitor.js',
           'src/renderer.js',
           'src/ui.js',
+          'src/util/validator.js',
+          'src/util/natural.js',
           'src/exports.js'
         ],
         dest: 'dist/mecanica.js'

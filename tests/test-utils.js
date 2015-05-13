@@ -39,6 +39,22 @@ module.exports = {
     return value !== compare;
   },
 
+  checkList: function (list, entries, title) {
+    this.logTitle(title);
+    var results = _.map(entries, function (entry) {
+      if (list.indexOf(entry) < 0) {
+        title && console.log('not present: ' + entry);
+        return false;
+      } else {
+        title && console.log('         ok: ' + entry);
+        return true;
+      }
+    });
+    var res = _.every(results);
+    this.logStatus(res, title);
+    return res;
+  },
+
   /**
    * check if obj contains all properties in list keys
    * @param obj the object to check
@@ -49,7 +65,7 @@ module.exports = {
   checkKeys: function (obj, keys, title) {
     this.logTitle(title);
     var results = _.map(keys, function (property) {
-      if (obj[property] === undefined) {
+      if ((obj[property] === undefined) && !obj.hasOwnProperty(property)) {
         title && console.log('  undefined: ' + property);
         return false;
       } else {

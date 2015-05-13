@@ -108,5 +108,6 @@ availablePaths = [
 "./tests/test-ui.js",
 "./tests/test-usage.js",
 "./tests/test-utils.js",
+"./tests/test-validator.js",
 "./tests/test-worker.js",
 ]

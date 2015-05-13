@@ -17,6 +17,7 @@ module.exports = {
   Monitor: Monitor,
   Renderer: Renderer,
   Method: Method,
-  UserInterface: UserInterface
+  UserInterface: UserInterface,
+  Validator: Validator
 };
 
