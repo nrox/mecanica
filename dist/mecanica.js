@@ -3110,19 +3110,22 @@ Validator.prototype.requiredFor = function (group, type) {
 Validator.prototype.reportErrors = function (json, report) {
   report = report || {};
   //at system level
-  var groupsList = this.listGroups();
   _.each(json, function (groupObjects, group) {
-    if (groupsList.indexOf(group) < 0) {
+    if (this.allOptions[group] === undefined) {
       //TODO check system options
       report[group] = this.STATUS.UNKNOWN;
       return;
     }
+    report[group] = {};
     if (group == 'system') {
-      report[group] = {};
-      this.reportErrors(groupObjects, report[group]);
+      _.each(groupObjects, function (options, id) {
+        //console.log(id, options);
+
+        report[group][id] = {};
+        this.reportErrors(options, report[group][id]);
+      }, this);
       return;
     }
-    report[group] = {};
     _.each(groupObjects, function (options, id) {
       var type = options.type || Component.prototype.defaultType[group];
       if (!type) {
@@ -3149,14 +3152,20 @@ Validator.prototype.resumeErrors = function (report, resume, path) {
   resume || (resume = []);
   if (path == undefined) path = "";
   _.each(report, function (groupObject, groupName) {
-    if (groupName == 'system') {
-      this.resumeErrors(report, resume, path + ".system");
+    if (typeof groupObject == 'string') {
+      if (groupObject != this.STATUS.OK) {
+        resume.push([path + '.' + groupName, groupObject]);
+      }
+    } else if (groupName == 'system') {
+      _.each(groupObject, function (system, id) {
+        this.resumeErrors(system, resume, path + ".system." + id);
+      }, this);
     } else {
       _.each(groupObject, function (result, id) {
         if (result != this.STATUS.OK) {
           resume.push([path + '.' + id, result]);
         }
-      });
+      }, this);
     }
   }, this);
   return resume;
