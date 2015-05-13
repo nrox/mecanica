@@ -375,4 +375,4 @@ Constraint.prototype.toJSON = function () {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
-Component.prototype.defaultMaker.constraint = 'point';
+Component.prototype.defaultType.constraint = 'point';

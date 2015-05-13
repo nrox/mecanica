@@ -37,4 +37,4 @@ Material.prototype.getRestitution = function () {
 
 extend(Material, Component);
 Component.prototype.maker.material = Material;
-Component.prototype.defaultMaker.material = 'phong';
+Component.prototype.defaultType.material = 'phong';

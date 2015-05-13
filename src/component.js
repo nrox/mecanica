@@ -49,6 +49,14 @@ Component.prototype.construct = function (options, system, defaultType) {
   }
 };
 
+
+Component.prototype.types = {};
+
+Component.prototype.maker = {};
+
+Component.prototype.defaultType = {};
+
+
 Component.prototype.runsPhysics = function () {
   if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
@@ -128,12 +136,6 @@ Component.prototype.nextId = (function () {
 Component.prototype.isRoot = function () {
   return false;
 };
-
-Component.prototype.types = {};
-
-Component.prototype.maker = {};
-
-Component.prototype.defaultMaker = {};
 
 Component.prototype.getSettings = function () {
   return this.globalSettings();

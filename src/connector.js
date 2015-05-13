@@ -133,4 +133,4 @@ Connector.prototype.toJSON = function () {
 
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
-Component.prototype.defaultMaker.connector = 'basic';
+Component.prototype.defaultType.connector = 'basic';

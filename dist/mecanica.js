@@ -73,6 +73,14 @@ Component.prototype.construct = function (options, system, defaultType) {
   }
 };
 
+
+Component.prototype.types = {};
+
+Component.prototype.maker = {};
+
+Component.prototype.defaultType = {};
+
+
 Component.prototype.runsPhysics = function () {
   if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
@@ -152,12 +160,6 @@ Component.prototype.nextId = (function () {
 Component.prototype.isRoot = function () {
   return false;
 };
-
-Component.prototype.types = {};
-
-Component.prototype.maker = {};
-
-Component.prototype.defaultMaker = {};
 
 Component.prototype.getSettings = function () {
   return this.globalSettings();
@@ -357,7 +359,7 @@ Settings.prototype.toJSON = function () {
 
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
-Component.prototype.defaultMaker.settings = 'local';
+Component.prototype.defaultType.settings = 'local';
 
 // src/settings.js ends
 // src/system.js begins
@@ -745,7 +747,7 @@ System.prototype.callAfterStep = function () {
 
 extend(System, Component);
 Component.prototype.maker.system = System;
-Component.prototype.defaultMaker.system = 'basic';
+Component.prototype.defaultType.system = 'basic';
 
 // src/system.js ends
 // src/mechanic.js begins
@@ -1121,7 +1123,7 @@ Method.prototype.destroy = function () {
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;
-Component.prototype.defaultMaker.method = 'extended';
+Component.prototype.defaultType.method = 'extended';
 
 // src/method.js ends
 // src/vector.js begins
@@ -1343,7 +1345,7 @@ Shape.prototype.useConversion = function (scale) {
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
-Component.prototype.defaultMaker.shape = 'sphere';
+Component.prototype.defaultType.shape = 'sphere';
 
 // src/shape.js ends
 // src/material.js begins
@@ -1386,7 +1388,7 @@ Material.prototype.getRestitution = function () {
 
 extend(Material, Component);
 Component.prototype.maker.material = Material;
-Component.prototype.defaultMaker.material = 'phong';
+Component.prototype.defaultType.material = 'phong';
 
 // src/material.js ends
 // src/light.js begins
@@ -1447,7 +1449,7 @@ Light.prototype.methods = {
 
 extend(Light, Component);
 Component.prototype.maker.light = Light;
-Component.prototype.defaultMaker.light = 'directional';
+Component.prototype.defaultType.light = 'directional';
 
 // src/light.js ends
 // src/body.js begins
@@ -1696,7 +1698,7 @@ Body.prototype.approachBody = function (approach) {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
-Component.prototype.defaultMaker.body = 'basic';
+Component.prototype.defaultType.body = 'basic';
 
 
 // src/body.js ends
@@ -1836,7 +1838,7 @@ Connector.prototype.toJSON = function () {
 
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
-Component.prototype.defaultMaker.connector = 'basic';
+Component.prototype.defaultType.connector = 'basic';
 
 // src/connector.js ends
 // src/constraint.js begins
@@ -2217,7 +2219,7 @@ Constraint.prototype.toJSON = function () {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
-Component.prototype.defaultMaker.constraint = 'point';
+Component.prototype.defaultType.constraint = 'point';
 
 // src/constraint.js ends
 // src/scene.js begins
@@ -2302,7 +2304,7 @@ Scene.prototype.destroy = function () {
 
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
-Component.prototype.defaultMaker.scene = 'basic';
+Component.prototype.defaultType.scene = 'basic';
 
 // src/scene.js ends
 // src/camera.js begins
@@ -2454,7 +2456,7 @@ Camera.prototype.methods = {
 
 extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
-Component.prototype.defaultMaker.camera = 'perspective';
+Component.prototype.defaultType.camera = 'perspective';
 
 // src/camera.js ends
 // src/monitor.js begins
@@ -2490,7 +2492,7 @@ Monitor.prototype.types = {
 
 extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
-Component.prototype.defaultMaker.monitor = 'complete';
+Component.prototype.defaultType.monitor = 'complete';
 
 // src/monitor.js ends
 // src/renderer.js begins
@@ -2550,7 +2552,7 @@ Renderer.prototype.types = {
 
 extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
-Component.prototype.defaultMaker.renderer = 'available';
+Component.prototype.defaultType.renderer = 'available';
 
 // src/renderer.js ends
 // src/ui.js begins
@@ -2989,7 +2991,7 @@ UserInterface.prototype.inputs = {
 
 extend(UserInterface, Component);
 Component.prototype.maker.ui = UserInterface;
-Component.prototype.defaultMaker.ui = 'basic';
+Component.prototype.defaultType.ui = 'basic';
 
 
 
@@ -3067,7 +3069,11 @@ Validator.prototype.requiredFor = function (group, type) {
 
 Validator.prototype.validateJSON = function (json, warnUnusedOptions) {
   //at system level
-  _.each(json, function(groupObjects, groupName){});
+  _.each(json, function (groupObjects, groupName) {
+    _.each(groupObjects, function (options, id) {
+
+    });
+  });
 };
 
 

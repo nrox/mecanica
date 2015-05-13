@@ -70,7 +70,11 @@ Validator.prototype.requiredFor = function (group, type) {
 
 Validator.prototype.validateJSON = function (json, warnUnusedOptions) {
   //at system level
-  _.each(json, function(groupObjects, groupName){});
+  _.each(json, function (groupObjects, groupName) {
+    _.each(groupObjects, function (options, id) {
+
+    });
+  });
 };
 
 

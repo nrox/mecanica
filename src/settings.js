@@ -63,4 +63,4 @@ Settings.prototype.toJSON = function () {
 
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
-Component.prototype.defaultMaker.settings = 'local';
+Component.prototype.defaultType.settings = 'local';

@@ -382,4 +382,4 @@ System.prototype.callAfterStep = function () {
 
 extend(System, Component);
 Component.prototype.maker.system = System;
-Component.prototype.defaultMaker.system = 'basic';
+Component.prototype.defaultType.system = 'basic';

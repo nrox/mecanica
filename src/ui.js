@@ -433,6 +433,6 @@ UserInterface.prototype.inputs = {
 
 extend(UserInterface, Component);
 Component.prototype.maker.ui = UserInterface;
-Component.prototype.defaultMaker.ui = 'basic';
+Component.prototype.defaultType.ui = 'basic';
 
 

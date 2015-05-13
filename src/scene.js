@@ -79,4 +79,4 @@ Scene.prototype.destroy = function () {
 
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
-Component.prototype.defaultMaker.scene = 'basic';
+Component.prototype.defaultType.scene = 'basic';

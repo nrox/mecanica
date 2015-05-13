@@ -55,4 +55,4 @@ Light.prototype.methods = {
 
 extend(Light, Component);
 Component.prototype.maker.light = Light;
-Component.prototype.defaultMaker.light = 'directional';
+Component.prototype.defaultType.light = 'directional';

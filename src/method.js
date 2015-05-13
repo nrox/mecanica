@@ -37,4 +37,4 @@ Method.prototype.destroy = function () {
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;
-Component.prototype.defaultMaker.method = 'extended';
+Component.prototype.defaultType.method = 'extended';
