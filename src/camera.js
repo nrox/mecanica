@@ -146,3 +146,4 @@ Camera.prototype.methods = {
 
 extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
+Component.prototype.defaultMaker.camera = 'perspective';

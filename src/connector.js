@@ -1,10 +1,10 @@
 function Connector(options, system) {
-  this.construct(options, system, 'relative');
+  this.construct(options, system, 'basic');
 }
 
 Connector.prototype.types = {
   //base and axis are specified in local coordinates
-  relative: function (options) {
+  basic: function (options) {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
@@ -133,3 +133,4 @@ Connector.prototype.toJSON = function () {
 
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
+Component.prototype.defaultMaker.connector = 'basic';

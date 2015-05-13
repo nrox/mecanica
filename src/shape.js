@@ -98,3 +98,4 @@ Shape.prototype.useConversion = function (scale) {
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
+Component.prototype.defaultMaker.shape = 'sphere';

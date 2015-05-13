@@ -4,7 +4,7 @@ function Validator() {
 Validator.prototype.parseOptions = function (typeConstructor) {
   //assure its a string representation of a function
   typeConstructor = "" + typeConstructor;
-  var match = typeConstructor.match(/include[\W\w]*\{[\W\w]*\}\);/im);
+  var match = typeConstructor.match(/include[\W\w]*\{[\W\w]*\}\)+/im);
   if (!match) return {};
   match = match[0];
   match = "(" + match.match(/\{[\W\w]*/);
@@ -14,10 +14,11 @@ Validator.prototype.parseOptions = function (typeConstructor) {
 Validator.prototype.parseRequired = function (typeConstructor) {
   //assure its a string representation of a function
   typeConstructor = "" + typeConstructor;
-  var match = typeConstructor.match(/notifyUndefined[\W\w]*\);/im);
+  var match = typeConstructor.match(/notifyUndefined[\W\w]*\)+/);
   if (!match) return [];
   match = match[0];
-  match = "(" + match.match(/\([\W\w]*/);
+  match = match.match(/\([\W\w]*/)[0];
+  match = match.substr(0, match.indexOf(')') + 1);
   return eval(match);
 };
 
@@ -50,6 +51,26 @@ Validator.prototype.optionsFor = function (group, type) {
     _.defaults(options, this.optionsFor(group, type));
   }, this);
   return options;
+};
+
+Validator.prototype.requiredFor = function (group, type) {
+  var typeCons = this.constructorFor(group, type);
+  var required = this.parseRequired(typeCons);
+  if (type[0] == '_') return required;
+  //else add also required for accessory types, which start with _
+  var allTypes = this.listTypes(group);
+  var accessoryTypes = _.filter(allTypes, function (type) {
+    return type[0] == '_';
+  });
+  _.each(accessoryTypes, function (type) {
+    required = _.union(required, this.requiredFor(group, type));
+  }, this);
+  return required;
+};
+
+Validator.prototype.validateJSON = function (json, warnUnusedOptions) {
+  //at system level
+  _.each(json, function(groupObjects, groupName){});
 };
 
 

@@ -25,10 +25,9 @@ var test = {
   },
   'parseRequired': function () {
     var valid = new Validator();
-    var cons = valid.constructorFor('constraint', 'servo');
+    var cons = valid.constructorFor('body', 'basic');
     var required = valid.parseRequired(cons);
-    console.log('required', required);
-    testUtils.checkList(required, ['connectorA', 'connectorB', 'bodyA', 'bodyB'], 'required options for constraint servo');
+    testUtils.checkList(required, ['mass', 'shape', 'material'], 'required options for body basic');
   },
   listGroups: function () {
     var valid = new Validator();
@@ -47,7 +46,7 @@ var test = {
     });
     var expected = {
       "settings": ["global", "local"], "system": ["basic", "imported", "loaded"], "method": ["extended"], "shape": ["sphere", "box", "cylinder", "cone", "compound"],
-      "material": ["_intro", "basic", "phong"], "light": ["directional", "ambient"], "body": ["copy", "basic"], "connector": ["relative"],
+      "material": ["_intro", "basic", "phong"], "light": ["directional", "ambient"], "body": ["copy", "basic"], "connector": ["basic"],
       "constraint": ["_abstract", "point", "motor", "servo", "hinge", "gear", "linear", "slider", "fixed"], "scene": ["basic"],
       "camera": ["perspective", "tracker", "satellite", "orbital"], "monitor": ["complete"], "renderer": ["available", "_intro", "_outro", "webgl", "canvas"], "ui": ["basic"]};
     _.each(collection, function (types, group) {
@@ -60,8 +59,16 @@ var test = {
     var boxOptions = valid.optionsFor('shape', 'box');
     testUtils.checkKeys(boxOptions, ['dx', 'dy', 'dz'], 'box options are as expected');
     var servoOptions = valid.optionsFor('constraint', 'servo');
-    console.log(servoOptions);
     testUtils.checkKeys(servoOptions, ['connectorA', 'bodyB', 'maxBinary', 'angle'], 'connector has options as expected');
+  },
+  requiredFor: function () {
+    var valid = new Validator();
+    var boxRequired = valid.requiredFor('body', 'basic');
+    testUtils.checkList(boxRequired, ['mass', 'shape', 'material'], 'box required options are as expected');
+    var servoRequired = valid.requiredFor('constraint', 'servo');
+    testUtils.checkList(servoRequired, ['connectorA', 'bodyB', 'maxBinary', 'maxVelocity'], 'constraint servo has expected required options');
+    var connectorRequired = valid.requiredFor('connector', 'basic');
+    testUtils.checkList(connectorRequired, ['up', 'front', 'base'], 'connector basic required options has expected entries');
   }
 };
 

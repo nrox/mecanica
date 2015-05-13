@@ -54,3 +54,4 @@ Renderer.prototype.types = {
 
 extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
+Component.prototype.defaultMaker.renderer = 'available';

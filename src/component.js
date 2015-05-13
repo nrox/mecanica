@@ -30,6 +30,25 @@ function extend(target, source) {
 function Component() {
 }
 
+Component.prototype.construct = function (options, system, defaultType) {
+  if (!options) options = {};
+  if (!this.types[options.type]) options.type = defaultType;
+  var cons = this.types[options.type];
+  this.parentSystem = system;
+  this.rootSystem = system.rootSystem;
+  try {
+    cons.call(this, options, system);
+  } catch (e) {
+    console.log('...................');
+    console.log('error in Component.construct ', utils.argList(arguments));
+    console.log(e.message);
+    console.log(options);
+    console.log(this);
+    console.log('...................');
+    throw e;
+  }
+};
+
 Component.prototype.runsPhysics = function () {
   if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
@@ -106,25 +125,6 @@ Component.prototype.nextId = (function () {
   };
 })();
 
-Component.prototype.construct = function (options, system, defaultType) {
-  if (!options) options = {};
-  if (!this.types[options.type]) options.type = defaultType;
-  var cons = this.types[options.type];
-  this.parentSystem = system;
-  this.rootSystem = system.rootSystem;
-  try {
-    cons.call(this, options, system);
-  } catch (e) {
-    console.log('...................');
-    console.log('error in Component.construct ', utils.argList(arguments));
-    console.log(e.message);
-    console.log(options);
-    console.log(this);
-    console.log('...................');
-    throw e;
-  }
-};
-
 Component.prototype.isRoot = function () {
   return false;
 };
@@ -132,6 +132,8 @@ Component.prototype.isRoot = function () {
 Component.prototype.types = {};
 
 Component.prototype.maker = {};
+
+Component.prototype.defaultMaker = {};
 
 Component.prototype.getSettings = function () {
   return this.globalSettings();

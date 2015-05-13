@@ -54,6 +54,25 @@ function extend(target, source) {
 function Component() {
 }
 
+Component.prototype.construct = function (options, system, defaultType) {
+  if (!options) options = {};
+  if (!this.types[options.type]) options.type = defaultType;
+  var cons = this.types[options.type];
+  this.parentSystem = system;
+  this.rootSystem = system.rootSystem;
+  try {
+    cons.call(this, options, system);
+  } catch (e) {
+    console.log('...................');
+    console.log('error in Component.construct ', utils.argList(arguments));
+    console.log(e.message);
+    console.log(options);
+    console.log(this);
+    console.log('...................');
+    throw e;
+  }
+};
+
 Component.prototype.runsPhysics = function () {
   if (this.rootSystem) return this.rootSystem.runsPhysics();
   return RUNS_PHYSICS;
@@ -130,25 +149,6 @@ Component.prototype.nextId = (function () {
   };
 })();
 
-Component.prototype.construct = function (options, system, defaultType) {
-  if (!options) options = {};
-  if (!this.types[options.type]) options.type = defaultType;
-  var cons = this.types[options.type];
-  this.parentSystem = system;
-  this.rootSystem = system.rootSystem;
-  try {
-    cons.call(this, options, system);
-  } catch (e) {
-    console.log('...................');
-    console.log('error in Component.construct ', utils.argList(arguments));
-    console.log(e.message);
-    console.log(options);
-    console.log(this);
-    console.log('...................');
-    throw e;
-  }
-};
-
 Component.prototype.isRoot = function () {
   return false;
 };
@@ -156,6 +156,8 @@ Component.prototype.isRoot = function () {
 Component.prototype.types = {};
 
 Component.prototype.maker = {};
+
+Component.prototype.defaultMaker = {};
 
 Component.prototype.getSettings = function () {
   return this.globalSettings();
@@ -355,6 +357,8 @@ Settings.prototype.toJSON = function () {
 
 extend(Settings, Component);
 Component.prototype.maker.settings = Settings;
+Component.prototype.defaultMaker.settings = 'local';
+
 // src/settings.js ends
 // src/system.js begins
 function System(options, system) {
@@ -741,6 +745,8 @@ System.prototype.callAfterStep = function () {
 
 extend(System, Component);
 Component.prototype.maker.system = System;
+Component.prototype.defaultMaker.system = 'basic';
+
 // src/system.js ends
 // src/mechanic.js begins
 function Mecanica(options) {
@@ -1115,6 +1121,7 @@ Method.prototype.destroy = function () {
 
 extend(Method, Component);
 Component.prototype.maker.method = Method;
+Component.prototype.defaultMaker.method = 'extended';
 
 // src/method.js ends
 // src/vector.js begins
@@ -1336,6 +1343,7 @@ Shape.prototype.useConversion = function (scale) {
 
 extend(Shape, Component);
 Component.prototype.maker.shape = Shape;
+Component.prototype.defaultMaker.shape = 'sphere';
 
 // src/shape.js ends
 // src/material.js begins
@@ -1378,6 +1386,7 @@ Material.prototype.getRestitution = function () {
 
 extend(Material, Component);
 Component.prototype.maker.material = Material;
+Component.prototype.defaultMaker.material = 'phong';
 
 // src/material.js ends
 // src/light.js begins
@@ -1438,6 +1447,7 @@ Light.prototype.methods = {
 
 extend(Light, Component);
 Component.prototype.maker.light = Light;
+Component.prototype.defaultMaker.light = 'directional';
 
 // src/light.js ends
 // src/body.js begins
@@ -1686,17 +1696,18 @@ Body.prototype.approachBody = function (approach) {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
+Component.prototype.defaultMaker.body = 'basic';
 
 
 // src/body.js ends
 // src/connector.js begins
 function Connector(options, system) {
-  this.construct(options, system, 'relative');
+  this.construct(options, system, 'basic');
 }
 
 Connector.prototype.types = {
   //base and axis are specified in local coordinates
-  relative: function (options) {
+  basic: function (options) {
     this.include(options, {
       body: undefined, //the parent body id
       base: {x: 0, y: 0, z: 0}, //origin
@@ -1825,6 +1836,8 @@ Connector.prototype.toJSON = function () {
 
 extend(Connector, Component);
 Component.prototype.maker.connector = Connector;
+Component.prototype.defaultMaker.connector = 'basic';
+
 // src/connector.js ends
 // src/constraint.js begins
 function Constraint(options, system) {
@@ -1885,6 +1898,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    this.notifyUndefined(['maxBinary', 'maxVelocity', 'upperLimit', 'lowerLimit']);
     //TODO scale
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
@@ -2203,6 +2217,7 @@ Constraint.prototype.toJSON = function () {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
+Component.prototype.defaultMaker.constraint = 'point';
 
 // src/constraint.js ends
 // src/scene.js begins
@@ -2287,6 +2302,8 @@ Scene.prototype.destroy = function () {
 
 extend(Scene, Component);
 Component.prototype.maker.scene = Scene;
+Component.prototype.defaultMaker.scene = 'basic';
+
 // src/scene.js ends
 // src/camera.js begins
 function Camera(options, system) {
@@ -2437,6 +2454,8 @@ Camera.prototype.methods = {
 
 extend(Camera, Component);
 Component.prototype.maker.camera = Camera;
+Component.prototype.defaultMaker.camera = 'perspective';
+
 // src/camera.js ends
 // src/monitor.js begins
 function Monitor(options, system) {
@@ -2471,6 +2490,8 @@ Monitor.prototype.types = {
 
 extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
+Component.prototype.defaultMaker.monitor = 'complete';
+
 // src/monitor.js ends
 // src/renderer.js begins
 function Renderer(options, system) {
@@ -2529,6 +2550,8 @@ Renderer.prototype.types = {
 
 extend(Renderer, Component);
 Component.prototype.maker.renderer = Renderer;
+Component.prototype.defaultMaker.renderer = 'available';
+
 // src/renderer.js ends
 // src/ui.js begins
 var GET_VALUE = 'getValue';
@@ -2966,6 +2989,7 @@ UserInterface.prototype.inputs = {
 
 extend(UserInterface, Component);
 Component.prototype.maker.ui = UserInterface;
+Component.prototype.defaultMaker.ui = 'basic';
 
 
 
@@ -2977,7 +3001,7 @@ function Validator() {
 Validator.prototype.parseOptions = function (typeConstructor) {
   //assure its a string representation of a function
   typeConstructor = "" + typeConstructor;
-  var match = typeConstructor.match(/include[\W\w]*\{[\W\w]*\}\);/im);
+  var match = typeConstructor.match(/include[\W\w]*\{[\W\w]*\}\)+/im);
   if (!match) return {};
   match = match[0];
   match = "(" + match.match(/\{[\W\w]*/);
@@ -2987,10 +3011,11 @@ Validator.prototype.parseOptions = function (typeConstructor) {
 Validator.prototype.parseRequired = function (typeConstructor) {
   //assure its a string representation of a function
   typeConstructor = "" + typeConstructor;
-  var match = typeConstructor.match(/notifyUndefined[\W\w]*\);/im);
+  var match = typeConstructor.match(/notifyUndefined[\W\w]*\)+/);
   if (!match) return [];
   match = match[0];
-  match = "(" + match.match(/\([\W\w]*/);
+  match = match.match(/\([\W\w]*/)[0];
+  match = match.substr(0, match.indexOf(')') + 1);
   return eval(match);
 };
 
@@ -3023,6 +3048,26 @@ Validator.prototype.optionsFor = function (group, type) {
     _.defaults(options, this.optionsFor(group, type));
   }, this);
   return options;
+};
+
+Validator.prototype.requiredFor = function (group, type) {
+  var typeCons = this.constructorFor(group, type);
+  var required = this.parseRequired(typeCons);
+  if (type[0] == '_') return required;
+  //else add also required for accessory types, which start with _
+  var allTypes = this.listTypes(group);
+  var accessoryTypes = _.filter(allTypes, function (type) {
+    return type[0] == '_';
+  });
+  _.each(accessoryTypes, function (type) {
+    required = _.union(required, this.requiredFor(group, type));
+  }, this);
+  return required;
+};
+
+Validator.prototype.validateJSON = function (json, warnUnusedOptions) {
+  //at system level
+  _.each(json, function(groupObjects, groupName){});
 };
 
 

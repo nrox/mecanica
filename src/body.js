@@ -243,4 +243,5 @@ Body.prototype.approachBody = function (approach) {
 
 extend(Body, Component);
 Component.prototype.maker.body = Body;
+Component.prototype.defaultMaker.body = 'basic';
 

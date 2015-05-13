@@ -56,6 +56,7 @@ Constraint.prototype.types = {
       maxBinary: 1,
       maxVelocity: 0.5
     });
+    this.notifyUndefined(['maxBinary', 'maxVelocity', 'upperLimit', 'lowerLimit']);
     //TODO scale
     Constraint.prototype.types.hinge.call(this, options);
     this.afterCreate = function () {
@@ -374,3 +375,4 @@ Constraint.prototype.toJSON = function () {
 
 extend(Constraint, Component);
 Component.prototype.maker.constraint = Constraint;
+Component.prototype.defaultMaker.constraint = 'point';

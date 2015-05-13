@@ -30,3 +30,4 @@ Monitor.prototype.types = {
 
 extend(Monitor, Component);
 Component.prototype.maker.monitor = Monitor;
+Component.prototype.defaultMaker.monitor = 'complete';
