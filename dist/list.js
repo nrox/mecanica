@@ -75,6 +75,7 @@ availablePaths = [
 "./dist/ware/monitor/satellite.js",
 "./dist/ware/monitor/simple.js",
 "./dist/ware/monitor/tracker.js",
+"./dist/ware/project/mechanic-transmission-2.js",
 "./dist/ware/project/mechanic-transmission.js",
 "./dist/ware/robot/arm.js",
 "./dist/ware/robot/differential.js",
