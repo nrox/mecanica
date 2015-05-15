@@ -214,6 +214,7 @@ Body.prototype.toJSON = function () {
   _.each(this.connector, function (connector, key) {
     json.connector[key] = connector.toJSON();
   });
+  //json.lengthUnits = this.globalSettings().lengthUnits;
   return json;
 };
 

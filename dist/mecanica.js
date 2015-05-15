@@ -178,7 +178,11 @@ Component.prototype.globalSettings = function () {
 
 Component.prototype.localSettings = function () {
   try {
-    return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+    if (this instanceof System) {
+      return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+    } else {
+      return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+    }
   } catch (e) {
     console.log('in globalSettings in ', this.group, this.id);
     console.log(e.message);
@@ -224,7 +228,13 @@ Component.prototype.conversionRate = function (type, settingsProperty) {
   var globalUnit = this.globalSettings()[settingsProperty];
   var localUnit = this[settingsProperty] || this.localSettings()[settingsProperty];
   if (globalUnit === localUnit) return 1;
-  if (localUnit === undefined) return 1; //FIXME search parent ?
+  if (localUnit === undefined) {
+    if (!this.isRoot()) {
+      return this.parentSystem.conversionRate(type, settingsProperty);
+    } else {
+      return 1;
+    }
+  } //FIXME search parent ?
   return this.CONVERSION[type][localUnit] / this.CONVERSION[type][globalUnit];
 };
 
@@ -380,6 +390,7 @@ System.prototype.types = {
   //base and axis are specified in local coordinates
   basic: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       position: undefined,
       rotation: undefined,
       json: undefined
@@ -389,6 +400,7 @@ System.prototype.types = {
   },
   imported: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       url: undefined,
       position: undefined,
       rotation: undefined,
@@ -400,6 +412,7 @@ System.prototype.types = {
   },
   loaded: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       position: undefined,
       rotation: undefined,
       json: {}
@@ -413,7 +426,6 @@ System.prototype.buildSystemPosition = function (options) {
   if (this.runsPhysics() && (this.rotation || this.position)) {
     this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
     this.position = new Vector(options.position || {});
-    //TODO check if this should be done with reference to local settings not from parent
     this.applyLengthConversionRate(this.position);
     this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
   }
@@ -681,6 +693,7 @@ System.prototype.toJSON = function () {
       json[groupName][objectId] = object.toJSON();
     });
   });
+  json.lengthUnits = this.globalSettings().lengthUnits;
   //no need to set position and rotation as the system is already transformed
   return json;
 };
@@ -1675,6 +1688,7 @@ Body.prototype.toJSON = function () {
   _.each(this.connector, function (connector, key) {
     json.connector[key] = connector.toJSON();
   });
+  //json.lengthUnits = this.globalSettings().lengthUnits;
   return json;
 };
 
@@ -1738,7 +1752,7 @@ Connector.prototype.types = {
       var settings = this.getSettings();
       var helper = this.settingsFor('connectorHelper');
       if (this.runsRender() && helper) {
-        helper = this.applyLengthConversionRate(helper);
+        helper = this.applyLengthConversionRate(Number(helper));
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
           color: settings.connectorColor,
@@ -1839,6 +1853,8 @@ Connector.prototype.toJSON = function () {
   _.each(['base', 'up', 'front'], function (v) {
     json[v] = this[v].toJSON();
   }, this);
+  json.lengthUnits = this.globalSettings().lengthUnits;
+
   return json;
 };
 

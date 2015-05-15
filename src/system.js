@@ -15,6 +15,7 @@ System.prototype.types = {
   //base and axis are specified in local coordinates
   basic: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       position: undefined,
       rotation: undefined,
       json: undefined
@@ -24,6 +25,7 @@ System.prototype.types = {
   },
   imported: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       url: undefined,
       position: undefined,
       rotation: undefined,
@@ -35,6 +37,7 @@ System.prototype.types = {
   },
   loaded: function (options) {
     this.include(options, {
+      lengthUnits: undefined,
       position: undefined,
       rotation: undefined,
       json: {}
@@ -48,7 +51,6 @@ System.prototype.buildSystemPosition = function (options) {
   if (this.runsPhysics() && (this.rotation || this.position)) {
     this.quaternion = new Quaternion(this.rotation || this.quaternion || {w: 1});
     this.position = new Vector(options.position || {});
-    //TODO check if this should be done with reference to local settings not from parent
     this.applyLengthConversionRate(this.position);
     this.ammoTransform = new Ammo.btTransform(this.quaternion.ammo, this.position.ammo);
   }
@@ -316,6 +318,7 @@ System.prototype.toJSON = function () {
       json[groupName][objectId] = object.toJSON();
     });
   });
+  json.lengthUnits = this.globalSettings().lengthUnits;
   //no need to set position and rotation as the system is already transformed
   return json;
 };

@@ -27,7 +27,7 @@ Connector.prototype.types = {
       var settings = this.getSettings();
       var helper = this.settingsFor('connectorHelper');
       if (this.runsRender() && helper) {
-        helper = this.applyLengthConversionRate(helper);
+        helper = this.applyLengthConversionRate(Number(helper));
         //TODO reuse material and geometry
         var connectorHelperMaterial = new THREE.MeshBasicMaterial({
           color: settings.connectorColor,
@@ -128,6 +128,8 @@ Connector.prototype.toJSON = function () {
   _.each(['base', 'up', 'front'], function (v) {
     json[v] = this[v].toJSON();
   }, this);
+  json.lengthUnits = this.globalSettings().lengthUnits;
+
   return json;
 };
 

@@ -154,7 +154,11 @@ Component.prototype.globalSettings = function () {
 
 Component.prototype.localSettings = function () {
   try {
-    return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+    if (this instanceof System) {
+      return this.getObject('settings', _.keys(this.objects['settings'])[0]) || {};
+    } else {
+      return this.parentSystem.getObject('settings', _.keys(this.parentSystem.objects['settings'])[0]) || {};
+    }
   } catch (e) {
     console.log('in globalSettings in ', this.group, this.id);
     console.log(e.message);
@@ -200,7 +204,13 @@ Component.prototype.conversionRate = function (type, settingsProperty) {
   var globalUnit = this.globalSettings()[settingsProperty];
   var localUnit = this[settingsProperty] || this.localSettings()[settingsProperty];
   if (globalUnit === localUnit) return 1;
-  if (localUnit === undefined) return 1; //FIXME search parent ?
+  if (localUnit === undefined) {
+    if (!this.isRoot()) {
+      return this.parentSystem.conversionRate(type, settingsProperty);
+    } else {
+      return 1;
+    }
+  } //FIXME search parent ?
   return this.CONVERSION[type][localUnit] / this.CONVERSION[type][globalUnit];
 };
 

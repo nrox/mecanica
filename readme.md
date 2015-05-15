@@ -122,3 +122,4 @@ Or
 - tune servos and motorss
 - user interfaces should be collapsible
 - remove class monitor and use isolated camera and renderer, for more flexibility
+- check position - scaling - toJSON conflicts

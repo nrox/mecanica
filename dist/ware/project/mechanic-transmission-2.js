@@ -7,10 +7,10 @@ var _ = require('../../lib/underscore.js');
 var utils = require('../../utils.js');
 
 var defaultOptions = {
-  sW: 0.45, //segment width
-  sD: 0.20, //segment depth
-  vH: 4.95, //vertical segment height
-  hW: 2.25 //horizontal segment span
+  sW: 45, //segment width
+  sD: 20, //segment depth
+  vH: 495, //vertical segment height
+  hW: 225 //horizontal segment span
 };
 
 var getObject = function (o) {
@@ -24,13 +24,13 @@ var getObject = function (o) {
   var object = {
     settings: {
       local: {
-        lengthUnits: 'dm',
         freeze: false,
-        axisHelper: 0.5,
+        axisHelper: 0,
         connectorHelper: 0.3
       }
     },
-    position: {y: -o.vH/2},
+    lengthUnits: 'mm',
+    position: {y: -o.vH / 2},
     shape: {
       V: {type: 'box', dx: o.sW, dy: o.vH, dz: o.sD, gap: gap},
       H: {type: 'box', dx: o.hW, dy: o.sW, dz: o.sD, gap: gap},
@@ -111,7 +111,7 @@ var getObject = function (o) {
         }
       },
       //level z=0
-      'H,z=0,y=0': {type: 'copy', of: 'H', material: 'red', shape: 'H2',mass: 0, position: {x: 0, y: 0, z: 0}},
+      'H,z=0,y=0': {type: 'copy', of: 'H', material: 'red', shape: 'H2', mass: 0, position: {x: 0, y: 0, z: 0}},
       'H,z=0,y=1': {type: 'copy', of: 'H', material: 'red', position: {x: 0, y: o.vH - o.sW, z: 0}},
       'V,z=0,x=-1': {type: 'copy', of: 'V', material: 'red', position: {x: -o.hW / 2 + o.sW / 2, y: (o.vH - o.sW) / 2, z: o.sD}},
       'V,z=0,x=1': {type: 'copy', of: 'V', material: 'red', position: {x: o.hW / 2 - o.sW / 2, y: (o.vH - o.sW) / 2, z: o.sD}},
