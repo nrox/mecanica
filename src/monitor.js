@@ -16,10 +16,10 @@ Monitor.prototype.types = {
       inertia: 1
     });
     if (this.options().width === undefined) {
-      this.options().width = this.width = this.globalSettings().width;
+      this.options().width = this.width = this.globalSettings().canvasWidth;
     }
     if (this.options().height === undefined) {
-      this.options().height = this.height = this.globalSettings().height;
+      this.options().height = this.height = this.globalSettings().canvasHeight;
     }
     if (this.runsRender()) {
       var o = this.optionsWithoutId();
