@@ -16,7 +16,7 @@ var defaultOptions = {
 var getObject = function (o) {
   _.defaults(o || {}, defaultOptions);
   var gap = 0.1 * o.sD;
-  o.density = 0.45; //Kg/dm^3
+  o.density = 0.00045; //Kg/mm^3
   o.vMass = o.density * o.vH * o.sW * o.sD;
   o.hMass = o.density * o.hW * o.sW * o.sD;
   o.opacity = 1;
