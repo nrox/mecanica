@@ -27,8 +27,8 @@ Settings.prototype.types = {
       uiContainer: 'body',
       reuseCanvas: true,
       clearColor: 0x000000,
-      canvasWidth: 720,
-      canvasHeight: 720,
+      canvasWidth: 480,
+      canvasHeight: 480,
 
       webWorker: true, //use webworker if available
 

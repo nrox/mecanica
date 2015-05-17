@@ -61,6 +61,7 @@ availablePaths = [
 "./dist/ware/cinematic/coaxial-servos-arm-2.js",
 "./dist/ware/cinematic/coaxial-servos-arm.js",
 "./dist/ware/experiment/basic2.js",
+"./dist/ware/experiment/change-shape.js",
 "./dist/ware/experiment/differential-wheel-in-a-box.js",
 "./dist/ware/experiment/double-pendulum2.js",
 "./dist/ware/experiment/double-pendulum.js",

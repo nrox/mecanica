@@ -333,8 +333,8 @@ Settings.prototype.types = {
       uiContainer: 'body',
       reuseCanvas: true,
       clearColor: 0x000000,
-      canvasWidth: 720,
-      canvasHeight: 720,
+      canvasWidth: 480,
+      canvasHeight: 480,
 
       webWorker: true, //use webworker if available
 
@@ -1475,6 +1475,7 @@ Component.prototype.defaultType.light = 'directional';
 function Body(options, system) {
   this.construct(options, system, 'basic');
 }
+
 
 Body.prototype.types = {
   copy: function (options) {
