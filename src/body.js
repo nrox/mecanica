@@ -2,7 +2,6 @@ function Body(options, system) {
   this.construct(options, system, 'basic');
 }
 
-
 Body.prototype.types = {
   copy: function (options) {
     this.include(options, {
@@ -24,7 +23,7 @@ Body.prototype.types = {
     this.include(options, {
       shape: undefined,
       material: undefined,
-      mass: 0,
+      mass: undefined,
       isTemplate: false,
       angularDamping: 0.3,
       linearDamping: 0.1,

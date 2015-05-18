@@ -1,5 +1,5 @@
-var _ = require('../../lib/underscore.js');
-var utils = require('../../utils.js');
+var _ = require('../../../lib/underscore.js');
+var utils = require('../../../utils.js');
 
 var defaultOptions = {
   opacity: 0.9,

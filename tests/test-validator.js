@@ -78,6 +78,9 @@ var test = {
         shape1: {},
         shape2: {}
       },
+      material: {
+        red: {color: 0x663333}
+      },
       body: {
         body1: {type: 'wrong'},
         body2: {mass: 0}
@@ -92,18 +95,21 @@ var test = {
       }
     };
     var expected = {
-      garbage: valid.STATUS.UNKNOWN,
+      garbage: [valid.STATUS.UNKNOWN_GROUP],
       shape: {
         shape1: valid.STATUS.OK,
         shape2: valid.STATUS.OK
       },
+      material: {
+        red: valid.STATUS.OK
+      },
       body: {
         body1: [valid.STATUS.WRONG_TYPE, 'wrong'],
-        body2: [valid.STATUS.UNDEFINED, ['shape', 'material']]
+        body2: [valid.STATUS.UNDEFINED_VALUES, 'shape', 'material']
       },
       system: {
         system1: {
-          shape3: valid.STATUS.UNKNOWN,
+          shape3: [valid.STATUS.UNKNOWN_GROUP],
           shape: {
             shape4: valid.STATUS.OK
           }
@@ -111,16 +117,19 @@ var test = {
       }
     };
     var report = valid.reportErrors(json);
-    testUtils.assert(report.system.system1.shape3 == expected.system.system1.shape3, 'expected system result for unknown group');
+
+    testUtils.assert(report.system.system1.shape3[0] == expected.system.system1.shape3[0], 'expected system result for unknown group');
     testUtils.assert(report.system.system1.shape.shape4 == expected.system.system1.shape.shape4, 'expected system result for shape');
 
-    testUtils.assert(report.garbage === expected.garbage, 'expected "garbage" as unknown group');
+    testUtils.assert(report.garbage[0] === expected.garbage[0], 'expected "garbage" as unknown group');
     testUtils.checkValues(report.shape, expected.shape, 'expected shape result');
+    testUtils.assert(report.material.red == expected.material.red, 'material is OK');
+
     testUtils.checkList(report.body.body1, expected.body.body1, 'expected body1 result');
-    testUtils.checkList(report.body.body2[1], expected.body.body2[1], 'expected body2 result for undefined types');
+    testUtils.checkList(report.body.body2, expected.body.body2, 'expected body2 result for undefined types');
     var resume = valid.resumeErrors(report);
     console.warn('TODO resumeErrors');
-    console.log(resume);
+    console.log(utils.stringify(resume));
   }
 };
 

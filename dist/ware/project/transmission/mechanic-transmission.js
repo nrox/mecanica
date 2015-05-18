@@ -3,8 +3,8 @@
  * base material: wood
  */
 
-var _ = require('../../lib/underscore.js');
-var utils = require('../../utils.js');
+var _ = require('../../../lib/underscore.js');
+var utils = require('../../../utils.js');
 
 var defaultOptions = {
   sW: 0.46, //segment width

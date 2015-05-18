@@ -1476,7 +1476,6 @@ function Body(options, system) {
   this.construct(options, system, 'basic');
 }
 
-
 Body.prototype.types = {
   copy: function (options) {
     this.include(options, {
@@ -1498,7 +1497,7 @@ Body.prototype.types = {
     this.include(options, {
       shape: undefined,
       material: undefined,
-      mass: 0,
+      mass: undefined,
       isTemplate: false,
       angularDamping: 0.3,
       linearDamping: 0.1,
@@ -3130,7 +3129,7 @@ Validator.prototype.reportErrors = function (json, report) {
   _.each(json, function (groupObjects, group) {
     if (this.allOptions[group] === undefined) {
       //TODO check system options
-      report[group] = this.STATUS.UNKNOWN;
+      report[group] = [this.STATUS.UNKNOWN_GROUP, group];
       return;
     }
     report[group] = {};
@@ -3146,16 +3145,19 @@ Validator.prototype.reportErrors = function (json, report) {
     _.each(groupObjects, function (options, id) {
       var type = options.type || Component.prototype.defaultType[group];
       if (!type) {
-        report[group][id] = this.STATUS.NO_TYPE;
+        report[group][id] = [this.STATUS.NO_TYPE];
       } else if (this.allOptions[group][type] === undefined) {
         report[group][id] = [this.STATUS.WRONG_TYPE, type];
       } else {
+        var defaultOptions = this.allOptions[group][type];
         var required = this.requiredFor(group, type);
         var notPresent = _.filter(required, function (option) {
-          return (options[option] == undefined);
+          //if option is present but the value is null, or if it is not present but the default value is not undefined
+          return (options.hasOwnProperty(option)) && (options[option] == undefined)
+            || (!options.hasOwnProperty(option)) && (defaultOptions[option] == undefined);
         });
         if (notPresent.length > 0) {
-          report[group][id] = [this.STATUS.UNDEFINED, notPresent];
+          report[group][id] = [this.STATUS.UNDEFINED_VALUES].concat(notPresent);
         } else {
           report[group][id] = this.STATUS.OK;
         }
@@ -3177,6 +3179,8 @@ Validator.prototype.resumeErrors = function (report, resume, path) {
       _.each(groupObject, function (system, id) {
         this.resumeErrors(system, resume, path + ".system." + id);
       }, this);
+    } else if (groupObject instanceof Array) { //unknown group
+      resume.push([path + '.' + groupObject[1], groupObject]);
     } else {
       _.each(groupObject, function (result, id) {
         if (result != this.STATUS.OK) {
@@ -3188,12 +3192,53 @@ Validator.prototype.resumeErrors = function (report, resume, path) {
   return resume;
 };
 
+Validator.prototype.hasErrors = function (json, warn) {
+  var report = this.reportErrors(json);
+  var resume = this.resumeErrors(report);
+  if (resume.length && warn) {
+    _.each(resume, function (error) {
+      console.warn.apply(console, error);
+    }, this);
+  }
+  return resume.length;
+};
+
 Validator.prototype.STATUS = {
-  UNKNOWN: 'unknown group',
+  UNKNOWN_GROUP: 'unknown group',
   OK: 'ok',
   NO_TYPE: 'no type specified',
   WRONG_TYPE: 'unknown type',
-  UNDEFINED: 'undefined values'
+  UNDEFINED_VALUES: 'undefined values'
+};
+
+Validator.prototype.push = function (group, id, json) {
+  if (!this.pushBag) {
+    this.pushBag = {};
+  }
+  if (!this.pushBag[group]) {
+    this.pushBag[group] = {};
+  }
+  if (this.pushBag[group][id]) {
+    throw new Error(group + '.' + id + ' already exists');
+  }
+  this.pushBag[group][id] = json;
+  var errors;
+  if (errors = this.hasErrors(this.pushBag, true)) {
+    console.log(group + '.' + id, ':', utils.stringify(json));
+    throw new Error(errors + ' error(s) where found.');
+  }
+};
+
+_.each({settings: {}, system: {}, shape: {}, material: {}, body: {}, constraint: {}, method: {}},
+  function (o, group) {
+    Validator.prototype[group] = function (id, json) {
+      this.push(group, id, json);
+    };
+  }
+);
+
+Validator.prototype.getObject = function () {
+  return this.pushBag || {};
 };
 
 
