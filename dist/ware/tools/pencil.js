@@ -4,7 +4,7 @@ var validator = new lib.Validator();
 var defaultOptions = {
   lengthUnits: 'mm',
   color: 0x993333,
-  mass: 0.01,
+  mass: 0,
   radius: 10,
   size: 100
 };
@@ -13,7 +13,7 @@ var getObject = function (o) {
   o = _.defaults(o, defaultOptions);
 
   validator.settings('local', {
-    freeze: true,
+    freeze: false,
     lengthUnits: o.lengthUnits
   });
 

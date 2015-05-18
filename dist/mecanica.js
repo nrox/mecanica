@@ -3129,6 +3129,9 @@ Validator.prototype.reportErrors = function (json, report) {
   _.each(json, function (groupObjects, group) {
     if (this.allOptions[group] === undefined) {
       //TODO check system options
+      if (['position', 'rotation', 'lengthUnits'].indexOf(group) > -1) {
+        return;
+      }
       report[group] = [this.STATUS.UNKNOWN_GROUP, group];
       return;
     }
