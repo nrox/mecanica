@@ -176,7 +176,7 @@ Component.prototype.settingsFor = function (key) {
 };
 
 Component.prototype.getScene = function () {
-  return this.rootSystem.getObject('scene', _.keys(this.objects['scene'])[0]);
+  return this.rootSystem.getObject('scene', _.keys(this.rootSystem.objects['scene'])[0]);
 };
 
 Component.prototype.CONVERSION = {

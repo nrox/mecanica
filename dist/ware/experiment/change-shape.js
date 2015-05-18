@@ -53,12 +53,14 @@ function getObject(o) {
         shape: 'sphere', material: 'material', mass: o.mass,
         approach: {connector: 'bottom', targetBody: 'cylinder', targetConnector: 'top'},
         connector: {
-          bottom: {base: {y: -o.r}}
+          bottom: {base: {y: -0.3 * o.r}, up: {y: 1, z: 0.5, x: 0.1}}
         }
       }
     },
     constraint: {
-      support: {type: 'hinge', bodyA: 'base', bodyB: 'cylinder', connectorA: 'support', connectorB: 'support'}
+      support: {type: 'hinge', bodyA: 'base', bodyB: 'cylinder', connectorA: 'support', connectorB: 'support'},
+      point: {type: 'point', bodyA: 'cylinder', bodyB: 'sphere', connectorA: 'top', connectorB: 'bottom'}
+
     }
   };
 }
@@ -75,12 +77,17 @@ function userInterface(options) {
     template: {
       scale: {type: 'range', min: 0.1, max: 2, step: 0.01, change: function () {
         var cylinder = this.rootSystem.getSystem(options.system).getBody('cylinder');
+        var scene = cylinder.getScene();
         var shape = cylinder.ammo.getCollisionShape();
         var scale = this.getValues().scale;
-        shape.setLocalScaling(new Ammo.btVector3(1, scale, 1));
+        var scaling = shape.getLocalScaling();
+        scaling.setY(scale);
+        shape.setLocalScaling(scaling);
         cylinder.three.scale.setY(scale);
+        scene = scene || this.getScene();
+        scene.ammo.updateSingleAabb(cylinder.ammo);
         cylinder.ammo.activate(true);
-        this.rootSystem.getSystem(options.system).getBody('sphere').ammo.activate(true);
+        var sphere = this.rootSystem.getSystem(options.system).getBody('sphere');
       }}
     },
     container: options.container
