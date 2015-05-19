@@ -277,7 +277,8 @@ Component.prototype.destroy = function () {
 };
 
 Component.prototype.getLibrary = function (library) {
-  return {
+  library = "" + library.toLowerCase();
+  var libraries = {
     ammo: function () {
       return ammoHelper;
     },
@@ -290,10 +291,11 @@ Component.prototype.getLibrary = function (library) {
     utils: function () {
       return utils;
     },
-    jQuery: function () {
+    jquery: function () {
       return jQuery;
     }
-  }[library]();
+  };
+  return libraries[library] && libraries[library]();
 };
 
 
