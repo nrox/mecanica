@@ -1,5 +1,3 @@
-var lib = require('../../../dist/mecanica.js');
-var validator = new lib.Validator();
 var pencil = require('../../tools/pencil.js');
 
 var defaultOptions = {
@@ -14,7 +12,10 @@ var defaultOptions = {
   pencilRadius: 0.05
 };
 
-var getObject = function (o) {
+var getObject = function (o, lib) {
+  var validator = new lib.Validator();
+  var _ = lib.getLibrary('underscore');
+
   o = _.defaults(o, defaultOptions);
 
   validator.settings('local', {
@@ -66,7 +67,9 @@ var getObject = function (o) {
 };
 
 
-var userInterface = function (options, mecanica) {
+var userInterface = function (options, lib) {
+  var _ = lib.getLibrary('underscore');
+
   options = _.defaults(options || {}, {
     system: undefined,
     container: 'body'

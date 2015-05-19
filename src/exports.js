@@ -23,4 +23,4 @@ mecanicaLibrary = {
 }
 ;
 
-module.exports = mecanicaLibrary;
+module.exports = _.clone(mecanicaLibrary);

@@ -6,11 +6,11 @@ var defaultOptions = {
   size: 100
 };
 
-var getObject = function (o, mecanica) {
-  var validator = new mecanica.Validator();
+var getObject = function (o, lib) {
+  var validator = new lib.Validator();
+  var _ = lib.getLibrary('_');
 
   o = _.defaults(o, defaultOptions);
-
 
   validator.settings('local', {
     freeze: false,

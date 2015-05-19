@@ -313,6 +313,9 @@ Component.prototype.getLibrary = function (library) {
     underscore: function () {
       return _;
     },
+    _: function () {
+      return _;
+    },
     utils: function () {
       return utils;
     },
@@ -3313,6 +3316,6 @@ mecanicaLibrary = {
 }
 ;
 
-module.exports = mecanicaLibrary;
+module.exports = _.clone(mecanicaLibrary);
 // src/exports.js ends
 })();

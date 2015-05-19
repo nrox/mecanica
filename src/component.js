@@ -289,6 +289,9 @@ Component.prototype.getLibrary = function (library) {
     underscore: function () {
       return _;
     },
+    _: function () {
+      return _;
+    },
     utils: function () {
       return utils;
     },

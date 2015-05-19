@@ -1,12 +1,13 @@
-var _ = require('../../lib/underscore.js');
-var utils = require('../../utils.js');
 var handData = require('../../ware/experiment/hand.js');
 
 var defaultOptions = {
   distance: 4
 };
 
-function getObject(options) {
+var getObject = function (options, lib) {
+  var _ = lib.getLibrary('_');
+  var utils = lib.getLibrary('utils');
+
   var o = _.defaults(options || {}, defaultOptions);
   var hand = function (angle) {
     var x = Math.sin(angle);
@@ -15,7 +16,7 @@ function getObject(options) {
       type: 'loaded',
       position: {x: x * o.distance, z: z * o.distance},
       rotation: {y: angle + Math.PI / 2},
-      json: handData.getObject()
+      json: handData.getObject({}, lib)
     };
   };
   var objects = {
@@ -30,7 +31,10 @@ function getObject(options) {
   return objects;
 }
 
-function userInterface(options) {
+var userInterface = function (options, lib) {
+  var _ = lib.getLibrary('_');
+  var utils = lib.getLibrary('utils');
+
   options = _.defaults(options || {}, {
     system: undefined,
     container: 'body'

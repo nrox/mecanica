@@ -1,6 +1,4 @@
 (function () {
-  var _ = require('../../lib/underscore.js');
-  var utils = require('../../utils.js');
   var fingerData = require('../../ware/experiment/finger.js');
 
   var defaultOptions = {
@@ -12,7 +10,9 @@
     handRadius: 1.8
   };
 
-  function getObject(options) {
+  function getObject(options, lib) {
+    var _ = lib.getLibrary('_');
+    var utils = lib.getLibrary('utils');
 
     var o = _.defaults(options || {}, defaultOptions);
     var finger = function (angle) {
@@ -25,7 +25,7 @@
         json: fingerData.getObject({
           r: o.fingerRadius, tip: 2 * o.fingerHeight / 3, base: o.fingerHeight / 3,
           baseMass: 2 * o.fingerMass / 3, tipMass: o.fingerMass / 3
-        })
+        }, lib)
       };
     };
     var constraint = function (system) {
@@ -88,7 +88,9 @@
     return objects;
   }
 
-  function userInterface(options) {
+  function userInterface(options, lib) {
+    var _ = lib.getLibrary('_');
+    var utils = lib.getLibrary('utils');
     options = _.defaults(options || {}, {
       system: undefined,
       container: 'body'
