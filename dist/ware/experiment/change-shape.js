@@ -2,7 +2,7 @@ var _ = require('../../lib/underscore.js');
 var Ammo = require('../../lib/ammo.js');
 
 var defaultOptions = {
-  r: 1,
+  r: 0.5,
   dy: 3,
   mass: 0.1,
   color: 0x449977
@@ -21,7 +21,7 @@ function getObject(o) {
     },
     shape: {
       base: {
-        type: 'box', dx: o.r * 3, dz: o.r * 3, dy: o.r * 0.1
+        type: 'box', dx: o.r * 3, dz: o.r * 3, dy: o.r * 0.2
       },
       cylinder: {
         type: 'cylinder', r: o.r, dy: o.dy
@@ -38,14 +38,14 @@ function getObject(o) {
       base: {
         shape: 'base', material: 'material', mass: 0,
         connector: {
-          support: {}
+          top: {base: {y: o.r * 0.1}}
         }
       },
       cylinder: {
         shape: 'cylinder', material: 'cylinder', mass: o.mass,
-        approach: {connector: 'support', targetBody: 'base', targetConnector: 'support'},
+        approach: {connector: 'bottom', targetBody: 'base', targetConnector: 'top'},
         connector: {
-          support: {base: {y: -o.dy}},
+          bottom: {base: {y: -o.dy / 2}},
           top: {base: {y: o.dy / 2}}
         }
       },
@@ -53,13 +53,13 @@ function getObject(o) {
         shape: 'sphere', material: 'material', mass: o.mass,
         approach: {connector: 'bottom', targetBody: 'cylinder', targetConnector: 'top'},
         connector: {
-          bottom: {base: {y: -0.3 * o.r}, up: {y: 1, z: 0.5, x: 0.1}}
+          bottom: {base: {y: -o.r}}
         }
       }
     },
     constraint: {
-      support: {type: 'hinge', bodyA: 'base', bodyB: 'cylinder', connectorA: 'support', connectorB: 'support'},
-      point: {type: 'point', bodyA: 'cylinder', bodyB: 'sphere', connectorA: 'top', connectorB: 'bottom'}
+      //support: {type: 'hinge', bodyA: 'base', bodyB: 'cylinder', connectorA: 'support', connectorB: 'support'},
+      ///point: {type: 'point', bodyA: 'cylinder', bodyB: 'sphere', connectorA: 'top', connectorB: 'bottom'}
 
     }
   };
@@ -70,6 +70,9 @@ function userInterface(options) {
     system: undefined,
     container: 'body'
   });
+  var aabbMin = new Ammo.btVector3;
+  var aabbMax = new Ammo.btVector3;
+  var t = new Ammo.btTransform;
   return {
     values: {
       scale: 1
@@ -86,8 +89,14 @@ function userInterface(options) {
         cylinder.three.scale.setY(scale);
         scene = scene || this.getScene();
         scene.ammo.updateSingleAabb(cylinder.ammo);
+        //scene.ammo.setForceUpdateAllAabbs(false);
+        scene.btDbvtBroadphase.printStats();
+        scene.ammo.updateAabbs();
+        shape.getAabb(t, aabbMin, aabbMax);
+        console.log(scene.ammo.getForceUpdateAllAabbs(), aabbMin.y(), aabbMax.y());
         cylinder.ammo.activate(true);
         var sphere = this.rootSystem.getSystem(options.system).getBody('sphere');
+        sphere.ammo.activate(true);
       }}
     },
     container: options.container
