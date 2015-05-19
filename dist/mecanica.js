@@ -27,6 +27,7 @@ Exception.prototype.log = function () {
  * super class
  */
 
+var mecanicaLibrary;
 
 var _ = require('./lib/underscore.js');
 var ammoHelper = require('./lib/ammo.js');
@@ -317,6 +318,9 @@ Component.prototype.getLibrary = function (library) {
     },
     jquery: function () {
       return jQuery;
+    },
+    mecanica: function () {
+      return mecanicaLibrary;
     }
   };
   return libraries[library] && libraries[library]();
@@ -610,7 +614,7 @@ System.prototype.make = function () {
 
 System.prototype.import = function (url, options) {
   try {
-    var json = require(url).getObject(options);
+    var json = require(url).getObject(options, this.getLibrary('mecanica'));
     this.load(json);
   } catch (e) {
     console.log('in System.import: ' + url);
@@ -637,7 +641,7 @@ System.prototype.importSystem = function (url, id, options) {
     //console.log("" + mod.getObject);
     //console.log( mod.defaultOptions);
 
-    var json = mod.getObject(options);
+    var json = mod.getObject(options, this.getLibrary('mecanica'));
     return this.loadSystem(json, id);
   } catch (e) {
     console.log('in System.importSystem: ' + id + ' @ ' + url);
@@ -1393,7 +1397,7 @@ Material.prototype.types = {
     this.include(options, {
       friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: undefined
+      wireframe: false
     });
     if (this.options().wireframe === undefined) {
       this.options().wireframe = this.wireframe = this.globalSettings().wireframe;
@@ -3284,7 +3288,7 @@ Natural.prototype.tokenize = function(text){
 };
 // src/util/natural.js ends
 // src/exports.js begins
-module.exports = {
+mecanicaLibrary = {
   Mecanica: Mecanica,
   WebWorker: WebWorker,
   Component: Component,
@@ -3304,9 +3308,11 @@ module.exports = {
   Renderer: Renderer,
   Method: Method,
   UserInterface: UserInterface,
-  Validator: Validator
-};
+  Validator: Validator,
+  getLibrary: Component.prototype.getLibrary
+}
+;
 
-
+module.exports = mecanicaLibrary;
 // src/exports.js ends
 })();

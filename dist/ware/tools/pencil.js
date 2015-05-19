@@ -1,6 +1,3 @@
-var lib = require('../../../dist/mecanica.js');
-var validator = new lib.Validator();
-
 var defaultOptions = {
   lengthUnits: 'mm',
   color: 0x993333,
@@ -9,8 +6,11 @@ var defaultOptions = {
   size: 100
 };
 
-var getObject = function (o) {
+var getObject = function (o, mecanica) {
+  var validator = new mecanica.Validator();
+
   o = _.defaults(o, defaultOptions);
+
 
   validator.settings('local', {
     freeze: false,

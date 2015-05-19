@@ -14,7 +14,7 @@ var defaultOptions = {
   pencilRadius: 0.05
 };
 
-var getObject = function (o) {
+var getObject = function (o, library) {
   o = _.defaults(o, defaultOptions);
 
   validator.settings('local', {

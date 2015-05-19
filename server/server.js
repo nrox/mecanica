@@ -46,7 +46,7 @@ function registerAll(socket) {
     if (obj.userInterface) {
       var options = obj.userInterface({
         system: this.script
-      });
+      }, lib);
       var ui = new lib.UserInterface(options, mecanica);
       this.loadedUI(ui);
       this.emit();

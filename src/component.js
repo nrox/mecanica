@@ -3,6 +3,7 @@
  * super class
  */
 
+var mecanicaLibrary;
 
 var _ = require('./lib/underscore.js');
 var ammoHelper = require('./lib/ammo.js');
@@ -293,6 +294,9 @@ Component.prototype.getLibrary = function (library) {
     },
     jquery: function () {
       return jQuery;
+    },
+    mecanica: function () {
+      return mecanicaLibrary;
     }
   };
   return libraries[library] && libraries[library]();

@@ -213,7 +213,7 @@ System.prototype.make = function () {
 
 System.prototype.import = function (url, options) {
   try {
-    var json = require(url).getObject(options);
+    var json = require(url).getObject(options, this.getLibrary('mecanica'));
     this.load(json);
   } catch (e) {
     console.log('in System.import: ' + url);
@@ -240,7 +240,7 @@ System.prototype.importSystem = function (url, id, options) {
     //console.log("" + mod.getObject);
     //console.log( mod.defaultOptions);
 
-    var json = mod.getObject(options);
+    var json = mod.getObject(options, this.getLibrary('mecanica'));
     return this.loadSystem(json, id);
   } catch (e) {
     console.log('in System.importSystem: ' + id + ' @ ' + url);

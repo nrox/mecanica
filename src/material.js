@@ -7,7 +7,7 @@ Material.prototype.types = {
     this.include(options, {
       friction: 0.3, restitution: 0.1,
       color: 0x333333, opacity: 1, transparent: false,
-      wireframe: undefined
+      wireframe: false
     });
     if (this.options().wireframe === undefined) {
       this.options().wireframe = this.wireframe = this.globalSettings().wireframe;

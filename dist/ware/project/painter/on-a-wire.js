@@ -66,7 +66,7 @@ var getObject = function (o) {
 };
 
 
-var userInterface = function (options) {
+var userInterface = function (options, mecanica) {
   options = _.defaults(options || {}, {
     system: undefined,
     container: 'body'

@@ -149,7 +149,7 @@ MecanicaClient.prototype.buildListeners = function () {
     if (obj.userInterface) {
       var options = obj.userInterface({
         system: script, container: '#triggers'
-      });
+      }, _this.lib);
       _this.ui.reuseWith(options);
       _this.ui.setCallback(function (data) {
         _this.socket.emit('ui-trigger', {script: script, data: data});

@@ -42,7 +42,7 @@
 
     //add the object to scene/world
     var object = require(file);
-    var system = mecanica.loadSystem(object.getObject(), file);
+    var system = mecanica.loadSystem(object.getObject({}, lib), file);
     mecanica.addToScene();
 
     //optional: add user inputs if they are specified in the object
@@ -51,7 +51,7 @@
         var controlsOptions = controlsOptionsGenerator({
             system: system.options().id,
             container: '#triggers'
-        });
+        }, lib);
         new lib.UserInterface(controlsOptions, mecanica);
     }
 

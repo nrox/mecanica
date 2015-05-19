@@ -1,4 +1,4 @@
-module.exports = {
+mecanicaLibrary = {
   Mecanica: Mecanica,
   WebWorker: WebWorker,
   Component: Component,
@@ -18,6 +18,9 @@ module.exports = {
   Renderer: Renderer,
   Method: Method,
   UserInterface: UserInterface,
-  Validator: Validator
-};
+  Validator: Validator,
+  getLibrary: Component.prototype.getLibrary
+}
+;
 
+module.exports = mecanicaLibrary;
