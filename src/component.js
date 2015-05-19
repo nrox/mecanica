@@ -276,4 +276,24 @@ Component.prototype.destroy = function () {
   }
 };
 
+Component.prototype.getLibrary = function (library) {
+  return {
+    ammo: function () {
+      return ammoHelper;
+    },
+    three: function () {
+      return THREE;
+    },
+    underscore: function () {
+      return _;
+    },
+    utils: function () {
+      return utils;
+    },
+    jQuery: function () {
+      return jQuery;
+    }
+  }[library]();
+};
+
 
