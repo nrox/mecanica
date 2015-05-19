@@ -62,7 +62,7 @@ function shape(type) {
       },
       body: {
         body0: {
-          shape: 'shape0', material: {
+          shape: 'shape0', mass: 0, material: {
             type: 'phong', color: 0xf56677, opacity: 0.7, transparent: true
           }
         }

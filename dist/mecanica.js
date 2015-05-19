@@ -1265,11 +1265,11 @@ function Shape(options, system) {
 Shape.prototype.types = {
   sphere: function (options) {
     this.include(options, {
-      r: 1, segments: 12
+      r: 1, segments: 12, gap: 0
     });
     this.useConversion();
-    if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r);
-    if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r, this.segments, this.segments);
+    if (this.runsPhysics()) this.ammo = new Ammo.btSphereShape(this.r - this.gap);
+    if (this.runsRender()) this.three = new THREE.SphereGeometry(this.r - this.gap, this.segments, this.segments);
   },
   box: function (options) {
     this.include(options, {
@@ -1283,19 +1283,19 @@ Shape.prototype.types = {
   },
   cylinder: function (options) {
     this.include(options, {
-      r: 1, dy: 1, segments: 12
+      r: 1, dy: 1, segments: 12, gap: 0
     });
     this.useConversion();
-    if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r, this.dy / 2, this.r));
-    if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r, this.r, this.dy, this.segments);
+    if (this.runsPhysics()) this.ammo = new Ammo.btCylinderShape(new Ammo.btVector3(this.r - this.gap, this.dy / 2 - this.gap, this.r - this.gap));
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(this.r - this.gap, this.r - this.gap, this.dy - 2 * this.gap, this.segments);
   },
   cone: function (options) {
     this.include(options, {
-      r: 1, dy: 1, segments: 12
+      r: 1, dy: 1, segments: 12, gap: 0
     });
     this.useConversion();
-    if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r, this.dy);
-    if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r, this.dy, this.segments);
+    if (this.runsPhysics()) this.ammo = new Ammo.btConeShape(this.r - this.gap, this.dy - 2 * this.gap);
+    if (this.runsRender()) this.three = new THREE.CylinderGeometry(0, this.r - this.gap, this.dy - 2 * this.gap, this.segments);
   },
   compound: function (options) {
     this.include(options, {
